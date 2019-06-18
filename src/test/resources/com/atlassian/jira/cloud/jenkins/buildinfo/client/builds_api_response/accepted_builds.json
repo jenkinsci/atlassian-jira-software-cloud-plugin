@@ -1,0 +1,10 @@
+{
+  "acceptedBuilds": [
+    {
+      "pipelineId": "Test Pipeline Build",
+      "buildNumber": 35
+    }
+  ],
+  "rejectedBuilds": [],
+  "unknownIssueKeys": []
+}

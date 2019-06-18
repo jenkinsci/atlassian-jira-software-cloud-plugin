@@ -1,0 +1,16 @@
+# Intellij files
+#IDE
+.idea/
+**/*.iml
+
+# jenkins stuff
+work/
+
+# maven stuff
+.mvn/maven.config
+target
+
+# other
+*~
+*.swp
+*.DS_Store

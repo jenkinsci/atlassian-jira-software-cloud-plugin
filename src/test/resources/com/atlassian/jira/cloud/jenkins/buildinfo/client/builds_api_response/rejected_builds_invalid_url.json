@@ -1,0 +1,17 @@
+{
+  "acceptedBuilds": [],
+  "rejectedBuilds": [
+    {
+      "key": {
+        "pipelineId": "Test Pipeline Build",
+        "buildNumber": 36
+      },
+      "errors": [
+        {
+          "message": "'url' is required"
+        }
+      ]
+    }
+  ],
+  "unknownIssueKeys": []
+}

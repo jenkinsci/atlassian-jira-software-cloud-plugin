@@ -1,0 +1,12 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:l="/lib/layout">
+    <l:ajax>
+        <div>
+            <h3>${%Title}</h3>
+
+            <p>
+                ${%Documentation}
+            </p>
+        </div>
+    </l:ajax>
+</j:jelly>

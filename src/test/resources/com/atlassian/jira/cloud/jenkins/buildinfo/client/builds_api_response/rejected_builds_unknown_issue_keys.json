@@ -1,0 +1,19 @@
+{
+  "acceptedBuilds": [],
+  "rejectedBuilds": [
+    {
+      "key": {
+        "pipelineId": "Test Pipeline Build",
+        "buildNumber": 36
+      },
+      "errors": [
+        {
+          "message": "No valid issues found for build"
+        }
+      ]
+    }
+  ],
+  "unknownIssueKeys": [
+    "TEST-110"
+  ]
+}
