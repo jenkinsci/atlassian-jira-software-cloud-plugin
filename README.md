@@ -1,17 +1,14 @@
-Atlassian Jira Software Cloud - Jenkins Plugin
-===================== 
+# Atlassian Jira Software Cloud - Jenkins Plugin
 
 
-Development
-===========
+## Development
 
 Start the local Jenkins instance:
 
     mvn hpi:run
 
 
-Jenkins Plugin Maven goals
---------------------------
+## Jenkins Plugin Maven goals
 
 	hpi:create  Creates a skeleton of a new plugin.
 	
@@ -24,21 +21,11 @@ Jenkins Plugin Maven goals
 	hpi:upload Posts the hpi file to java.net. Used during the release.
 	
 	
-How to install
---------------
+## How to install
 
-Run 
-
-	mvn hpi:hpi
-	
-to create the plugin .hpi file.
-
-
-To install:
-
-1. copy the resulting ./target/rdoc.hpi file to the $JENKINS_HOME/plugins directory. Don't forget to restart Jenkins afterwards.
-	
-2. or use the plugin management console (http://example.com:8080/pluginManager/advanced) to upload the hpi file. You have to restart Jenkins in order to find the plugin in the installed plugins list.
+1. Download the [latest release](https://github.com/atlassian/atlassian-jira-software-cloud/releases/latest)
+2. Copy the plugin (hpi file) to the $JENKINS_HOME/plugins directory. Don't forget to restart Jenkins afterwards. 
+Alternatively, use the plugin management console (http://example.com:8080/pluginManager/advanced) to upload the hpi file. You have to restart Jenkins in order to find the plugin in the installed plugins list.
 
 Early Access Program Signup
 -----------------------------------------------------------
