@@ -1,5 +1,6 @@
 # Atlassian Jira Software Cloud - Jenkins Plugin
 
+[![Build Status](https://ci.jenkins.io/job/Plugins/job/atlassian-jira-software-cloud-plugin/job/master/badge/icon)](https://ci.jenkins.io/job/Plugins/job/atlassian-jira-software-cloud-plugin/job/master/)
 
 ## Development
 
