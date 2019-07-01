@@ -1,6 +1,8 @@
-# Atlassian Jira Software Cloud - Jenkins Plugin
+# Atlassian Jira Software Cloud Plugin for Jenkins
 
 [![Build Status](https://ci.jenkins.io/job/Plugins/job/atlassian-jira-software-cloud-plugin/job/master/badge/icon)](https://ci.jenkins.io/job/Plugins/job/atlassian-jira-software-cloud-plugin/job/master/)
+
+The plugin provides a free, easy, secure, and reliable way to connect build and deployment information from your Jenkins server to your Jira Software Cloud site. For more information, please visit the [Wiki page](https://wiki.jenkins.io/display/JENKINS/Atlassian+Jira+Software+Cloud+Plugin).
 
 ## Development
 

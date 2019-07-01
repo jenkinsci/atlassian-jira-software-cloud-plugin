@@ -27,6 +27,8 @@
     </properties>
     <name>Atlassian Jira Software Cloud</name>
     <description>Atlassian Jira Software Cloud Jenkins Integration</description>
+    <url>https://wiki.jenkins.io/display/JENKINS/Atlassian+Jira+Software+Cloud+Plugin</url>
+
     <licenses>
         <license>
             <name>Apache License, Version 2.0</name>
@@ -34,6 +36,18 @@
             <distribution>repo</distribution>
         </license>
     </licenses>
+
+    <developers>
+        <developer>
+            <id>rafalmyslek</id>
+            <name>Rafal Myslek</name>
+        </developer>
+        <developer>
+            <id>lenin_atlassian</id>
+            <name>Lenin Raj Rajasekaran</name>
+        </developer>
+    </developers>
+
     <dependencies>
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
