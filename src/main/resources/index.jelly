@@ -1,4 +1,4 @@
 <?jelly escape-by-default='true'?>
 <div>
-    ${%Title}
+    The plugin provides a free, easy, secure, and reliable way to connect build and deployment information from your Jenkins server to your Jira Software Cloud site.
 </div>
