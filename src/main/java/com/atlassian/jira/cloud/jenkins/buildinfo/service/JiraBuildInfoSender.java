@@ -1,6 +1,8 @@
 package com.atlassian.jira.cloud.jenkins.buildinfo.service;
 
+import com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse;
+
 public interface JiraBuildInfoSender {
 
-    JiraBuildInfoResponse sendBuildInfo(JiraBuildInfoRequest request);
+    JiraSendInfoResponse sendBuildInfo(JiraBuildInfoRequest request);
 }

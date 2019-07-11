@@ -2,11 +2,12 @@ package com.atlassian.jira.cloud.jenkins.buildinfo.service;
 
 import com.atlassian.jira.cloud.jenkins.auth.AccessTokenRetriever;
 import com.atlassian.jira.cloud.jenkins.buildinfo.client.BuildsApi;
+import com.atlassian.jira.cloud.jenkins.common.model.ApiErrorResponse;
 import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.BuildApiResponse;
-import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.BuildErrorResponse;
 import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.BuildKeyResponse;
 import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.RejectedBuildResponse;
 import com.atlassian.jira.cloud.jenkins.common.config.JiraSiteConfigRetriever;
+import com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse;
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
 import com.atlassian.jira.cloud.jenkins.tenantinfo.CloudIdResolver;
 import com.atlassian.jira.cloud.jenkins.util.RunWrapperProvider;
@@ -27,11 +28,11 @@ import java.util.Collections;
 import java.util.Optional;
 import java.util.UUID;
 
-import static com.atlassian.jira.cloud.jenkins.buildinfo.service.JiraBuildInfoResponse.Status.FAILURE_SCM_REVISION_NOT_FOUND;
-import static com.atlassian.jira.cloud.jenkins.buildinfo.service.JiraBuildInfoResponse.Status.FAILURE_SECRET_NOT_FOUND;
-import static com.atlassian.jira.cloud.jenkins.buildinfo.service.JiraBuildInfoResponse.Status.FAILURE_SITE_CONFIG_NOT_FOUND;
-import static com.atlassian.jira.cloud.jenkins.buildinfo.service.JiraBuildInfoResponse.Status.FAILURE_SITE_NOT_FOUND;
-import static com.atlassian.jira.cloud.jenkins.buildinfo.service.JiraBuildInfoResponse.Status.SKIPPED_ISSUE_KEYS_NOT_FOUND;
+import static com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse.Status.FAILURE_SCM_REVISION_NOT_FOUND;
+import static com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse.Status.FAILURE_SECRET_NOT_FOUND;
+import static com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse.Status.FAILURE_SITE_CONFIG_NOT_FOUND;
+import static com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse.Status.FAILURE_SITE_NOT_FOUND;
+import static com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse.Status.SKIPPED_ISSUE_KEYS_NOT_FOUND;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -86,7 +87,7 @@ public class JiraBuildInfoSenderImplTest {
         when(siteConfigRetriever.getJiraSiteConfig(any())).thenReturn(Optional.empty());
 
         // when
-        final JiraBuildInfoResponse response = classUnderTest.sendBuildInfo(createRequest());
+        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(createRequest());
 
         // then
         assertThat(response.getStatus()).isEqualTo(FAILURE_SITE_CONFIG_NOT_FOUND);
@@ -98,7 +99,7 @@ public class JiraBuildInfoSenderImplTest {
         when(secretRetriever.getSecretFor(any())).thenReturn(Optional.empty());
 
         // when
-        final JiraBuildInfoResponse response = classUnderTest.sendBuildInfo(createRequest());
+        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(createRequest());
 
         // then
         assertThat(response.getStatus()).isEqualTo(FAILURE_SECRET_NOT_FOUND);
@@ -110,7 +111,7 @@ public class JiraBuildInfoSenderImplTest {
         when(scmRevisionExtractor.getScmRevision(any())).thenReturn(Optional.empty());
 
         // when
-        final JiraBuildInfoResponse response = classUnderTest.sendBuildInfo(createRequest());
+        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(createRequest());
 
         // then
         assertThat(response.getStatus()).isEqualTo(FAILURE_SCM_REVISION_NOT_FOUND);
@@ -123,7 +124,7 @@ public class JiraBuildInfoSenderImplTest {
                 .thenReturn(Optional.of(new ScmRevision("master")));
 
         // when
-        final JiraBuildInfoResponse response = classUnderTest.sendBuildInfo(createRequest());
+        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(createRequest());
 
         // then
         assertThat(response.getStatus()).isEqualTo(SKIPPED_ISSUE_KEYS_NOT_FOUND);
@@ -137,7 +138,7 @@ public class JiraBuildInfoSenderImplTest {
         when(cloudIdResolver.getCloudId(any())).thenReturn(Optional.empty());
 
         // when
-        final JiraBuildInfoResponse response = classUnderTest.sendBuildInfo(createRequest());
+        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(createRequest());
 
         // then
         assertThat(response.getStatus()).isEqualTo(FAILURE_SITE_NOT_FOUND);
@@ -149,11 +150,11 @@ public class JiraBuildInfoSenderImplTest {
         when(accessTokenRetriever.getAccessToken(any())).thenReturn(Optional.empty());
 
         // when
-        final JiraBuildInfoResponse response = classUnderTest.sendBuildInfo(createRequest());
+        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(createRequest());
 
         // then
         assertThat(response.getStatus())
-                .isEqualTo(JiraBuildInfoResponse.Status.FAILURE_ACCESS_TOKEN);
+                .isEqualTo(JiraSendInfoResponse.Status.FAILURE_ACCESS_TOKEN);
     }
 
     @Test
@@ -162,11 +163,11 @@ public class JiraBuildInfoSenderImplTest {
         setupBuildsApiFailure();
 
         // when
-        final JiraBuildInfoResponse response = classUnderTest.sendBuildInfo(createRequest());
+        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(createRequest());
 
         // then
         assertThat(response.getStatus())
-                .isEqualTo(JiraBuildInfoResponse.Status.FAILURE_BUILDS_API_RESPONSE);
+                .isEqualTo(JiraSendInfoResponse.Status.FAILURE_BUILDS_API_RESPONSE);
     }
 
     @Test
@@ -175,11 +176,11 @@ public class JiraBuildInfoSenderImplTest {
         setupBuildsApiBuildAccepted();
 
         // when
-        final JiraBuildInfoResponse response = classUnderTest.sendBuildInfo(createRequest());
+        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(createRequest());
 
         // then
         assertThat(response.getStatus())
-                .isEqualTo(JiraBuildInfoResponse.Status.SUCCESS_BUILD_ACCEPTED);
+                .isEqualTo(JiraSendInfoResponse.Status.SUCCESS_BUILD_ACCEPTED);
         final String message = response.getMessage();
         assertThat(message).isNotBlank();
     }
@@ -190,11 +191,11 @@ public class JiraBuildInfoSenderImplTest {
         setupBuildApiBuildRejected();
 
         // when
-        final JiraBuildInfoResponse response = classUnderTest.sendBuildInfo(createRequest());
+        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(createRequest());
 
         // then
         assertThat(response.getStatus())
-                .isEqualTo(JiraBuildInfoResponse.Status.FAILURE_BUILD_REJECTED);
+                .isEqualTo(JiraSendInfoResponse.Status.FAILURE_BUILD_REJECTED);
         final String message = response.getMessage();
         assertThat(message).isNotBlank();
     }
@@ -205,10 +206,10 @@ public class JiraBuildInfoSenderImplTest {
         setupBuildApiUnknownIssueKeys();
 
         // when
-        final JiraBuildInfoResponse response = classUnderTest.sendBuildInfo(createRequest());
+        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(createRequest());
 
         assertThat(response.getStatus())
-                .isEqualTo(JiraBuildInfoResponse.Status.FAILURE_UNKNOWN_ISSUE_KEYS);
+                .isEqualTo(JiraSendInfoResponse.Status.FAILURE_UNKNOWN_ISSUE_KEYS);
         final String message = response.getMessage();
         assertThat(message).isNotBlank();
     }
@@ -281,7 +282,7 @@ public class JiraBuildInfoSenderImplTest {
 
     private void setupBuildApiBuildRejected() {
         final BuildKeyResponse buildKeyResponse = new BuildKeyResponse(PIPELINE_ID, BUILD_NUMBER);
-        final BuildErrorResponse errorResponse = new BuildErrorResponse("Error message");
+        final ApiErrorResponse errorResponse = new ApiErrorResponse("Error message");
         final RejectedBuildResponse buildResponse =
                 new RejectedBuildResponse(buildKeyResponse, ImmutableList.of(errorResponse));
 

@@ -2,7 +2,8 @@ package com.atlassian.jira.cloud.jenkins.buildinfo.pipeline;
 
 import com.atlassian.jira.cloud.jenkins.buildinfo.service.JiraBuildInfoResponse;
 import com.atlassian.jira.cloud.jenkins.buildinfo.service.JiraBuildInfoSender;
-import com.atlassian.jira.cloud.jenkins.buildinfo.service.JiraBuildInfoSenderFactory;
+import com.atlassian.jira.cloud.jenkins.common.factory.JiraSenderFactory;
+import com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse;
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudPluginConfig;
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
@@ -37,7 +38,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import static com.atlassian.jira.cloud.jenkins.buildinfo.service.JiraBuildInfoResponse.Status.SUCCESS_BUILD_ACCEPTED;
+import static com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse.Status.SUCCESS_BUILD_ACCEPTED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -72,15 +73,15 @@ public class JiraSendBuildInfoStepTest {
                 .addCredentials(Domain.global(), secretCredential());
 
         // setup JiraBuildInfoSender mock
-        final JiraBuildInfoSenderFactory mockSenderFactory = mock(JiraBuildInfoSenderFactory.class);
+        final JiraSenderFactory mockSenderFactory = mock(JiraSenderFactory.class);
         final JiraBuildInfoSender mockSender = mock(JiraBuildInfoSender.class);
         when(mockSenderFactory.getJiraBuildInfoSender()).thenReturn(mockSender);
-        JiraBuildInfoSenderFactory.setInstance(mockSenderFactory);
+        JiraSenderFactory.setInstance(mockSenderFactory);
         final BuildApiResponse response =
                 new BuildApiResponse(
                         Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
         final JiraBuildInfoResponse buildAccepted =
-                JiraBuildInfoResponse.successBuildAccepted(mockRun(), SITE, response);
+                JiraBuildInfoResponse.successBuildAccepted(SITE, response);
         when(mockSender.sendBuildInfo(any())).thenReturn(buildAccepted);
     }
 
@@ -119,7 +120,7 @@ public class JiraSendBuildInfoStepTest {
                 (JiraSendBuildInfoStep.JiraSendBuildInfoStepExecution) step.start(ctx);
 
         // when
-        final JiraBuildInfoResponse response = start.run();
+        final JiraSendInfoResponse response = start.run();
 
         // then
         assertThat(response.getStatus()).isEqualTo(SUCCESS_BUILD_ACCEPTED);
