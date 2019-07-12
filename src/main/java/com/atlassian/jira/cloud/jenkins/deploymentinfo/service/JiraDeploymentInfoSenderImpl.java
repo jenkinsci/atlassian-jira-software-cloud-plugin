@@ -1,14 +1,15 @@
 package com.atlassian.jira.cloud.jenkins.deploymentinfo.service;
 
 import com.atlassian.jira.cloud.jenkins.auth.AccessTokenRetriever;
+import com.atlassian.jira.cloud.jenkins.common.client.JiraApi;
 import com.atlassian.jira.cloud.jenkins.common.config.JiraSiteConfigRetriever;
 import com.atlassian.jira.cloud.jenkins.common.model.AppCredential;
 import com.atlassian.jira.cloud.jenkins.common.response.JiraCommonResponse;
 import com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse;
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.DeploymentPayloadBuilder;
-import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.DeploymentsApi;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.DeploymentApiResponse;
+import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Deployments;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Environment;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.JiraDeploymentInfo;
 import com.atlassian.jira.cloud.jenkins.tenantinfo.CloudIdResolver;
@@ -35,7 +36,7 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
     private final SecretRetriever secretRetriever;
     private final CloudIdResolver cloudIdResolver;
     private final AccessTokenRetriever accessTokenRetriever;
-    private final DeploymentsApi deploymentsApi;
+    private final JiraApi deploymentsApi;
     private final RunWrapperProvider runWrapperProvider;
 
     public JiraDeploymentInfoSenderImpl(
@@ -43,13 +44,13 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
             final SecretRetriever secretRetriever,
             final CloudIdResolver cloudIdResolver,
             final AccessTokenRetriever accessTokenRetriever,
-            final DeploymentsApi deploymentsApi,
+            final JiraApi jiraApi,
             final RunWrapperProvider runWrapperProvider) {
         this.siteConfigRetriever = requireNonNull(siteConfigRetriever);
         this.secretRetriever = requireNonNull(secretRetriever);
         this.cloudIdResolver = requireNonNull(cloudIdResolver);
         this.accessTokenRetriever = requireNonNull(accessTokenRetriever);
-        this.deploymentsApi = requireNonNull(deploymentsApi);
+        this.deploymentsApi = requireNonNull(jiraApi);
         this.runWrapperProvider = requireNonNull(runWrapperProvider);
     }
 
@@ -89,7 +90,7 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
             return JiraCommonResponse.failureAccessToken(jiraSite);
         }
 
-        final JiraDeploymentInfo deploymentInfo =
+        final Deployments deploymentInfo =
                 createJiraDeploymentInfo(deployment, request, issueKeys);
 
         return sendDeploymentInfo(
@@ -117,7 +118,7 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
         return secretRetriever.getSecretFor(credentialsId);
     }
 
-    private JiraDeploymentInfo createJiraDeploymentInfo(
+    private Deployments createJiraDeploymentInfo(
             final Run build, final JiraDeploymentInfoRequest request, final Set<String> issueKeys) {
         final RunWrapper buildWrapper = runWrapperProvider.getWrapper(build);
 
@@ -129,8 +130,8 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
             final String cloudId,
             final String accessToken,
             final String jiraSite,
-            final JiraDeploymentInfo deploymentInfo) {
-        return deploymentsApi.postDeploymentUpdate(cloudId, accessToken, jiraSite, deploymentInfo);
+            final Deployments deploymentInfo) {
+        return deploymentsApi.postUpdate(cloudId, accessToken, jiraSite, deploymentInfo, DeploymentApiResponse.class);
     }
 
     private JiraSendInfoResponse handleDeploymentApiResponse(

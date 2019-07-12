@@ -1,10 +1,10 @@
-package com.atlassian.jira.cloud.jenkins.buildinfo.client;
+package com.atlassian.jira.cloud.jenkins.common.client;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.atlassian.jira.cloud.jenkins.BaseMockServerTest;
 import com.atlassian.jira.cloud.jenkins.BuildsApiTestGenerator;
-import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.JiraBuildInfo;
 import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.BuildApiResponse;
+import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.Builds;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.OkHttpClient;
 import org.junit.Before;
 import org.junit.Rule;
@@ -22,7 +22,7 @@ public class BuildsApiTest extends BaseMockServerTest {
 
     @Inject private OkHttpClient httpClient;
     @Inject private ObjectMapper objectMapper;
-    private BuildsApi buildsApi;
+    private JiraApi buildsApi;
 
     private static String CLOUD_ID = "cloud_id";
     private static String ACCESS_TOKEN = "access_token";
@@ -33,8 +33,8 @@ public class BuildsApiTest extends BaseMockServerTest {
     @Before
     public void setup() throws IOException {
         super.setup();
-        buildsApi = new BuildsApi(httpClient, objectMapper);
-        buildsApi.setBuildsApiEndpoint(server.url("").toString());
+        buildsApi = new JiraApi(httpClient, objectMapper, JIRA_SITE_URL);
+        buildsApi.setApiEndpoint(server.url("").toString());
     }
 
     @Test
@@ -44,8 +44,8 @@ public class BuildsApiTest extends BaseMockServerTest {
 
         // execute
         Optional<BuildApiResponse> buildApiResponse =
-                buildsApi.postBuildUpdate(
-                        CLOUD_ID, ACCESS_TOKEN, JIRA_SITE_URL, mock(JiraBuildInfo.class));
+                buildsApi.postUpdate(
+                        CLOUD_ID, ACCESS_TOKEN, JIRA_SITE_URL, mock(Builds.class), BuildApiResponse.class);
 
         // verify
         assertThat(buildApiResponse.isPresent()).isTrue();
@@ -64,8 +64,8 @@ public class BuildsApiTest extends BaseMockServerTest {
 
         // execute
         Optional<BuildApiResponse> buildApiResponse =
-                buildsApi.postBuildUpdate(
-                        CLOUD_ID, ACCESS_TOKEN, JIRA_SITE_URL, mock(JiraBuildInfo.class));
+                buildsApi.postUpdate(
+                        CLOUD_ID, ACCESS_TOKEN, JIRA_SITE_URL, mock(Builds.class), BuildApiResponse.class);
 
         // verify
         assertThat(buildApiResponse.isPresent()).isTrue();
@@ -94,8 +94,8 @@ public class BuildsApiTest extends BaseMockServerTest {
 
         // execute
         Optional<BuildApiResponse> buildApiResponse =
-                buildsApi.postBuildUpdate(
-                        CLOUD_ID, ACCESS_TOKEN, JIRA_SITE_URL, mock(JiraBuildInfo.class));
+                buildsApi.postUpdate(
+                        CLOUD_ID, ACCESS_TOKEN, JIRA_SITE_URL, mock(Builds.class), BuildApiResponse.class);
 
         // verify
         assertThat(buildApiResponse.isPresent()).isTrue();
@@ -125,12 +125,12 @@ public class BuildsApiTest extends BaseMockServerTest {
         BuildsApiTestGenerator.unauthorizedResponse(this);
 
         // assertions
-        expectedException.expect(BuildUpdateFailedException.class);
+        expectedException.expect(ApiUpdateFailedException.class);
         expectedException.expectMessage(
-                "Error response code 401 when submitting builds for https://site.atlassian.net");
+                "Error response code 401 when submitting to https://site.atlassian.net");
 
         // execute
-        buildsApi.postBuildUpdate(CLOUD_ID, ACCESS_TOKEN, JIRA_SITE_URL, mock(JiraBuildInfo.class));
+        buildsApi.postUpdate(CLOUD_ID, ACCESS_TOKEN, JIRA_SITE_URL, mock(Builds.class), BuildApiResponse.class);
     }
 
     @Test
@@ -139,11 +139,11 @@ public class BuildsApiTest extends BaseMockServerTest {
         BuildsApiTestGenerator.serverError(this);
 
         // assertions
-        expectedException.expect(BuildUpdateFailedException.class);
+        expectedException.expect(ApiUpdateFailedException.class);
         expectedException.expectMessage(
-                "Error response code 500 when submitting builds for https://site.atlassian.net");
+                "Error response code 500 when submitting to https://site.atlassian.net");
 
         // execute
-        buildsApi.postBuildUpdate(CLOUD_ID, ACCESS_TOKEN, JIRA_SITE_URL, mock(JiraBuildInfo.class));
+        buildsApi.postUpdate(CLOUD_ID, ACCESS_TOKEN, JIRA_SITE_URL, mock(Builds.class), BuildApiResponse.class);
     }
 }

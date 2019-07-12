@@ -9,8 +9,8 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Includes the necessary info representing a build that has completed.
- * Uniquely represented by pipelineId and buildNumber.
+ * Includes the necessary info representing a build that has completed. Uniquely represented by
+ * pipelineId and buildNumber.
  */
 public final class JiraBuildInfo {
 

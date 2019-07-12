@@ -1,5 +1,6 @@
 package com.atlassian.jira.cloud.jenkins.buildinfo.client;
 
+import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.Builds;
 import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.JiraBuildInfo;
 import hudson.AbortException;
 import org.jenkinsci.plugins.workflow.support.steps.build.RunWrapper;
@@ -20,11 +21,11 @@ public final class BuildPayloadBuilder {
      * @param issueKeys Jira issue keys to associate the build info with
      * @return an assembled JiraBuildInfo
      */
-    public static JiraBuildInfo getBuildInfo(
+    public static Builds getBuildPayload(
             final RunWrapper buildWrapper, final Set<String> issueKeys) {
 
         try {
-            return JiraBuildInfo.builder()
+            return new Builds(JiraBuildInfo.builder()
                     .withPipelineId(buildWrapper.getFullProjectName())
                     .withBuildNumber(buildWrapper.getNumber())
                     .withDisplayName(buildWrapper.getDisplayName())
@@ -34,7 +35,7 @@ public final class BuildPayloadBuilder {
                     .withState(getBuildStatus(buildWrapper.getCurrentResult()))
                     .withLastUpdated(Instant.now().toString())
                     .withIssueKeys(issueKeys)
-                    .build();
+                    .build());
         } catch (final AbortException e) {
             throw new RuntimeException(e);
         }

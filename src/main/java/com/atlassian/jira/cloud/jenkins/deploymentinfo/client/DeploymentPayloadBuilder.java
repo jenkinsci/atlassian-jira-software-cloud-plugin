@@ -1,9 +1,9 @@
 package com.atlassian.jira.cloud.jenkins.deploymentinfo.client;
 
+import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Deployments;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Environment;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.JiraDeploymentInfo;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Pipeline;
-import com.atlassian.jira.cloud.jenkins.deploymentinfo.service.JiraDeploymentInfoRequest;
 import hudson.AbortException;
 import org.jenkinsci.plugins.workflow.support.steps.build.RunWrapper;
 
@@ -24,7 +24,7 @@ public final class DeploymentPayloadBuilder {
      * @param issueKeys Jira issue keys to associate the build info with
      * @return an assembled JiraBuildInfo
      */
-    public static JiraDeploymentInfo getDeploymentInfo(
+    public static Deployments getDeploymentInfo(
             final RunWrapper runWrapper,
             final Environment environment,
             final Set<String> issueKeys) {
@@ -37,7 +37,7 @@ public final class DeploymentPayloadBuilder {
                             .withUrl(runWrapper.getAbsoluteUrl())
                             .build();
 
-            return JiraDeploymentInfo.builder()
+            return new Deployments(JiraDeploymentInfo.builder()
                     .withDeploymentSequenceNumber(Instant.now().getEpochSecond())
                     .withUpdateSequenceNumber(Instant.now().getEpochSecond())
                     .withIssueKeys(issueKeys)
@@ -49,7 +49,7 @@ public final class DeploymentPayloadBuilder {
                     .withState(getDeploymentStatus(runWrapper.getCurrentResult()))
                     .withPipeline(pipeline)
                     .withEnvironment(environment)
-                    .build();
+                    .build());
         } catch (final AbortException e) {
             throw new RuntimeException(e);
         }

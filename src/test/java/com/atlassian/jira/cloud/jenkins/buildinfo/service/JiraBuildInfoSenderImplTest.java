@@ -1,12 +1,12 @@
 package com.atlassian.jira.cloud.jenkins.buildinfo.service;
 
 import com.atlassian.jira.cloud.jenkins.auth.AccessTokenRetriever;
-import com.atlassian.jira.cloud.jenkins.buildinfo.client.BuildsApi;
-import com.atlassian.jira.cloud.jenkins.common.model.ApiErrorResponse;
 import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.BuildApiResponse;
 import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.BuildKeyResponse;
 import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.RejectedBuildResponse;
+import com.atlassian.jira.cloud.jenkins.common.client.JiraApi;
 import com.atlassian.jira.cloud.jenkins.common.config.JiraSiteConfigRetriever;
+import com.atlassian.jira.cloud.jenkins.common.model.ApiErrorResponse;
 import com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse;
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
 import com.atlassian.jira.cloud.jenkins.tenantinfo.CloudIdResolver;
@@ -60,7 +60,7 @@ public class JiraBuildInfoSenderImplTest {
 
     @Mock private AccessTokenRetriever accessTokenRetriever;
 
-    @Mock private BuildsApi buildsApi;
+    @Mock private JiraApi buildsApi;
 
     @Mock private RunWrapperProvider runWrapperProvider;
 
@@ -266,7 +266,7 @@ public class JiraBuildInfoSenderImplTest {
     }
 
     private void setupBuildsApiFailure() {
-        when(buildsApi.postBuildUpdate(any(), any(), any(), any())).thenReturn(Optional.empty());
+        when(buildsApi.postUpdate(any(), any(), any(), any(), any())).thenReturn(Optional.empty());
     }
 
     private void setupBuildsApiBuildAccepted() {
@@ -276,7 +276,7 @@ public class JiraBuildInfoSenderImplTest {
                         ImmutableList.of(buildKeyResponse),
                         Collections.emptyList(),
                         Collections.emptyList());
-        when(buildsApi.postBuildUpdate(any(), any(), any(), any()))
+        when(buildsApi.postUpdate(any(), any(), any(), any(), any()))
                 .thenReturn(Optional.of(buildApiResponse));
     }
 
@@ -291,7 +291,7 @@ public class JiraBuildInfoSenderImplTest {
                         Collections.emptyList(),
                         ImmutableList.of(buildResponse),
                         Collections.emptyList());
-        when(buildsApi.postBuildUpdate(any(), any(), any(), any()))
+        when(buildsApi.postUpdate(any(), any(), any(), any(), any()))
                 .thenReturn(Optional.of(buildApiResponse));
     }
 
@@ -301,7 +301,7 @@ public class JiraBuildInfoSenderImplTest {
                         Collections.emptyList(),
                         Collections.emptyList(),
                         ImmutableList.of("TEST-123"));
-        when(buildsApi.postBuildUpdate(any(), any(), any(), any()))
+        when(buildsApi.postUpdate(any(), any(), any(), any(), any()))
                 .thenReturn(Optional.of(buildApiResponse));
     }
 

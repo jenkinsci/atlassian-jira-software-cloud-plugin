@@ -2,16 +2,16 @@ package com.atlassian.jira.cloud.jenkins.buildinfo.service;
 
 import com.atlassian.jira.cloud.jenkins.auth.AccessTokenRetriever;
 import com.atlassian.jira.cloud.jenkins.buildinfo.client.BuildPayloadBuilder;
-import com.atlassian.jira.cloud.jenkins.buildinfo.client.BuildsApi;
 import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.BuildApiResponse;
-import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.JiraBuildInfo;
+import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.Builds;
+import com.atlassian.jira.cloud.jenkins.common.client.JiraApi;
+import com.atlassian.jira.cloud.jenkins.common.config.JiraSiteConfigRetriever;
 import com.atlassian.jira.cloud.jenkins.common.model.AppCredential;
 import com.atlassian.jira.cloud.jenkins.common.model.IssueKey;
 import com.atlassian.jira.cloud.jenkins.common.response.JiraCommonResponse;
 import com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse;
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
 import com.atlassian.jira.cloud.jenkins.tenantinfo.CloudIdResolver;
-import com.atlassian.jira.cloud.jenkins.common.config.JiraSiteConfigRetriever;
 import com.atlassian.jira.cloud.jenkins.util.IssueKeyExtractor;
 import com.atlassian.jira.cloud.jenkins.util.RunWrapperProvider;
 import com.atlassian.jira.cloud.jenkins.util.ScmRevision;
@@ -39,7 +39,7 @@ public class JiraBuildInfoSenderImpl implements JiraBuildInfoSender {
     private final ScmRevisionExtractor scmRevisionExtractor;
     private final CloudIdResolver cloudIdResolver;
     private final AccessTokenRetriever accessTokenRetriever;
-    private final BuildsApi buildsApi;
+    private final JiraApi buildsApi;
     private final RunWrapperProvider runWrapperProvider;
 
     public JiraBuildInfoSenderImpl(
@@ -48,7 +48,7 @@ public class JiraBuildInfoSenderImpl implements JiraBuildInfoSender {
             final ScmRevisionExtractor scmRevisionExtractor,
             final CloudIdResolver cloudIdResolver,
             final AccessTokenRetriever accessTokenRetriever,
-            final BuildsApi buildsApi,
+            final JiraApi buildsApi,
             final RunWrapperProvider runWrapperProvider) {
         this.siteConfigRetriever = requireNonNull(siteConfigRetriever);
         this.secretRetriever = requireNonNull(secretRetriever);
@@ -102,7 +102,7 @@ public class JiraBuildInfoSenderImpl implements JiraBuildInfoSender {
             return JiraCommonResponse.failureAccessToken(jiraSite);
         }
 
-        final JiraBuildInfo buildInfo = createJiraBuildInfo(build, issueKeys);
+        final Builds buildInfo = createJiraBuildInfo(build, issueKeys);
 
         return sendBuildInfo(maybeCloudId.get(), maybeAccessToken.get(), jiraSite, buildInfo)
                 .map(response -> handleBuildApiResponse(jiraSite, response))
@@ -139,18 +139,18 @@ public class JiraBuildInfoSenderImpl implements JiraBuildInfoSender {
                 .collect(Collectors.toSet());
     }
 
-    private JiraBuildInfo createJiraBuildInfo(final Run build, final Set<String> issueKeys) {
+    private Builds createJiraBuildInfo(final Run build, final Set<String> issueKeys) {
         final RunWrapper buildWrapper = runWrapperProvider.getWrapper(build);
 
-        return BuildPayloadBuilder.getBuildInfo(buildWrapper, issueKeys);
+        return BuildPayloadBuilder.getBuildPayload(buildWrapper, issueKeys);
     }
 
     private Optional<BuildApiResponse> sendBuildInfo(
             final String cloudId,
             final String accessToken,
             final String jiraSite,
-            final JiraBuildInfo buildInfo) {
-        return buildsApi.postBuildUpdate(cloudId, accessToken, jiraSite, buildInfo);
+            final Builds buildInfo) {
+        return buildsApi.postUpdate(cloudId, accessToken, jiraSite, buildInfo, BuildApiResponse.class);
     }
 
     private JiraBuildInfoResponse handleBuildApiResponse(
