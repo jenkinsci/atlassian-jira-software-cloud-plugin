@@ -1,13 +1,13 @@
 package com.atlassian.jira.cloud.jenkins.common.factory;
 
 import com.atlassian.jira.cloud.jenkins.auth.AccessTokenRetriever;
-import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.BuildApiResponse;
 import com.atlassian.jira.cloud.jenkins.buildinfo.service.JiraBuildInfoSender;
 import com.atlassian.jira.cloud.jenkins.buildinfo.service.JiraBuildInfoSenderImpl;
 import com.atlassian.jira.cloud.jenkins.common.client.JiraApi;
 import com.atlassian.jira.cloud.jenkins.common.config.JiraSiteConfigRetriever;
 import com.atlassian.jira.cloud.jenkins.common.config.JiraSiteConfigRetrieverImpl;
-import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.DeploymentApiResponse;
+import com.atlassian.jira.cloud.jenkins.deploymentinfo.service.ChangeLogExtractor;
+import com.atlassian.jira.cloud.jenkins.deploymentinfo.service.ChangeLogExtractorImpl;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.service.JiraDeploymentInfoSender;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.service.JiraDeploymentInfoSenderImpl;
 import com.atlassian.jira.cloud.jenkins.provider.HttpClientProvider;
@@ -37,6 +37,7 @@ public final class JiraSenderFactory {
 
         final JiraSiteConfigRetriever siteConfigRetriever = new JiraSiteConfigRetrieverImpl();
         final ScmRevisionExtractorImpl scmRevisionExtractor = new ScmRevisionExtractorImpl();
+        final ChangeLogExtractor changeLogExtractor = new ChangeLogExtractorImpl();
         final SecretRetriever secretRetriever = new SecretRetriever();
         final CloudIdResolver cloudIdResolver = new CloudIdResolver(httpClient, objectMapper);
         final AccessTokenRetriever accessTokenRetriever =
@@ -69,6 +70,7 @@ public final class JiraSenderFactory {
                         cloudIdResolver,
                         accessTokenRetriever,
                         deploymentsApi,
+                        changeLogExtractor,
                         new RunWrapperProviderImpl());
     }
 

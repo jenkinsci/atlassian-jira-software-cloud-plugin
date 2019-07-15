@@ -11,7 +11,6 @@ import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.DeploymentPayloadB
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.DeploymentApiResponse;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Deployments;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Environment;
-import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.JiraDeploymentInfo;
 import com.atlassian.jira.cloud.jenkins.tenantinfo.CloudIdResolver;
 import com.atlassian.jira.cloud.jenkins.util.RunWrapperProvider;
 import com.atlassian.jira.cloud.jenkins.util.SecretRetriever;
@@ -28,8 +27,6 @@ import static java.util.Objects.requireNonNull;
 
 public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
 
-    private static final Logger log = LoggerFactory.getLogger(JiraDeploymentInfoSenderImpl.class);
-
     private static final String HTTPS_PROTOCOL = "https://";
 
     private final JiraSiteConfigRetriever siteConfigRetriever;
@@ -38,6 +35,7 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
     private final AccessTokenRetriever accessTokenRetriever;
     private final JiraApi deploymentsApi;
     private final RunWrapperProvider runWrapperProvider;
+    private final ChangeLogExtractor changeLogExtractor;
 
     public JiraDeploymentInfoSenderImpl(
             final JiraSiteConfigRetriever siteConfigRetriever,
@@ -45,6 +43,7 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
             final CloudIdResolver cloudIdResolver,
             final AccessTokenRetriever accessTokenRetriever,
             final JiraApi jiraApi,
+            final ChangeLogExtractor changeLogExtractor,
             final RunWrapperProvider runWrapperProvider) {
         this.siteConfigRetriever = requireNonNull(siteConfigRetriever);
         this.secretRetriever = requireNonNull(secretRetriever);
@@ -52,6 +51,7 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
         this.accessTokenRetriever = requireNonNull(accessTokenRetriever);
         this.deploymentsApi = requireNonNull(jiraApi);
         this.runWrapperProvider = requireNonNull(runWrapperProvider);
+        this.changeLogExtractor = requireNonNull(changeLogExtractor);
     }
 
     @Override
@@ -72,7 +72,7 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
             return JiraCommonResponse.failureSecretNotFound(jiraSite);
         }
 
-        final Set<String> issueKeys = ChangeLogProcessor.extractIssueKeys(deployment);
+        final Set<String> issueKeys = changeLogExtractor.extractIssueKeys(deployment);
 
         if (issueKeys.isEmpty()) {
             return JiraDeploymentInfoResponse.skippedIssueKeysNotFound(jiraSite);

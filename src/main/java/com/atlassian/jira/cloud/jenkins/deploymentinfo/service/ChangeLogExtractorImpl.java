@@ -13,9 +13,9 @@ import java.util.stream.Collectors;
 
 import static com.atlassian.jira.cloud.jenkins.util.IssueKeyExtractor.ISSUE_KEY_MAX_LIMIT;
 
-public final class ChangeLogProcessor {
+public final class ChangeLogExtractorImpl implements ChangeLogExtractor {
 
-    public static Set<String> extractIssueKeys(final WorkflowRun workflowRun) {
+    public Set<String> extractIssueKeys(final WorkflowRun workflowRun) {
 
         final Set<IssueKey> allIssueKeys = new HashSet<>();
         final List<ChangeLogSet<? extends ChangeLogSet.Entry>> changeSets =
