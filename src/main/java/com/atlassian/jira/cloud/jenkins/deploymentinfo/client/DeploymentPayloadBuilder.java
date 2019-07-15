@@ -4,6 +4,7 @@ import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Deployments;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Environment;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.JiraDeploymentInfo;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Pipeline;
+import com.atlassian.jira.cloud.jenkins.util.JenkinsToJiraStatus;
 import hudson.AbortException;
 import org.jenkinsci.plugins.workflow.support.steps.build.RunWrapper;
 
@@ -11,10 +12,6 @@ import java.time.Instant;
 import java.util.Set;
 
 public final class DeploymentPayloadBuilder {
-
-    private static final String STATUS_SUCCESSFUL = "successful";
-    private static final String STATUS_FAILED = "failed";
-    private static final String STATUS_UNKNOWN = "unknown";
 
     /**
      * Assembles a JiraDeploymentInfo with necessary parameters from the Jenkins context
@@ -46,24 +43,12 @@ public final class DeploymentPayloadBuilder {
                     .withDescription(String.format("#%d - %s", runWrapper.getNumber(), runWrapper.getDisplayName()))
                     .withLastUpdated(Instant.now().toString())
                     .withLabel(runWrapper.getDisplayName())
-                    .withState(getDeploymentStatus(runWrapper.getCurrentResult()))
+                    .withState(JenkinsToJiraStatus.getStatus(runWrapper.getCurrentResult()))
                     .withPipeline(pipeline)
                     .withEnvironment(environment)
                     .build());
         } catch (final AbortException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    private static String getDeploymentStatus(final String result) {
-        if ("SUCCESS".equalsIgnoreCase(result)) {
-            return STATUS_SUCCESSFUL;
-        }
-
-        if ("FAILURE".equalsIgnoreCase(result)) {
-            return STATUS_FAILED;
-        }
-
-        return STATUS_UNKNOWN;
     }
 }
