@@ -33,14 +33,16 @@ public final class DeploymentPayloadBuilder {
                             .withDisplayName(runWrapper.getDisplayName())
                             .withUrl(runWrapper.getAbsoluteUrl())
                             .build();
+            final long epochSecond = Instant.now().getEpochSecond();
 
-            return new Deployments(JiraDeploymentInfo.builder()
-                    .withDeploymentSequenceNumber(Instant.now().getEpochSecond())
-                    .withUpdateSequenceNumber(Instant.now().getEpochSecond())
+            return new Deployments(
+                    JiraDeploymentInfo.builder()
+                    .withDeploymentSequenceNumber(epochSecond)
+                    .withUpdateSequenceNumber(epochSecond)
                     .withIssueKeys(issueKeys)
                     .withDisplayName(runWrapper.getDisplayName())
                     .withUrl(runWrapper.getAbsoluteUrl())
-                    .withDescription(String.format("#%d - %s", runWrapper.getNumber(), runWrapper.getDisplayName()))
+                    .withDescription(runWrapper.getDisplayName())
                     .withLastUpdated(Instant.now().toString())
                     .withLabel(runWrapper.getDisplayName())
                     .withState(JenkinsToJiraStatus.getStatus(runWrapper.getCurrentResult()))
