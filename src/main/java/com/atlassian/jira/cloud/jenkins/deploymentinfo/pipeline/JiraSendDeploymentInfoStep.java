@@ -83,7 +83,7 @@ public class JiraSendDeploymentInfoStep extends Step implements Serializable {
         @Inject private transient JiraCloudPluginConfig globalConfig;
 
         @Override
-        public Set<? extends Class<?>> getRequiredContext() {
+        public Set<Class<?>> getRequiredContext() {
             return ImmutableSet.of(TaskListener.class, Run.class);
         }
 
