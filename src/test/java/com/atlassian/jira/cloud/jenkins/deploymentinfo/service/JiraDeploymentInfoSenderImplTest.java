@@ -41,6 +41,7 @@ public class JiraDeploymentInfoSenderImplTest {
 
     private static final String SITE = "example.atlassian.com";
     public static final String ENVIRONMENT_ID = "prod-east-1";
+    public static final String ENVIRONMENT_NAME = "prod-east-1";
     public static final String ENVIRONMENT_TYPE = "production";
     private static final String CLOUD_ID = UUID.randomUUID().toString();
     public static final String PIPELINE_ID = UUID.randomUUID().toString();
@@ -208,7 +209,7 @@ public class JiraDeploymentInfoSenderImplTest {
     }
 
     private JiraDeploymentInfoRequest createRequest() {
-        return new JiraDeploymentInfoRequest(SITE, ENVIRONMENT_TYPE, ENVIRONMENT_ID, mockWorkflowRun());
+        return new JiraDeploymentInfoRequest(SITE, ENVIRONMENT_ID, ENVIRONMENT_NAME, ENVIRONMENT_TYPE, mockWorkflowRun());
     }
 
     private void setupMocks() {

@@ -53,7 +53,7 @@ public final class DeploymentPayloadBuilder {
         return Pipeline.builder()
                 .withId(runWrapper.getFullProjectName())
                 .withDisplayName(runWrapper.getFullProjectName())
-                .withUrl(build.map(b -> b.getParent().getUrl()).orElse(runWrapper.getAbsoluteUrl()))
+                .withUrl(build.map(b -> b.getParent().getAbsoluteUrl()).orElse(runWrapper.getAbsoluteUrl()))
                 .build();
     }
 }
