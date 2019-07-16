@@ -6,9 +6,11 @@ import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.JiraDeployme
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Pipeline;
 import com.atlassian.jira.cloud.jenkins.util.JenkinsToJiraStatus;
 import hudson.AbortException;
+import hudson.model.Run;
 import org.jenkinsci.plugins.workflow.support.steps.build.RunWrapper;
 
 import java.time.Instant;
+import java.util.Optional;
 import java.util.Set;
 
 public final class DeploymentPayloadBuilder {
@@ -25,20 +27,11 @@ public final class DeploymentPayloadBuilder {
             final RunWrapper runWrapper,
             final Environment environment,
             final Set<String> issueKeys) {
-
         try {
-            final Pipeline pipeline =
-                    Pipeline.builder()
-                            .withId(runWrapper.getFullProjectName())
-                            .withDisplayName(runWrapper.getDisplayName())
-                            .withUrl(runWrapper.getAbsoluteUrl())
-                            .build();
-            final long epochSecond = Instant.now().getEpochSecond();
-
             return new Deployments(
                     JiraDeploymentInfo.builder()
-                    .withDeploymentSequenceNumber(epochSecond)
-                    .withUpdateSequenceNumber(epochSecond)
+                    .withDeploymentSequenceNumber(runWrapper.getNumber())
+                    .withUpdateSequenceNumber(Instant.now().getEpochSecond())
                     .withIssueKeys(issueKeys)
                     .withDisplayName(runWrapper.getDisplayName())
                     .withUrl(runWrapper.getAbsoluteUrl())
@@ -46,11 +39,21 @@ public final class DeploymentPayloadBuilder {
                     .withLastUpdated(Instant.now().toString())
                     .withLabel(runWrapper.getDisplayName())
                     .withState(JenkinsToJiraStatus.getStatus(runWrapper.getCurrentResult()))
-                    .withPipeline(pipeline)
+                    .withPipeline(getPipeline(runWrapper))
                     .withEnvironment(environment)
                     .build());
         } catch (final AbortException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private static Pipeline getPipeline(RunWrapper runWrapper) throws AbortException {
+        final Optional<? extends Run<?, ?>> build = Optional.ofNullable(runWrapper.getRawBuild());
+
+        return Pipeline.builder()
+                .withId(runWrapper.getFullProjectName())
+                .withDisplayName(runWrapper.getFullProjectName())
+                .withUrl(build.map(b -> b.getParent().getUrl()).orElse(runWrapper.getAbsoluteUrl()))
+                .build();
     }
 }

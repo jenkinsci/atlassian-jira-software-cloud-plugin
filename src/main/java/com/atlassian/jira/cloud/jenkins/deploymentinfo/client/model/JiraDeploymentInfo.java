@@ -14,7 +14,7 @@ public final class JiraDeploymentInfo {
 
     private static final String SCHEMA_VERSION = "1.0";
 
-    private final Long deploymentSequenceNumber;
+    private final Integer deploymentSequenceNumber;
     private final Long updateSequenceNumber;
     private final Set<String> issueKeys;
     private final String displayName;
@@ -28,7 +28,7 @@ public final class JiraDeploymentInfo {
 
     @JsonCreator
     public JiraDeploymentInfo(
-            @JsonProperty("deploymentSequenceNumber") final Long deploymentSequenceNumber,
+            @JsonProperty("deploymentSequenceNumber") final Integer deploymentSequenceNumber,
             @JsonProperty("updateSequenceNumber") final Long updateSequenceNumber,
             @JsonProperty("issueKeys") final Set<String> issueKeys,
             @JsonProperty("displayName") final String displayName,
@@ -52,7 +52,7 @@ public final class JiraDeploymentInfo {
         this.environment = environment;
     }
 
-    public Long getDeploymentSequenceNumber() {
+    public Integer getDeploymentSequenceNumber() {
         return deploymentSequenceNumber;
     }
 
@@ -105,7 +105,7 @@ public final class JiraDeploymentInfo {
     }
 
     public static class Builder {
-        private Long deploymentSequenceNumber;
+        private Integer deploymentSequenceNumber;
         private Long updateSequenceNumber;
         private Set<String> issueKeys;
         private String displayName;
@@ -117,7 +117,7 @@ public final class JiraDeploymentInfo {
         private Pipeline pipeline;
         private Environment environment;
 
-        public Builder withDeploymentSequenceNumber(final Long deploymentSequenceNumber) {
+        public Builder withDeploymentSequenceNumber(final Integer deploymentSequenceNumber) {
             this.deploymentSequenceNumber = deploymentSequenceNumber;
             return this;
         }
