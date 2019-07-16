@@ -138,6 +138,7 @@ public class JiraSendDeploymentInfoStep extends Step implements Serializable {
             final JiraDeploymentInfoRequest request =
                     new JiraDeploymentInfoRequest(
                             step.getSite(),
+                            step.getEnvironmentId(),
                             step.getEnvironmentName(),
                             step.getEnvironmentType(),
                             workflowRun);

@@ -159,8 +159,8 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
 
     private Environment buildEnvironment(final JiraDeploymentInfoRequest request) {
         return Environment.builder()
-                .withId(request.getEnvironment())
-                .withDisplayName(request.getEnvironment())
+                .withId(request.getEnvironmentId())
+                .withDisplayName(request.getEnvironmentName())
                 .withType(request.getEnvironmentType())
                 .build();
     }

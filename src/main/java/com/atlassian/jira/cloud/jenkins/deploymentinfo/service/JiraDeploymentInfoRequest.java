@@ -7,17 +7,20 @@ import static java.util.Objects.requireNonNull;
 public class JiraDeploymentInfoRequest {
 
     private final String site;
-    private final String environment;
+    private final String environmentId;
+    private final String environmentName;
     private final String environmentType;
     private final WorkflowRun deployment;
 
     public JiraDeploymentInfoRequest(
             final String site,
-            final String environment,
+            final String environmentId,
+            final String environmentName,
             final String environmentType,
             final WorkflowRun deployment) {
         this.site = requireNonNull(site);
-        this.environment = environment;
+        this.environmentId = environmentId;
+        this.environmentName = environmentName;
         this.environmentType = environmentType;
         this.deployment = requireNonNull(deployment);
     }
@@ -30,8 +33,12 @@ public class JiraDeploymentInfoRequest {
         return deployment;
     }
 
-    public String getEnvironment() {
-        return environment;
+    public String getEnvironmentId() {
+        return environmentId;
+    }
+
+    public String getEnvironmentName() {
+        return environmentName;
     }
 
     public String getEnvironmentType() {
