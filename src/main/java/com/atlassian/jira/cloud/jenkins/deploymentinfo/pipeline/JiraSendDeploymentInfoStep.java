@@ -34,14 +34,16 @@ public class JiraSendDeploymentInfoStep extends Step implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private String site;
-    private String environment;
+    private String environmentId;
+    private String environmentName;
     private String environmentType;
 
     @DataBoundConstructor
     public JiraSendDeploymentInfoStep(
-            final String site, final String environment, final String environmentType) {
+            final String site, final String environmentId, final String environmentName, final String environmentType) {
         this.site = site;
-        this.environment = environment;
+        this.environmentId = environmentId;
+        this.environmentName = environmentName;
         this.environmentType = environmentType;
     }
 
@@ -54,13 +56,22 @@ public class JiraSendDeploymentInfoStep extends Step implements Serializable {
         this.site = site;
     }
 
-    public String getEnvironment() {
-        return environment;
+    public String getEnvironmentId() {
+        return environmentId;
     }
 
     @DataBoundSetter
-    public void setEnvironment(final String environment) {
-        this.environment = environment;
+    public void setEnvironmentId(final String environmentId) {
+        this.environmentId = environmentId;
+    }
+
+    public String getEnvironmentName() {
+        return environmentName;
+    }
+
+    @DataBoundSetter
+    public void setEnvironmentName(final String environmentName) {
+        this.environmentName = environmentName;
     }
 
     public String getEnvironmentType() {
@@ -127,7 +138,7 @@ public class JiraSendDeploymentInfoStep extends Step implements Serializable {
             final JiraDeploymentInfoRequest request =
                     new JiraDeploymentInfoRequest(
                             step.getSite(),
-                            step.getEnvironment(),
+                            step.getEnvironmentName(),
                             step.getEnvironmentType(),
                             workflowRun);
             final JiraSendInfoResponse response =

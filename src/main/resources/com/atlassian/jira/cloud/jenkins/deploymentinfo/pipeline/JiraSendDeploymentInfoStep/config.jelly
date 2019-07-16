@@ -4,7 +4,10 @@
     <f:entry field="site" title="${%Site}">
         <f:select/>
     </f:entry>
-    <f:entry field="environment" title="${%Environment}">
+    <f:entry field="environmentId" title="${%EnvironmentId}">
+        <f:textbox/>
+    </f:entry>
+    <f:entry field="environmentName" title="${%EnvironmentName}">
         <f:textbox/>
     </f:entry>
     <f:entry field="environmentType" title="${%EnvironmentType}">

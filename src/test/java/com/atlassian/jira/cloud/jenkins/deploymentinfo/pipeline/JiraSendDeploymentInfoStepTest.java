@@ -44,7 +44,8 @@ import static org.mockito.Mockito.when;
 public class JiraSendDeploymentInfoStepTest {
 
     private static final String SITE = "example.atlassian.net";
-    private static final String ENVIRONMENT = "prod-east-1";
+    private static final String ENVIRONMENT_ID = UUID.randomUUID().toString();
+    private static final String ENVIRONMENT_NAME = "prod-east-1";
     private static final String ENVIRONMENT_TYPE = "production";
     private static final String CLIENT_ID = UUID.randomUUID().toString();
     private static final String CREDENTIAL_ID = UUID.randomUUID().toString();
@@ -86,10 +87,11 @@ public class JiraSendDeploymentInfoStepTest {
     @Test
     public void configRoundTrip() throws Exception {
         final JiraSendDeploymentInfoStep step =
-                new StepConfigTester(jenkinsRule).configRoundTrip(new JiraSendDeploymentInfoStep(SITE, ENVIRONMENT, ENVIRONMENT_TYPE));
+                new StepConfigTester(jenkinsRule).configRoundTrip(new JiraSendDeploymentInfoStep(SITE, ENVIRONMENT_ID, ENVIRONMENT_NAME, ENVIRONMENT_TYPE));
 
         assertThat(step.getSite()).isEqualTo(SITE);
-        assertThat(step.getEnvironment()).isEqualTo(ENVIRONMENT);
+        assertThat(step.getEnvironmentId()).isEqualTo(ENVIRONMENT_ID);
+        assertThat(step.getEnvironmentName()).isEqualTo(ENVIRONMENT_NAME);
         assertThat(step.getEnvironmentType()).isEqualTo(ENVIRONMENT_TYPE);
     }
 
@@ -104,7 +106,7 @@ public class JiraSendDeploymentInfoStepTest {
 
         final Map<String, Object> r = new HashMap<>();
         r.put("site", SITE);
-        r.put("environment", ENVIRONMENT);
+        r.put("environment", ENVIRONMENT_NAME);
         r.put("environmentType", ENVIRONMENT_TYPE);
         final JiraSendDeploymentInfoStep step = (JiraSendDeploymentInfoStep) descriptor.newInstance(r);
 
