@@ -13,6 +13,10 @@ import java.util.stream.Collectors;
 
 import static com.atlassian.jira.cloud.jenkins.util.IssueKeyExtractor.ISSUE_KEY_MAX_LIMIT;
 
+/**
+ * Parses the change log from the current build and extracts the issue keys
+ * from the commit messages. It also tries to extract from squashed commits.
+ */
 public final class ChangeLogExtractorImpl implements ChangeLogExtractor {
 
     public Set<String> extractIssueKeys(final WorkflowRun workflowRun) {

@@ -17,14 +17,16 @@ import com.atlassian.jira.cloud.jenkins.util.SecretRetriever;
 import hudson.model.Run;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.jenkinsci.plugins.workflow.support.steps.build.RunWrapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
 import java.util.Set;
 
 import static java.util.Objects.requireNonNull;
 
+/**
+ * Implementation of JiraDeploymentInfoSender to send build updates to Jira by building the payload, generating
+ * the access token, sending the request and parsing the response.
+ */
 public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
 
     private static final String HTTPS_PROTOCOL = "https://";

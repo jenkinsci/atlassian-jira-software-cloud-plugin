@@ -47,7 +47,7 @@ public final class DeploymentPayloadBuilder {
         }
     }
 
-    private static Pipeline getPipeline(RunWrapper runWrapper) throws AbortException {
+    private static Pipeline getPipeline(final RunWrapper runWrapper) throws AbortException {
         final Optional<? extends Run<?, ?>> build = Optional.ofNullable(runWrapper.getRawBuild());
 
         return Pipeline.builder()

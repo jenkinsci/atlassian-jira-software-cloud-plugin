@@ -28,6 +28,10 @@ import java.util.stream.Collectors;
 
 import static java.util.Objects.requireNonNull;
 
+/**
+ * Implementation of JiraBuildInfoSender to send build updates to Jira by building the payload, generating
+ * the access token, sending the request and parsing the response.
+ */
 public class JiraBuildInfoSenderImpl implements JiraBuildInfoSender {
 
     private static final Logger log = LoggerFactory.getLogger(JiraBuildInfoSenderImpl.class);

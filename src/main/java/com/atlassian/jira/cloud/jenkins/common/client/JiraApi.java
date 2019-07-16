@@ -20,6 +20,9 @@ import java.io.NotSerializableException;
 import java.util.Objects;
 import java.util.Optional;
 
+/**
+ * Common client to talk to Build & Deployment APIs in Jira
+ */
 public class JiraApi {
 
     private static final Logger log = LoggerFactory.getLogger(JiraApi.class);
