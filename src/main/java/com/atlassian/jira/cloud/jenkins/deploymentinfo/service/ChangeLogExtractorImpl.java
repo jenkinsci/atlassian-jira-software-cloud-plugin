@@ -29,10 +29,7 @@ public final class ChangeLogExtractorImpl implements ChangeLogExtractor {
                 if (changeSetEntry instanceof GitChangeSet) {
                     allIssueKeys.addAll(IssueKeyExtractor.extractIssueKeys(((GitChangeSet) changeSetEntry).getComment()));
                 }
-
                 allIssueKeys.addAll(IssueKeyExtractor.extractIssueKeys(changeSetEntry.getMsg()));
-                allIssueKeys.addAll(
-                        IssueKeyExtractor.extractIssueKeys(changeSetEntry.getMsgAnnotated()));
 
                 if (allIssueKeys.size() >= ISSUE_KEY_MAX_LIMIT) {
                     break;

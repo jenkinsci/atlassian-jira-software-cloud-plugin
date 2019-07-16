@@ -1,6 +1,7 @@
 package com.atlassian.jira.cloud.jenkins.deploymentinfo.service;
 
 import com.google.common.collect.ImmutableList;
+import hudson.plugins.git.GitChangeSet;
 import hudson.scm.ChangeLogSet;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.junit.Before;
@@ -74,6 +75,18 @@ public class ChangeLogExtractorTest {
     }
 
     @Test
+    public void testExtractIssueKeys_forSquashedCommits() {
+        // given
+        final WorkflowRun workflowRun = changeSetWithSquashedCommitsInComment();
+
+        // when
+        final Set<String> issueKeys = changeLogExtractor.extractIssueKeys(workflowRun);
+
+        // then
+        assertThat(issueKeys).containsExactlyInAnyOrder("TEST-3", "TEST-4");
+    }
+
+    @Test
     public void testExtractIssueKeys_forIssuesAboveLimit() {
         // given
         final WorkflowRun workflowRun = workflowRunWithIssuesAboveLimit();
@@ -128,6 +141,22 @@ public class ChangeLogExtractorTest {
         final WorkflowRun workflowRun = mock(WorkflowRun.class);
 
         when(workflowRun.getChangeSets()).thenReturn(ImmutableList.of(changeLogSet1, changeLogSet2));
+        return workflowRun;
+    }
+
+    private WorkflowRun changeSetWithSquashedCommitsInComment() {
+        final GitChangeSet entry = mock(GitChangeSet.class);
+        when(entry.getComment()).thenReturn(
+                "Squashed Commit title (#12)\n" +
+                "* TEST-3 Fix bug #1\n" +
+                "\n" +
+                "* TEST-4 Fix bug #2\n"
+                );
+        final ChangeLogSet changeLogSet = mock(ChangeLogSet.class);
+        when(changeLogSet.getItems()).thenReturn(new Object[]{entry});
+        final WorkflowRun workflowRun = mock(WorkflowRun.class);
+
+        when(workflowRun.getChangeSets()).thenReturn(ImmutableList.of(changeLogSet));
         return workflowRun;
     }
 
