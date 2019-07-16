@@ -118,6 +118,17 @@ public class JiraSendDeploymentInfoStep extends Step implements Serializable {
 
             return items;
         }
+
+        @SuppressWarnings("unused")
+        public ListBoxModel doFillEnvironmentTypeItems() {
+            ListBoxModel items = new ListBoxModel();
+            items.add("development", "development");
+            items.add("testing", "testing");
+            items.add("staging", "staging");
+            items.add("production", "production");
+
+            return items;
+        }
     }
 
     public static class JiraSendDeploymentInfoStepExecution

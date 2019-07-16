@@ -11,6 +11,6 @@
         <f:textbox/>
     </f:entry>
     <f:entry field="environmentType" title="${%EnvironmentType}">
-        <f:textbox/>
+        <f:select/>
     </f:entry>
 </j:jelly>
