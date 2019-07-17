@@ -8,15 +8,16 @@ import com.atlassian.jira.cloud.jenkins.common.client.JiraApi;
 import com.atlassian.jira.cloud.jenkins.common.config.JiraSiteConfigRetriever;
 import com.atlassian.jira.cloud.jenkins.common.model.ApiErrorResponse;
 import com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse;
+import com.atlassian.jira.cloud.jenkins.common.service.IssueKeyExtractor;
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
 import com.atlassian.jira.cloud.jenkins.tenantinfo.CloudIdResolver;
 import com.atlassian.jira.cloud.jenkins.util.RunWrapperProvider;
 import com.atlassian.jira.cloud.jenkins.util.ScmRevision;
-import com.atlassian.jira.cloud.jenkins.util.ScmRevisionExtractor;
 import com.atlassian.jira.cloud.jenkins.util.SecretRetriever;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import hudson.AbortException;
-import hudson.model.Run;
+import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.jenkinsci.plugins.workflow.support.steps.build.RunWrapper;
 import org.junit.Before;
 import org.junit.Test;
@@ -28,7 +29,6 @@ import java.util.Collections;
 import java.util.Optional;
 import java.util.UUID;
 
-import static com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse.Status.FAILURE_SCM_REVISION_NOT_FOUND;
 import static com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse.Status.FAILURE_SECRET_NOT_FOUND;
 import static com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse.Status.FAILURE_SITE_CONFIG_NOT_FOUND;
 import static com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse.Status.FAILURE_SITE_NOT_FOUND;
@@ -54,7 +54,7 @@ public class JiraBuildInfoSenderImplTest {
 
     @Mock private SecretRetriever secretRetriever;
 
-    @Mock private ScmRevisionExtractor scmRevisionExtractor;
+    @Mock private IssueKeyExtractor issueKeyExtractor;
 
     @Mock private CloudIdResolver cloudIdResolver;
 
@@ -72,7 +72,7 @@ public class JiraBuildInfoSenderImplTest {
                 new JiraBuildInfoSenderImpl(
                         siteConfigRetriever,
                         secretRetriever,
-                        scmRevisionExtractor,
+                        issueKeyExtractor,
                         cloudIdResolver,
                         accessTokenRetriever,
                         buildsApi,
@@ -106,22 +106,9 @@ public class JiraBuildInfoSenderImplTest {
     }
 
     @Test
-    public void testSendBuildInfo_whenScmRevisionNotFound() {
-        // given
-        when(scmRevisionExtractor.getScmRevision(any())).thenReturn(Optional.empty());
-
-        // when
-        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(createRequest());
-
-        // then
-        assertThat(response.getStatus()).isEqualTo(FAILURE_SCM_REVISION_NOT_FOUND);
-    }
-
-    @Test
     public void testSendBuildInfo_whenIssueKeysNotFound() {
         // given
-        when(scmRevisionExtractor.getScmRevision(any()))
-                .thenReturn(Optional.of(new ScmRevision("master")));
+        when(issueKeyExtractor.extractIssueKeys(any())).thenReturn(Collections.emptySet());
 
         // when
         final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(createRequest());
@@ -129,7 +116,7 @@ public class JiraBuildInfoSenderImplTest {
         // then
         assertThat(response.getStatus()).isEqualTo(SKIPPED_ISSUE_KEYS_NOT_FOUND);
         final String message = response.getMessage();
-        assertThat(message).startsWith("No issue keys found in branch name");
+        assertThat(message).startsWith("No issue keys found in the current branch name");
     }
 
     @Test
@@ -215,13 +202,13 @@ public class JiraBuildInfoSenderImplTest {
     }
 
     private JiraBuildInfoRequest createRequest() {
-        return new JiraBuildInfoRequest(SITE, mockRun());
+        return new JiraBuildInfoRequest(SITE, mockWorkflowRun());
     }
 
     private void setupMocks() {
         setupSiteConfigRetriever();
         setupSecretRetriever();
-        setupScmRevisionExtractor();
+        setupIssueKeyExtractor();
         setupCloudIdResolver();
         setupAccessTokenRetriever();
         setupRunWrapperProvider();
@@ -236,8 +223,8 @@ public class JiraBuildInfoSenderImplTest {
         when(secretRetriever.getSecretFor(any())).thenReturn(Optional.of("secret"));
     }
 
-    private void setupScmRevisionExtractor() {
-        when(scmRevisionExtractor.getScmRevision(any())).thenReturn(Optional.of(SCM_REVISION));
+    private void setupIssueKeyExtractor() {
+        when(issueKeyExtractor.extractIssueKeys(any())).thenReturn(ImmutableSet.of("TEST-123"));
     }
 
     private void setupCloudIdResolver() {
@@ -305,7 +292,7 @@ public class JiraBuildInfoSenderImplTest {
                 .thenReturn(Optional.of(buildApiResponse));
     }
 
-    private static Run mockRun() {
-        return mock(Run.class);
+    private static WorkflowRun mockWorkflowRun() {
+        return mock(WorkflowRun.class);
     }
 }

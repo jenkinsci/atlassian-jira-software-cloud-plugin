@@ -1,7 +1,8 @@
 package com.atlassian.jira.cloud.jenkins.deploymentinfo.service;
 
 import com.atlassian.jira.cloud.jenkins.common.model.IssueKey;
-import com.atlassian.jira.cloud.jenkins.util.IssueKeyExtractor;
+import com.atlassian.jira.cloud.jenkins.common.service.IssueKeyExtractor;
+import com.atlassian.jira.cloud.jenkins.util.IssueKeyStringExtractor;
 import hudson.plugins.git.GitChangeSet;
 import hudson.scm.ChangeLogSet;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
@@ -11,13 +12,13 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.atlassian.jira.cloud.jenkins.util.IssueKeyExtractor.ISSUE_KEY_MAX_LIMIT;
+import static com.atlassian.jira.cloud.jenkins.util.IssueKeyStringExtractor.ISSUE_KEY_MAX_LIMIT;
 
 /**
  * Parses the change log from the current build and extracts the issue keys
  * from the commit messages. It also tries to extract from squashed commits.
  */
-public final class ChangeLogExtractorImpl implements ChangeLogExtractor {
+public final class ChangeLogIssueKeyExtractor implements IssueKeyExtractor {
 
     public Set<String> extractIssueKeys(final WorkflowRun workflowRun) {
 
@@ -31,9 +32,9 @@ public final class ChangeLogExtractorImpl implements ChangeLogExtractor {
                 final ChangeLogSet.Entry changeSetEntry = (ChangeLogSet.Entry) item;
 
                 if (changeSetEntry instanceof GitChangeSet) {
-                    allIssueKeys.addAll(IssueKeyExtractor.extractIssueKeys(((GitChangeSet) changeSetEntry).getComment()));
+                    allIssueKeys.addAll(IssueKeyStringExtractor.extractIssueKeys(((GitChangeSet) changeSetEntry).getComment()));
                 }
-                allIssueKeys.addAll(IssueKeyExtractor.extractIssueKeys(changeSetEntry.getMsg()));
+                allIssueKeys.addAll(IssueKeyStringExtractor.extractIssueKeys(changeSetEntry.getMsg()));
 
                 if (allIssueKeys.size() >= ISSUE_KEY_MAX_LIMIT) {
                     break;

@@ -14,9 +14,9 @@ import java.util.regex.Pattern;
  * Extracts issue keys (eg. TEST-123) of any number of instances from a given string. Input can be a
  * commit message or a branch name.
  */
-public final class IssueKeyExtractor {
+public final class IssueKeyStringExtractor {
 
-    private IssueKeyExtractor() {
+    private IssueKeyStringExtractor() {
         // empty
     }
 

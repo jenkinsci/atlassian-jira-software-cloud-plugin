@@ -11,6 +11,7 @@ import hudson.Extension;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.util.ListBoxModel;
+import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.jenkinsci.plugins.workflow.steps.Step;
 import org.jenkinsci.plugins.workflow.steps.StepContext;
 import org.jenkinsci.plugins.workflow.steps.StepDescriptor;
@@ -99,7 +100,7 @@ public class JiraSendBuildInfoStep extends Step implements Serializable {
         @Override
         protected JiraSendInfoResponse run() throws Exception {
             final TaskListener taskListener = getContext().get(TaskListener.class);
-            final Run build = getContext().get(Run.class);
+            final WorkflowRun build = getContext().get(WorkflowRun.class);
 
             final JiraBuildInfoRequest request = new JiraBuildInfoRequest(step.getSite(), build);
 

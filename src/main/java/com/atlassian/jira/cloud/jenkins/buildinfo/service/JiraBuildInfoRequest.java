@@ -1,15 +1,15 @@
 package com.atlassian.jira.cloud.jenkins.buildinfo.service;
 
-import hudson.model.Run;
+import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 
 import static java.util.Objects.requireNonNull;
 
 public class JiraBuildInfoRequest {
 
     private final String site;
-    private final Run build;
+    private final WorkflowRun build;
 
-    public JiraBuildInfoRequest(final String site, final Run build) {
+    public JiraBuildInfoRequest(final String site, final WorkflowRun build) {
         this.site = requireNonNull(site);
         this.build = requireNonNull(build);
     }
@@ -18,7 +18,7 @@ public class JiraBuildInfoRequest {
         return site;
     }
 
-    public Run getBuild() {
+    public WorkflowRun getBuild() {
         return build;
     }
 }

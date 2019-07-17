@@ -6,15 +6,15 @@ import com.atlassian.jira.cloud.jenkins.buildinfo.service.JiraBuildInfoSenderImp
 import com.atlassian.jira.cloud.jenkins.common.client.JiraApi;
 import com.atlassian.jira.cloud.jenkins.common.config.JiraSiteConfigRetriever;
 import com.atlassian.jira.cloud.jenkins.common.config.JiraSiteConfigRetrieverImpl;
-import com.atlassian.jira.cloud.jenkins.deploymentinfo.service.ChangeLogExtractor;
-import com.atlassian.jira.cloud.jenkins.deploymentinfo.service.ChangeLogExtractorImpl;
+import com.atlassian.jira.cloud.jenkins.common.service.IssueKeyExtractor;
+import com.atlassian.jira.cloud.jenkins.deploymentinfo.service.ChangeLogIssueKeyExtractor;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.service.JiraDeploymentInfoSender;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.service.JiraDeploymentInfoSenderImpl;
 import com.atlassian.jira.cloud.jenkins.provider.HttpClientProvider;
 import com.atlassian.jira.cloud.jenkins.provider.ObjectMapperProvider;
 import com.atlassian.jira.cloud.jenkins.tenantinfo.CloudIdResolver;
 import com.atlassian.jira.cloud.jenkins.util.RunWrapperProviderImpl;
-import com.atlassian.jira.cloud.jenkins.util.ScmRevisionExtractorImpl;
+import com.atlassian.jira.cloud.jenkins.util.BranchNameIssueKeyExtractor;
 import com.atlassian.jira.cloud.jenkins.util.SecretRetriever;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
@@ -36,8 +36,8 @@ public final class JiraSenderFactory {
         final ObjectMapper objectMapper = objectMapperProvider.objectMapper();
 
         final JiraSiteConfigRetriever siteConfigRetriever = new JiraSiteConfigRetrieverImpl();
-        final ScmRevisionExtractorImpl scmRevisionExtractor = new ScmRevisionExtractorImpl();
-        final ChangeLogExtractor changeLogExtractor = new ChangeLogExtractorImpl();
+        final BranchNameIssueKeyExtractor branchNameIssueKeyExtractor = new BranchNameIssueKeyExtractor();
+        final IssueKeyExtractor changeLogIssueKeyExtractor = new ChangeLogIssueKeyExtractor();
         final SecretRetriever secretRetriever = new SecretRetriever();
         final CloudIdResolver cloudIdResolver = new CloudIdResolver(httpClient, objectMapper);
         final AccessTokenRetriever accessTokenRetriever =
@@ -57,7 +57,7 @@ public final class JiraSenderFactory {
                 new JiraBuildInfoSenderImpl(
                         siteConfigRetriever,
                         secretRetriever,
-                        scmRevisionExtractor,
+                        branchNameIssueKeyExtractor,
                         cloudIdResolver,
                         accessTokenRetriever,
                         buildsApi,
@@ -70,7 +70,7 @@ public final class JiraSenderFactory {
                         cloudIdResolver,
                         accessTokenRetriever,
                         deploymentsApi,
-                        changeLogExtractor,
+                        changeLogIssueKeyExtractor,
                         new RunWrapperProviderImpl());
     }
 

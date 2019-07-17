@@ -87,7 +87,10 @@ public class JiraSendDeploymentInfoStepTest {
     @Test
     public void configRoundTrip() throws Exception {
         final JiraSendDeploymentInfoStep step =
-                new StepConfigTester(jenkinsRule).configRoundTrip(new JiraSendDeploymentInfoStep(SITE, ENVIRONMENT_ID, ENVIRONMENT_NAME, ENVIRONMENT_TYPE));
+                new StepConfigTester(jenkinsRule)
+                        .configRoundTrip(
+                                new JiraSendDeploymentInfoStep(
+                                        SITE, ENVIRONMENT_ID, ENVIRONMENT_NAME, ENVIRONMENT_TYPE));
 
         assertThat(step.getSite()).isEqualTo(SITE);
         assertThat(step.getEnvironmentId()).isEqualTo(ENVIRONMENT_ID);
@@ -98,21 +101,20 @@ public class JiraSendDeploymentInfoStepTest {
     @Test
     public void testStep() throws Exception {
         // given
-        final Run mockRun = mockRun();
-        final Job mockJob = mockJob();
+        final WorkflowRun mockWorkflowRun = mockWorkflowRun();
         final TaskListener mockTaskListener = mockTaskListener();
         when(mockTaskListener.getLogger()).thenReturn(mock(PrintStream.class));
-        when(mockRun.getParent()).thenReturn(mockJob);
 
         final Map<String, Object> r = new HashMap<>();
         r.put("site", SITE);
         r.put("environment", ENVIRONMENT_NAME);
         r.put("environmentType", ENVIRONMENT_TYPE);
-        final JiraSendDeploymentInfoStep step = (JiraSendDeploymentInfoStep) descriptor.newInstance(r);
+        final JiraSendDeploymentInfoStep step =
+                (JiraSendDeploymentInfoStep) descriptor.newInstance(r);
 
         final StepContext ctx = mock(StepContext.class);
         when(ctx.get(Node.class)).thenReturn(jenkinsRule.getInstance());
-        when(ctx.get(Run.class)).thenReturn(mockRun);
+        when(ctx.get(WorkflowRun.class)).thenReturn(mockWorkflowRun);
         when(ctx.get(TaskListener.class)).thenReturn(mockTaskListener);
 
         final JiraSendDeploymentInfoStep.JiraSendDeploymentInfoStepExecution start =
@@ -130,12 +132,8 @@ public class JiraSendDeploymentInfoStepTest {
                 CredentialsScope.GLOBAL, CREDENTIAL_ID, "test-secret", Secret.fromString("secret"));
     }
 
-    private static Run mockRun() {
+    private static WorkflowRun mockWorkflowRun() {
         return mock(WorkflowRun.class);
-    }
-
-    private static Job mockJob() {
-        return mock(Job.class);
     }
 
     private static TaskListener mockTaskListener() {

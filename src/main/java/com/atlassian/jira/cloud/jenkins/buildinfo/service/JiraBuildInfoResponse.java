@@ -55,9 +55,8 @@ public class JiraBuildInfoResponse extends JiraSendInfoResponse {
         return new JiraBuildInfoResponse(Status.FAILURE_UNEXPECTED_RESPONSE, message);
     }
 
-    public static JiraBuildInfoResponse skippedIssueKeysNotFound(final String branchName) {
-        final String message =
-                Messages.JiraBuildInfoResponse_SKIPPED_ISSUE_KEYS_NOT_FOUND(branchName);
+    public static JiraBuildInfoResponse skippedIssueKeysNotFound() {
+        final String message = Messages.JiraBuildInfoResponse_SKIPPED_ISSUE_KEYS_NOT_FOUND();
         return new JiraBuildInfoResponse(Status.SKIPPED_ISSUE_KEYS_NOT_FOUND, message);
     }
 }

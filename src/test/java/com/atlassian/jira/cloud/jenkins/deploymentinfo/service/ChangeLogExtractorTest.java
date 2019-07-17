@@ -1,5 +1,6 @@
 package com.atlassian.jira.cloud.jenkins.deploymentinfo.service;
 
+import com.atlassian.jira.cloud.jenkins.common.service.IssueKeyExtractor;
 import com.google.common.collect.ImmutableList;
 import hudson.plugins.git.GitChangeSet;
 import hudson.scm.ChangeLogSet;
@@ -19,11 +20,11 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public class ChangeLogExtractorTest {
 
-    private ChangeLogExtractor changeLogExtractor;
+    private IssueKeyExtractor changeLogExtractor;
 
     @Before
     public void setUp() {
-        changeLogExtractor = new ChangeLogExtractorImpl();
+        changeLogExtractor = new ChangeLogIssueKeyExtractor();
     }
 
     @Test
@@ -109,7 +110,7 @@ public class ChangeLogExtractorTest {
         final ChangeLogSet.Entry entry = mock(ChangeLogSet.Entry.class);
         when(entry.getMsg()).thenReturn("TEST-123 Commit message");
         final ChangeLogSet changeLogSet = mock(ChangeLogSet.class);
-        when(changeLogSet.getItems()).thenReturn(new Object[]{entry});
+        when(changeLogSet.getItems()).thenReturn(new Object[] {entry});
         final WorkflowRun workflowRun = mock(WorkflowRun.class);
 
         when(workflowRun.getChangeSets()).thenReturn(ImmutableList.of(changeLogSet));
@@ -122,7 +123,7 @@ public class ChangeLogExtractorTest {
         when(entry1.getMsg()).thenReturn("TEST-123 Commit message");
         when(entry2.getMsg()).thenReturn("TEST-456 Commit message");
         final ChangeLogSet changeLogSet = mock(ChangeLogSet.class);
-        when(changeLogSet.getItems()).thenReturn(new Object[]{entry1, entry2});
+        when(changeLogSet.getItems()).thenReturn(new Object[] {entry1, entry2});
         final WorkflowRun workflowRun = mock(WorkflowRun.class);
 
         when(workflowRun.getChangeSets()).thenReturn(ImmutableList.of(changeLogSet));
@@ -136,24 +137,25 @@ public class ChangeLogExtractorTest {
         when(entry2.getMsg()).thenReturn("TEST-456 Commit message");
         final ChangeLogSet changeLogSet1 = mock(ChangeLogSet.class);
         final ChangeLogSet changeLogSet2 = mock(ChangeLogSet.class);
-        when(changeLogSet1.getItems()).thenReturn(new Object[]{entry1});
-        when(changeLogSet2.getItems()).thenReturn(new Object[]{entry2});
+        when(changeLogSet1.getItems()).thenReturn(new Object[] {entry1});
+        when(changeLogSet2.getItems()).thenReturn(new Object[] {entry2});
         final WorkflowRun workflowRun = mock(WorkflowRun.class);
 
-        when(workflowRun.getChangeSets()).thenReturn(ImmutableList.of(changeLogSet1, changeLogSet2));
+        when(workflowRun.getChangeSets())
+                .thenReturn(ImmutableList.of(changeLogSet1, changeLogSet2));
         return workflowRun;
     }
 
     private WorkflowRun changeSetWithSquashedCommitsInComment() {
         final GitChangeSet entry = mock(GitChangeSet.class);
-        when(entry.getComment()).thenReturn(
-                "Squashed Commit title (#12)\n" +
-                "* TEST-3 Fix bug #1\n" +
-                "\n" +
-                "* TEST-4 Fix bug #2\n"
-                );
+        when(entry.getComment())
+                .thenReturn(
+                        "Squashed Commit title (#12)\n"
+                                + "* TEST-3 Fix bug #1\n"
+                                + "\n"
+                                + "* TEST-4 Fix bug #2\n");
         final ChangeLogSet changeLogSet = mock(ChangeLogSet.class);
-        when(changeLogSet.getItems()).thenReturn(new Object[]{entry});
+        when(changeLogSet.getItems()).thenReturn(new Object[] {entry});
         final WorkflowRun workflowRun = mock(WorkflowRun.class);
 
         when(workflowRun.getChangeSets()).thenReturn(ImmutableList.of(changeLogSet));
@@ -163,7 +165,7 @@ public class ChangeLogExtractorTest {
     private WorkflowRun workflowRunWithIssuesAboveLimit() {
         int count = 105;
         Object[] changeSetEntries = new Object[count];
-        for (int i = 0; i < count; i ++) {
+        for (int i = 0; i < count; i++) {
             final ChangeLogSet.Entry entry = mock(ChangeLogSet.Entry.class);
             when(entry.getMsg()).thenReturn(String.format("TEST-%d Commit message for %d", i, i));
             changeSetEntries[i] = entry;
@@ -176,5 +178,4 @@ public class ChangeLogExtractorTest {
         when(workflowRun.getChangeSets()).thenReturn(ImmutableList.of(changeLogSet));
         return workflowRun;
     }
-
 }

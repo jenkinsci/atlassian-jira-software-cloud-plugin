@@ -22,6 +22,7 @@ import jenkins.plugins.git.GitBranchSCMRevision;
 import jenkins.plugins.git.GitSCMSource;
 import jenkins.scm.api.SCMRevisionAction;
 import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl;
+import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.jenkinsci.plugins.workflow.steps.StepConfigTester;
 import org.jenkinsci.plugins.workflow.steps.StepContext;
 import org.junit.Before;
@@ -100,12 +101,10 @@ public class JiraSendBuildInfoStepTest {
     @Test
     public void testStep() throws Exception {
         // given
-        final Run mockRun = mockRun();
-        final Job mockJob = mockJob();
+        final WorkflowRun mockWorkflowRun = mockWorkflowRun();
         final TaskListener mockTaskListener = mockTaskListener();
         when(mockTaskListener.getLogger()).thenReturn(mock(PrintStream.class));
-        when(mockRun.getParent()).thenReturn(mockJob);
-        when(mockRun.getAction(SCMRevisionAction.class)).thenReturn(scmRevisionAction());
+        when(mockWorkflowRun.getAction(SCMRevisionAction.class)).thenReturn(scmRevisionAction());
 
         final Map<String, Object> r = new HashMap<>();
         r.put("site", SITE);
@@ -113,7 +112,7 @@ public class JiraSendBuildInfoStepTest {
 
         final StepContext ctx = mock(StepContext.class);
         when(ctx.get(Node.class)).thenReturn(jenkinsRule.getInstance());
-        when(ctx.get(Run.class)).thenReturn(mockRun);
+        when(ctx.get(WorkflowRun.class)).thenReturn(mockWorkflowRun);
         when(ctx.get(TaskListener.class)).thenReturn(mockTaskListener);
 
         final JiraSendBuildInfoStep.JiraSendBuildInfoStepExecution start =
@@ -136,12 +135,8 @@ public class JiraSendBuildInfoStepTest {
         return new SCMRevisionAction(new GitSCMSource(""), new GitBranchSCMRevision(head, ""));
     }
 
-    private static Run mockRun() {
-        return mock(Run.class);
-    }
-
-    private static Job mockJob() {
-        return mock(Job.class);
+    private static WorkflowRun mockWorkflowRun() {
+        return mock(WorkflowRun.class);
     }
 
     private static TaskListener mockTaskListener() {

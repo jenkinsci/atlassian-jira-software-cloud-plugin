@@ -5,6 +5,7 @@ import com.atlassian.jira.cloud.jenkins.common.client.JiraApi;
 import com.atlassian.jira.cloud.jenkins.common.config.JiraSiteConfigRetriever;
 import com.atlassian.jira.cloud.jenkins.common.model.ApiErrorResponse;
 import com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse;
+import com.atlassian.jira.cloud.jenkins.common.service.IssueKeyExtractor;
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.DeploymentApiResponse;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.DeploymentKeyResponse;
@@ -49,26 +50,19 @@ public class JiraDeploymentInfoSenderImplTest {
     private static final JiraCloudSiteConfig JIRA_SITE_CONFIG =
             new JiraCloudSiteConfig(SITE, "clientId", "credsId");
 
-    @Mock
-    private JiraSiteConfigRetriever siteConfigRetriever;
+    @Mock private JiraSiteConfigRetriever siteConfigRetriever;
 
-    @Mock
-    private SecretRetriever secretRetriever;
+    @Mock private SecretRetriever secretRetriever;
 
-    @Mock
-    private CloudIdResolver cloudIdResolver;
+    @Mock private CloudIdResolver cloudIdResolver;
 
-    @Mock
-    private AccessTokenRetriever accessTokenRetriever;
+    @Mock private AccessTokenRetriever accessTokenRetriever;
 
-    @Mock
-    private JiraApi deploymentsApi;
+    @Mock private JiraApi deploymentsApi;
 
-    @Mock
-    private ChangeLogExtractor changeLogExtractor;
+    @Mock private IssueKeyExtractor issueKeyExtractor;
 
-    @Mock
-    private RunWrapperProvider runWrapperProvider;
+    @Mock private RunWrapperProvider runWrapperProvider;
 
     private JiraDeploymentInfoSender classUnderTest;
 
@@ -81,7 +75,7 @@ public class JiraDeploymentInfoSenderImplTest {
                         cloudIdResolver,
                         accessTokenRetriever,
                         deploymentsApi,
-                        changeLogExtractor,
+                        issueKeyExtractor,
                         runWrapperProvider);
 
         setupMocks();
@@ -114,8 +108,7 @@ public class JiraDeploymentInfoSenderImplTest {
     @Test
     public void testSendDeploymentInfo_whenIssueKeysNotFound() {
         // given
-        when(changeLogExtractor.extractIssueKeys(any()))
-                .thenReturn(Collections.emptySet());
+        when(issueKeyExtractor.extractIssueKeys(any())).thenReturn(Collections.emptySet());
 
         // when
         final JiraSendInfoResponse response = classUnderTest.sendDeploymentInfo(createRequest());
@@ -209,7 +202,8 @@ public class JiraDeploymentInfoSenderImplTest {
     }
 
     private JiraDeploymentInfoRequest createRequest() {
-        return new JiraDeploymentInfoRequest(SITE, ENVIRONMENT_ID, ENVIRONMENT_NAME, ENVIRONMENT_TYPE, mockWorkflowRun());
+        return new JiraDeploymentInfoRequest(
+                SITE, ENVIRONMENT_ID, ENVIRONMENT_NAME, ENVIRONMENT_TYPE, mockWorkflowRun());
     }
 
     private void setupMocks() {
@@ -239,7 +233,7 @@ public class JiraDeploymentInfoSenderImplTest {
     }
 
     private void setupChangeLogExtractor() {
-        when(changeLogExtractor.extractIssueKeys(any())).thenReturn(ImmutableSet.of("TEST-123"));
+        when(issueKeyExtractor.extractIssueKeys(any())).thenReturn(ImmutableSet.of("TEST-123"));
     }
 
     private void setupRunWrapperProvider() {
@@ -259,11 +253,13 @@ public class JiraDeploymentInfoSenderImplTest {
     }
 
     private void setupDeploymentsApiFailure() {
-        when(deploymentsApi.postUpdate(any(), any(), any(), any(), any())).thenReturn(Optional.empty());
+        when(deploymentsApi.postUpdate(any(), any(), any(), any(), any()))
+                .thenReturn(Optional.empty());
     }
 
     private void setupDeploymentsApiDeploymentAccepted() {
-        final DeploymentKeyResponse deploymentKeyResponse = new DeploymentKeyResponse(PIPELINE_ID, ENVIRONMENT_ID, BUILD_NUMBER);
+        final DeploymentKeyResponse deploymentKeyResponse =
+                new DeploymentKeyResponse(PIPELINE_ID, ENVIRONMENT_ID, BUILD_NUMBER);
         final DeploymentApiResponse deploymentApiResponse =
                 new DeploymentApiResponse(
                         ImmutableList.of(deploymentKeyResponse),
@@ -274,10 +270,12 @@ public class JiraDeploymentInfoSenderImplTest {
     }
 
     private void setupDeploymentsApiDeploymentRejected() {
-        final DeploymentKeyResponse deploymentKeyResponse = new DeploymentKeyResponse(PIPELINE_ID, ENVIRONMENT_ID, BUILD_NUMBER);
+        final DeploymentKeyResponse deploymentKeyResponse =
+                new DeploymentKeyResponse(PIPELINE_ID, ENVIRONMENT_ID, BUILD_NUMBER);
         final ApiErrorResponse errorResponse = new ApiErrorResponse("Error message");
         final RejectedDeploymentResponse deploymentResponse =
-                new RejectedDeploymentResponse(deploymentKeyResponse, ImmutableList.of(errorResponse));
+                new RejectedDeploymentResponse(
+                        deploymentKeyResponse, ImmutableList.of(errorResponse));
 
         final DeploymentApiResponse deploymentApiResponse =
                 new DeploymentApiResponse(

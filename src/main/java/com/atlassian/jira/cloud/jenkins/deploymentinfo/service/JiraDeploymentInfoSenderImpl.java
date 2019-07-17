@@ -6,6 +6,7 @@ import com.atlassian.jira.cloud.jenkins.common.config.JiraSiteConfigRetriever;
 import com.atlassian.jira.cloud.jenkins.common.model.AppCredential;
 import com.atlassian.jira.cloud.jenkins.common.response.JiraCommonResponse;
 import com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse;
+import com.atlassian.jira.cloud.jenkins.common.service.IssueKeyExtractor;
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.DeploymentPayloadBuilder;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.DeploymentApiResponse;
@@ -24,8 +25,8 @@ import java.util.Set;
 import static java.util.Objects.requireNonNull;
 
 /**
- * Implementation of JiraDeploymentInfoSender to send build updates to Jira by building the payload, generating
- * the access token, sending the request and parsing the response.
+ * Implementation of JiraDeploymentInfoSender to send build updates to Jira by building the payload,
+ * generating the access token, sending the request and parsing the response.
  */
 public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
 
@@ -37,7 +38,7 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
     private final AccessTokenRetriever accessTokenRetriever;
     private final JiraApi deploymentsApi;
     private final RunWrapperProvider runWrapperProvider;
-    private final ChangeLogExtractor changeLogExtractor;
+    private final IssueKeyExtractor issueKeyExtractor;
 
     public JiraDeploymentInfoSenderImpl(
             final JiraSiteConfigRetriever siteConfigRetriever,
@@ -45,7 +46,7 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
             final CloudIdResolver cloudIdResolver,
             final AccessTokenRetriever accessTokenRetriever,
             final JiraApi jiraApi,
-            final ChangeLogExtractor changeLogExtractor,
+            final IssueKeyExtractor issueKeyExtractor,
             final RunWrapperProvider runWrapperProvider) {
         this.siteConfigRetriever = requireNonNull(siteConfigRetriever);
         this.secretRetriever = requireNonNull(secretRetriever);
@@ -53,7 +54,7 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
         this.accessTokenRetriever = requireNonNull(accessTokenRetriever);
         this.deploymentsApi = requireNonNull(jiraApi);
         this.runWrapperProvider = requireNonNull(runWrapperProvider);
-        this.changeLogExtractor = requireNonNull(changeLogExtractor);
+        this.issueKeyExtractor = requireNonNull(issueKeyExtractor);
     }
 
     @Override
@@ -74,7 +75,7 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
             return JiraCommonResponse.failureSecretNotFound(jiraSite);
         }
 
-        final Set<String> issueKeys = changeLogExtractor.extractIssueKeys(deployment);
+        final Set<String> issueKeys = issueKeyExtractor.extractIssueKeys(deployment);
 
         if (issueKeys.isEmpty()) {
             return JiraDeploymentInfoResponse.skippedIssueKeysNotFound(jiraSite);
@@ -92,8 +93,7 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
             return JiraCommonResponse.failureAccessToken(jiraSite);
         }
 
-        final Deployments deploymentInfo =
-                createJiraDeploymentInfo(deployment, request, issueKeys);
+        final Deployments deploymentInfo = createJiraDeploymentInfo(deployment, request, issueKeys);
 
         return sendDeploymentInfo(
                         maybeCloudId.get(), maybeAccessToken.get(), jiraSite, deploymentInfo)
@@ -133,7 +133,8 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
             final String accessToken,
             final String jiraSite,
             final Deployments deploymentInfo) {
-        return deploymentsApi.postUpdate(cloudId, accessToken, jiraSite, deploymentInfo, DeploymentApiResponse.class);
+        return deploymentsApi.postUpdate(
+                cloudId, accessToken, jiraSite, deploymentInfo, DeploymentApiResponse.class);
     }
 
     private JiraSendInfoResponse handleDeploymentApiResponse(

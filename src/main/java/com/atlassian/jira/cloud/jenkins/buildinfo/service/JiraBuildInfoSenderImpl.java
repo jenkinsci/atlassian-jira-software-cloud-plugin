@@ -7,30 +7,27 @@ import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.Builds;
 import com.atlassian.jira.cloud.jenkins.common.client.JiraApi;
 import com.atlassian.jira.cloud.jenkins.common.config.JiraSiteConfigRetriever;
 import com.atlassian.jira.cloud.jenkins.common.model.AppCredential;
-import com.atlassian.jira.cloud.jenkins.common.model.IssueKey;
 import com.atlassian.jira.cloud.jenkins.common.response.JiraCommonResponse;
 import com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse;
+import com.atlassian.jira.cloud.jenkins.common.service.IssueKeyExtractor;
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
 import com.atlassian.jira.cloud.jenkins.tenantinfo.CloudIdResolver;
-import com.atlassian.jira.cloud.jenkins.util.IssueKeyExtractor;
 import com.atlassian.jira.cloud.jenkins.util.RunWrapperProvider;
-import com.atlassian.jira.cloud.jenkins.util.ScmRevision;
-import com.atlassian.jira.cloud.jenkins.util.ScmRevisionExtractor;
 import com.atlassian.jira.cloud.jenkins.util.SecretRetriever;
 import hudson.model.Run;
+import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.jenkinsci.plugins.workflow.support.steps.build.RunWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static java.util.Objects.requireNonNull;
 
 /**
- * Implementation of JiraBuildInfoSender to send build updates to Jira by building the payload, generating
- * the access token, sending the request and parsing the response.
+ * Implementation of JiraBuildInfoSender to send build updates to Jira by building the payload,
+ * generating the access token, sending the request and parsing the response.
  */
 public class JiraBuildInfoSenderImpl implements JiraBuildInfoSender {
 
@@ -40,7 +37,7 @@ public class JiraBuildInfoSenderImpl implements JiraBuildInfoSender {
 
     private final JiraSiteConfigRetriever siteConfigRetriever;
     private final SecretRetriever secretRetriever;
-    private final ScmRevisionExtractor scmRevisionExtractor;
+    private final IssueKeyExtractor issueKeyExtractor;
     private final CloudIdResolver cloudIdResolver;
     private final AccessTokenRetriever accessTokenRetriever;
     private final JiraApi buildsApi;
@@ -49,14 +46,14 @@ public class JiraBuildInfoSenderImpl implements JiraBuildInfoSender {
     public JiraBuildInfoSenderImpl(
             final JiraSiteConfigRetriever siteConfigRetriever,
             final SecretRetriever secretRetriever,
-            final ScmRevisionExtractor scmRevisionExtractor,
+            final IssueKeyExtractor issueKeyExtractor,
             final CloudIdResolver cloudIdResolver,
             final AccessTokenRetriever accessTokenRetriever,
             final JiraApi buildsApi,
             final RunWrapperProvider runWrapperProvider) {
         this.siteConfigRetriever = requireNonNull(siteConfigRetriever);
         this.secretRetriever = requireNonNull(secretRetriever);
-        this.scmRevisionExtractor = requireNonNull(scmRevisionExtractor);
+        this.issueKeyExtractor = requireNonNull(issueKeyExtractor);
         this.cloudIdResolver = requireNonNull(cloudIdResolver);
         this.accessTokenRetriever = requireNonNull(accessTokenRetriever);
         this.buildsApi = requireNonNull(buildsApi);
@@ -66,7 +63,7 @@ public class JiraBuildInfoSenderImpl implements JiraBuildInfoSender {
     @Override
     public JiraSendInfoResponse sendBuildInfo(final JiraBuildInfoRequest request) {
         final String jiraSite = request.getSite();
-        final Run build = request.getBuild();
+        final WorkflowRun build = request.getBuild();
 
         final Optional<JiraCloudSiteConfig> maybeSiteConfig = getSiteConfigFor(jiraSite);
 
@@ -81,17 +78,10 @@ public class JiraBuildInfoSenderImpl implements JiraBuildInfoSender {
             return JiraCommonResponse.failureSecretNotFound(jiraSite);
         }
 
-        final Optional<ScmRevision> maybeScmRevision = getScmRevisionFor(build);
-
-        if (!maybeScmRevision.isPresent()) {
-            return JiraBuildInfoResponse.failureScmRevisionNotFound(build);
-        }
-
-        final ScmRevision scmRevision = maybeScmRevision.get();
-        final Set<String> issueKeys = extractIssueKeys(scmRevision);
+        final Set<String> issueKeys = issueKeyExtractor.extractIssueKeys(build);
 
         if (issueKeys.isEmpty()) {
-            return JiraBuildInfoResponse.skippedIssueKeysNotFound(scmRevision.getHead());
+            return JiraBuildInfoResponse.skippedIssueKeysNotFound();
         }
 
         final Optional<String> maybeCloudId = getCloudIdFor(jiraSite);
@@ -132,17 +122,6 @@ public class JiraBuildInfoSenderImpl implements JiraBuildInfoSender {
         return secretRetriever.getSecretFor(credentialsId);
     }
 
-    private Optional<ScmRevision> getScmRevisionFor(final Run build) {
-        return scmRevisionExtractor.getScmRevision(build);
-    }
-
-    private Set<String> extractIssueKeys(final ScmRevision scmRevision) {
-        return IssueKeyExtractor.extractIssueKeys(scmRevision.getHead())
-                .stream()
-                .map(IssueKey::toString)
-                .collect(Collectors.toSet());
-    }
-
     private Builds createJiraBuildInfo(final Run build, final Set<String> issueKeys) {
         final RunWrapper buildWrapper = runWrapperProvider.getWrapper(build);
 
@@ -154,7 +133,8 @@ public class JiraBuildInfoSenderImpl implements JiraBuildInfoSender {
             final String accessToken,
             final String jiraSite,
             final Builds buildInfo) {
-        return buildsApi.postUpdate(cloudId, accessToken, jiraSite, buildInfo, BuildApiResponse.class);
+        return buildsApi.postUpdate(
+                cloudId, accessToken, jiraSite, buildInfo, BuildApiResponse.class);
     }
 
     private JiraBuildInfoResponse handleBuildApiResponse(
