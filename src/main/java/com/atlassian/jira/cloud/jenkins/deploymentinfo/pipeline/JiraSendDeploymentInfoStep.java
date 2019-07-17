@@ -145,7 +145,7 @@ public class JiraSendDeploymentInfoStep extends Step implements Serializable {
         @Override
         protected JiraSendInfoResponse run() throws Exception {
             final TaskListener taskListener = getContext().get(TaskListener.class);
-            final WorkflowRun workflowRun = (WorkflowRun) getContext().get(Run.class);
+            final WorkflowRun workflowRun = getContext().get(WorkflowRun.class);
             final JiraDeploymentInfoRequest request =
                     new JiraDeploymentInfoRequest(
                             step.getSite(),

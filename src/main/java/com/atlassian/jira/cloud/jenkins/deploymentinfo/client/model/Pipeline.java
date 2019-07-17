@@ -3,6 +3,10 @@ package com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+/**
+ * The pipeline to which the deployment belongs to.
+ * This may be used by Jira to group the deployments in the issue view.
+ */
 public class Pipeline {
 
     private final String id;

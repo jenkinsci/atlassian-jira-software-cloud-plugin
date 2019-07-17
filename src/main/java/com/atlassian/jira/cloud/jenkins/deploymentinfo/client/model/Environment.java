@@ -3,6 +3,10 @@ package com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+/**
+ * Environment to which the current deployment is targeted.
+ * Could be one of 'development', 'testing', 'staging' or 'production'.
+ */
 public class Environment {
 
     private final String id;
