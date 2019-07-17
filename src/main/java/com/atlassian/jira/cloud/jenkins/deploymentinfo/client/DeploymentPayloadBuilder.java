@@ -21,7 +21,7 @@ public final class DeploymentPayloadBuilder {
      * @param runWrapper Jenkins context that provides project and build details
      * @param environment Deployment environment
      * @param issueKeys Jira issue keys to associate the build info with
-     * @return an assembled JiraBuildInfo
+     * @return an assembled Deployments payload
      */
     public static Deployments getDeploymentInfo(
             final RunWrapper runWrapper,

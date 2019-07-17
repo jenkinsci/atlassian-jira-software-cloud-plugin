@@ -1,6 +1,5 @@
 package com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model;
 
-import com.atlassian.jira.cloud.jenkins.common.client.JiraResponse;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -12,7 +11,7 @@ import java.util.List;
  * appropriated reason on why it was not accepted), unknown issue keys (which are not present in the
  * configured Jira Cloud site)
  */
-public class DeploymentApiResponse implements JiraResponse {
+public class DeploymentApiResponse {
     private final List<DeploymentKeyResponse> acceptedDeployments;
     private final List<RejectedDeploymentResponse> rejectedDeployments;
     private final List<String> unknownIssueKeys;

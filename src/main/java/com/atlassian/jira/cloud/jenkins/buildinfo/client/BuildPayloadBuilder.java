@@ -16,7 +16,7 @@ public final class BuildPayloadBuilder {
      *
      * @param buildWrapper Jenkins context that provides project and build details
      * @param issueKeys Jira issue keys to associate the build info with
-     * @return an assembled JiraBuildInfo
+     * @return an assembled Builds payload
      */
     public static Builds getBuildPayload(
             final RunWrapper buildWrapper, final Set<String> issueKeys) {

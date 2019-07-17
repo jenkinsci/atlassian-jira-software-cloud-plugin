@@ -92,6 +92,7 @@ public class JiraApi {
                         String.format(
                                 "Error response body when submitting to %s: %s",
                                 jiraSiteUrl, responseBody.string()));
+                responseBody.close();
             }
 
             handleError(message);
