@@ -20,9 +20,7 @@ import java.io.NotSerializableException;
 import java.util.Objects;
 import java.util.Optional;
 
-/**
- * Common client to talk to Build & Deployment APIs in Jira
- */
+/** Common client to talk to Build & Deployment APIs in Jira */
 public class JiraApi {
 
     private static final Logger log = LoggerFactory.getLogger(JiraApi.class);
@@ -81,7 +79,8 @@ public class JiraApi {
         return Optional.empty();
     }
 
-    private void checkForErrorResponse(final String jiraSiteUrl, final Response response) {
+    private void checkForErrorResponse(final String jiraSiteUrl, final Response response)
+            throws IOException {
         if (!response.isSuccessful()) {
             final String message =
                     String.format(
@@ -92,14 +91,17 @@ public class JiraApi {
                 log.error(
                         String.format(
                                 "Error response body when submitting to %s: %s",
-                                jiraSiteUrl, responseBody));
+                                jiraSiteUrl, responseBody.string()));
             }
 
             handleError(message);
         }
     }
 
-    private <ResponseEntity> ResponseEntity handleResponseBody(final String jiraSiteUrl, final Response response, final Class<ResponseEntity> responseClass)
+    private <ResponseEntity> ResponseEntity handleResponseBody(
+            final String jiraSiteUrl,
+            final Response response,
+            final Class<ResponseEntity> responseClass)
             throws IOException {
         if (response.body() == null) {
             final String message =
@@ -108,7 +110,8 @@ public class JiraApi {
         }
 
         return objectMapper.readValue(
-                response.body().bytes(), objectMapper.getTypeFactory().constructType(responseClass));
+                response.body().bytes(),
+                objectMapper.getTypeFactory().constructType(responseClass));
     }
 
     @VisibleForTesting
