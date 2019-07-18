@@ -10,13 +10,15 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * Extracts issue keys (eg. TEST-123) of any number of instances from a given string.
- * Input can be a commit message or a branch name.
- */
-public final class IssueKeyExtractor {
+import static com.atlassian.jira.cloud.jenkins.common.service.IssueKeyExtractor.ISSUE_KEY_MAX_LIMIT;
 
-    private IssueKeyExtractor() {
+/**
+ * Extracts issue keys (eg. TEST-123) of any number of instances from a given string. Input can be a
+ * commit message or a branch name.
+ */
+public final class IssueKeyStringExtractor {
+
+    private IssueKeyStringExtractor() {
         // empty
     }
 
@@ -32,8 +34,6 @@ public final class IssueKeyExtractor {
     private static final String ISSUE_KEY_REGEX =
             KEY_PREFIX_REGEX + KEY_BODY_REGEX + KEY_POSTFIX_REGEX;
     private static final Pattern PROJECT_KEY_PATTERN = Pattern.compile(ISSUE_KEY_REGEX);
-
-    private static final Integer ISSUE_KEY_MAX_LIMIT = 100;
 
     public static Set<IssueKey> extractIssueKeys(final String text) {
         final Set<IssueKey> matches = new HashSet<>();

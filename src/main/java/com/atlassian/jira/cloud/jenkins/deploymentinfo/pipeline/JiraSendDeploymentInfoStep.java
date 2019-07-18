@@ -1,11 +1,11 @@
-package com.atlassian.jira.cloud.jenkins.buildinfo.pipeline;
+package com.atlassian.jira.cloud.jenkins.deploymentinfo.pipeline;
 
 import com.atlassian.jira.cloud.jenkins.Messages;
-import com.atlassian.jira.cloud.jenkins.buildinfo.service.JiraBuildInfoRequest;
 import com.atlassian.jira.cloud.jenkins.common.factory.JiraSenderFactory;
 import com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse;
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudPluginConfig;
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
+import com.atlassian.jira.cloud.jenkins.deploymentinfo.service.JiraDeploymentInfoRequest;
 import com.google.common.collect.ImmutableSet;
 import hudson.Extension;
 import hudson.model.Run;
@@ -26,18 +26,25 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Implementation of the "jiraSendBuildInfo" step that can be used in Jenkinsfile to send build
- * updates to a Jira site.
+ * Implementation of the "jiraSendDeploymentInfo" step that can be used in Jenkinsfile to send
+ * deployment updates to a Jira site.
  */
-public class JiraSendBuildInfoStep extends Step implements Serializable {
+public class JiraSendDeploymentInfoStep extends Step implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
     private String site;
+    private String environmentId;
+    private String environmentName;
+    private String environmentType;
 
     @DataBoundConstructor
-    public JiraSendBuildInfoStep(final String site) {
+    public JiraSendDeploymentInfoStep(
+            final String site, final String environmentId, final String environmentName, final String environmentType) {
         this.site = site;
+        this.environmentId = environmentId;
+        this.environmentName = environmentName;
+        this.environmentType = environmentType;
     }
 
     public String getSite() {
@@ -49,9 +56,36 @@ public class JiraSendBuildInfoStep extends Step implements Serializable {
         this.site = site;
     }
 
+    public String getEnvironmentId() {
+        return environmentId;
+    }
+
+    @DataBoundSetter
+    public void setEnvironmentId(final String environmentId) {
+        this.environmentId = environmentId;
+    }
+
+    public String getEnvironmentName() {
+        return environmentName;
+    }
+
+    @DataBoundSetter
+    public void setEnvironmentName(final String environmentName) {
+        this.environmentName = environmentName;
+    }
+
+    public String getEnvironmentType() {
+        return environmentType;
+    }
+
+    @DataBoundSetter
+    public void setEnvironmentType(final String environmentType) {
+        this.environmentType = environmentType;
+    }
+
     @Override
     public StepExecution start(final StepContext stepContext) throws Exception {
-        return new JiraSendBuildInfoStepExecution(stepContext, this);
+        return new JiraSendDeploymentInfoStepExecution(stepContext, this);
     }
 
     @Extension
@@ -66,12 +100,12 @@ public class JiraSendBuildInfoStep extends Step implements Serializable {
 
         @Override
         public String getFunctionName() {
-            return "jiraSendBuildInfo";
+            return "jiraSendDeploymentInfo";
         }
 
         @Override
         public String getDisplayName() {
-            return Messages.JiraSendBuildInfoStep_DescriptorImpl_DisplayName();
+            return Messages.JiraSendDeploymentInfoStep_DescriptorImpl_DisplayName();
         }
 
         @SuppressWarnings("unused")
@@ -84,15 +118,26 @@ public class JiraSendBuildInfoStep extends Step implements Serializable {
 
             return items;
         }
+
+        @SuppressWarnings("unused")
+        public ListBoxModel doFillEnvironmentTypeItems() {
+            ListBoxModel items = new ListBoxModel();
+            items.add("development", "development");
+            items.add("testing", "testing");
+            items.add("staging", "staging");
+            items.add("production", "production");
+
+            return items;
+        }
     }
 
-    public static class JiraSendBuildInfoStepExecution
+    public static class JiraSendDeploymentInfoStepExecution
             extends SynchronousNonBlockingStepExecution<JiraSendInfoResponse> {
 
-        private final JiraSendBuildInfoStep step;
+        private final JiraSendDeploymentInfoStep step;
 
-        public JiraSendBuildInfoStepExecution(
-                final StepContext context, final JiraSendBuildInfoStep step) {
+        public JiraSendDeploymentInfoStepExecution(
+                final StepContext context, final JiraSendDeploymentInfoStep step) {
             super(context);
             this.step = step;
         }
@@ -100,12 +145,18 @@ public class JiraSendBuildInfoStep extends Step implements Serializable {
         @Override
         protected JiraSendInfoResponse run() throws Exception {
             final TaskListener taskListener = getContext().get(TaskListener.class);
-            final WorkflowRun build = getContext().get(WorkflowRun.class);
-
-            final JiraBuildInfoRequest request = new JiraBuildInfoRequest(step.getSite(), build);
-
+            final WorkflowRun workflowRun = getContext().get(WorkflowRun.class);
+            final JiraDeploymentInfoRequest request =
+                    new JiraDeploymentInfoRequest(
+                            step.getSite(),
+                            step.getEnvironmentId(),
+                            step.getEnvironmentName(),
+                            step.getEnvironmentType(),
+                            workflowRun);
             final JiraSendInfoResponse response =
-                    JiraSenderFactory.getInstance().getJiraBuildInfoSender().sendBuildInfo(request);
+                    JiraSenderFactory.getInstance()
+                            .getJiraDeploymentInfoSender()
+                            .sendDeploymentInfo(request);
 
             logResult(taskListener, response);
 
@@ -117,7 +168,7 @@ public class JiraSendBuildInfoStep extends Step implements Serializable {
             taskListener
                     .getLogger()
                     .println(
-                            "jiraSendBuildInfo: "
+                            "jiraSendDeploymentInfo: "
                                     + response.getStatus()
                                     + ": "
                                     + response.getMessage());

@@ -1,18 +1,17 @@
-package com.atlassian.jira.cloud.jenkins.buildinfo.service;
+package com.atlassian.jira.cloud.jenkins.deploymentinfo.service;
 
 import com.atlassian.jira.cloud.jenkins.auth.AccessTokenRetriever;
-import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.BuildApiResponse;
-import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.BuildKeyResponse;
-import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.RejectedBuildResponse;
 import com.atlassian.jira.cloud.jenkins.common.client.JiraApi;
 import com.atlassian.jira.cloud.jenkins.common.config.JiraSiteConfigRetriever;
 import com.atlassian.jira.cloud.jenkins.common.model.ApiErrorResponse;
 import com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse;
 import com.atlassian.jira.cloud.jenkins.common.service.IssueKeyExtractor;
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
+import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.DeploymentApiResponse;
+import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.DeploymentKeyResponse;
+import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.RejectedDeploymentResponse;
 import com.atlassian.jira.cloud.jenkins.tenantinfo.CloudIdResolver;
 import com.atlassian.jira.cloud.jenkins.util.RunWrapperProvider;
-import com.atlassian.jira.cloud.jenkins.util.ScmRevision;
 import com.atlassian.jira.cloud.jenkins.util.SecretRetriever;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -39,105 +38,106 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class JiraBuildInfoSenderImplTest {
+public class JiraDeploymentInfoSenderImplTest {
 
     private static final String SITE = "example.atlassian.com";
-    private static final String BRANCH_NAME = "TEST-123-branch-name";
+    public static final String ENVIRONMENT_ID = "prod-east-1";
+    public static final String ENVIRONMENT_NAME = "prod-east-1";
+    public static final String ENVIRONMENT_TYPE = "production";
     private static final String CLOUD_ID = UUID.randomUUID().toString();
     public static final String PIPELINE_ID = UUID.randomUUID().toString();
     public static final int BUILD_NUMBER = 1;
     private static final JiraCloudSiteConfig JIRA_SITE_CONFIG =
             new JiraCloudSiteConfig(SITE, "clientId", "credsId");
-    private static final ScmRevision SCM_REVISION = new ScmRevision(BRANCH_NAME);
 
     @Mock private JiraSiteConfigRetriever siteConfigRetriever;
 
     @Mock private SecretRetriever secretRetriever;
 
-    @Mock private IssueKeyExtractor issueKeyExtractor;
-
     @Mock private CloudIdResolver cloudIdResolver;
 
     @Mock private AccessTokenRetriever accessTokenRetriever;
 
-    @Mock private JiraApi buildsApi;
+    @Mock private JiraApi deploymentsApi;
+
+    @Mock private IssueKeyExtractor issueKeyExtractor;
 
     @Mock private RunWrapperProvider runWrapperProvider;
 
-    private JiraBuildInfoSender classUnderTest;
+    private JiraDeploymentInfoSender classUnderTest;
 
     @Before
     public void setUp() {
         classUnderTest =
-                new JiraBuildInfoSenderImpl(
+                new JiraDeploymentInfoSenderImpl(
                         siteConfigRetriever,
                         secretRetriever,
-                        issueKeyExtractor,
                         cloudIdResolver,
                         accessTokenRetriever,
-                        buildsApi,
+                        deploymentsApi,
+                        issueKeyExtractor,
                         runWrapperProvider);
 
         setupMocks();
     }
 
     @Test
-    public void testSendBuildInfo_whenSiteConfigNotFound() {
+    public void testSendDeploymentInfo_whenSiteConfigNotFound() {
         // given
         when(siteConfigRetriever.getJiraSiteConfig(any())).thenReturn(Optional.empty());
 
         // when
-        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(createRequest());
+        final JiraSendInfoResponse response = classUnderTest.sendDeploymentInfo(createRequest());
 
         // then
         assertThat(response.getStatus()).isEqualTo(FAILURE_SITE_CONFIG_NOT_FOUND);
     }
 
     @Test
-    public void testSendBuildInfo_whenSecretNotFound() {
+    public void testSendDeploymentInfo_whenSecretNotFound() {
         // given
         when(secretRetriever.getSecretFor(any())).thenReturn(Optional.empty());
 
         // when
-        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(createRequest());
+        final JiraSendInfoResponse response = classUnderTest.sendDeploymentInfo(createRequest());
 
         // then
         assertThat(response.getStatus()).isEqualTo(FAILURE_SECRET_NOT_FOUND);
     }
 
     @Test
-    public void testSendBuildInfo_whenIssueKeysNotFound() {
+    public void testSendDeploymentInfo_whenIssueKeysNotFound() {
         // given
         when(issueKeyExtractor.extractIssueKeys(any())).thenReturn(Collections.emptySet());
 
         // when
-        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(createRequest());
+        final JiraSendInfoResponse response = classUnderTest.sendDeploymentInfo(createRequest());
 
         // then
         assertThat(response.getStatus()).isEqualTo(SKIPPED_ISSUE_KEYS_NOT_FOUND);
         final String message = response.getMessage();
-        assertThat(message).startsWith("No issue keys found in the current branch name");
+        assertThat(message).startsWith("No issue keys found in the change log");
     }
 
     @Test
-    public void testSendBuildInfo_whenCloudIdNotFound() {
+    public void testSendDeploymentInfo_whenCloudIdNotFound() {
         // given
         when(cloudIdResolver.getCloudId(any())).thenReturn(Optional.empty());
 
         // when
-        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(createRequest());
+        final JiraSendInfoResponse response = classUnderTest.sendDeploymentInfo(createRequest());
 
         // then
         assertThat(response.getStatus()).isEqualTo(FAILURE_SITE_NOT_FOUND);
     }
 
     @Test
-    public void testSendBuildInfo_whenAccessTokenFailure() {
+    public void testSendDeploymentInfo_whenAccessTokenFailure() {
         // given
         when(accessTokenRetriever.getAccessToken(any())).thenReturn(Optional.empty());
 
         // when
-        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(createRequest());
+        final JiraSendInfoResponse response = classUnderTest.sendDeploymentInfo(createRequest());
 
         // then
         assertThat(response.getStatus())
@@ -145,55 +145,55 @@ public class JiraBuildInfoSenderImplTest {
     }
 
     @Test
-    public void testSendBuildInfo_whenApiResponseFailure() {
+    public void testSendDeploymentInfo_whenApiResponseFailure() {
         // given
-        setupBuildsApiFailure();
+        setupDeploymentsApiFailure();
 
         // when
-        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(createRequest());
+        final JiraSendInfoResponse response = classUnderTest.sendDeploymentInfo(createRequest());
 
         // then
         assertThat(response.getStatus())
-                .isEqualTo(JiraSendInfoResponse.Status.FAILURE_BUILDS_API_RESPONSE);
+                .isEqualTo(JiraSendInfoResponse.Status.FAILURE_DEPLOYMENTS_API_RESPONSE);
     }
 
     @Test
-    public void testSendBuildInfo_whenBuildAccepted() {
+    public void testSendDeploymentInfo_whenDeploymentAccepted() {
         // given
-        setupBuildsApiBuildAccepted();
+        setupDeploymentsApiDeploymentAccepted();
 
         // when
-        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(createRequest());
+        final JiraSendInfoResponse response = classUnderTest.sendDeploymentInfo(createRequest());
 
         // then
         assertThat(response.getStatus())
-                .isEqualTo(JiraSendInfoResponse.Status.SUCCESS_BUILD_ACCEPTED);
+                .isEqualTo(JiraSendInfoResponse.Status.SUCCESS_DEPLOYMENT_ACCEPTED);
         final String message = response.getMessage();
         assertThat(message).isNotBlank();
     }
 
     @Test
-    public void testSendBuildInfo_whenBuildRejected() {
+    public void testSendDeploymentInfo_whenDeploymentRejected() {
         // given
-        setupBuildApiBuildRejected();
+        setupDeploymentsApiDeploymentRejected();
 
         // when
-        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(createRequest());
+        final JiraSendInfoResponse response = classUnderTest.sendDeploymentInfo(createRequest());
 
         // then
         assertThat(response.getStatus())
-                .isEqualTo(JiraSendInfoResponse.Status.FAILURE_BUILD_REJECTED);
+                .isEqualTo(JiraSendInfoResponse.Status.FAILURE_DEPLOYMENT_REJECTED);
         final String message = response.getMessage();
         assertThat(message).isNotBlank();
     }
 
     @Test
-    public void testSendBuildInfo_whenUnknownIssueKeys() {
+    public void testSendDeploymentInfo_whenUnknownIssueKeys() {
         // given
-        setupBuildApiUnknownIssueKeys();
+        setupDeploymentApiUnknownIssueKeys();
 
         // when
-        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(createRequest());
+        final JiraSendInfoResponse response = classUnderTest.sendDeploymentInfo(createRequest());
 
         assertThat(response.getStatus())
                 .isEqualTo(JiraSendInfoResponse.Status.FAILURE_UNKNOWN_ISSUE_KEYS);
@@ -201,15 +201,16 @@ public class JiraBuildInfoSenderImplTest {
         assertThat(message).isNotBlank();
     }
 
-    private JiraBuildInfoRequest createRequest() {
-        return new JiraBuildInfoRequest(SITE, mockWorkflowRun());
+    private JiraDeploymentInfoRequest createRequest() {
+        return new JiraDeploymentInfoRequest(
+                SITE, ENVIRONMENT_ID, ENVIRONMENT_NAME, ENVIRONMENT_TYPE, mockWorkflowRun());
     }
 
     private void setupMocks() {
         setupSiteConfigRetriever();
         setupSecretRetriever();
-        setupIssueKeyExtractor();
         setupCloudIdResolver();
+        setupChangeLogExtractor();
         setupAccessTokenRetriever();
         setupRunWrapperProvider();
     }
@@ -223,10 +224,6 @@ public class JiraBuildInfoSenderImplTest {
         when(secretRetriever.getSecretFor(any())).thenReturn(Optional.of("secret"));
     }
 
-    private void setupIssueKeyExtractor() {
-        when(issueKeyExtractor.extractIssueKeys(any())).thenReturn(ImmutableSet.of("TEST-123"));
-    }
-
     private void setupCloudIdResolver() {
         when(cloudIdResolver.getCloudId(any())).thenReturn(Optional.of(CLOUD_ID));
     }
@@ -235,61 +232,68 @@ public class JiraBuildInfoSenderImplTest {
         when(accessTokenRetriever.getAccessToken(any())).thenReturn(Optional.of("access-token"));
     }
 
+    private void setupChangeLogExtractor() {
+        when(issueKeyExtractor.extractIssueKeys(any())).thenReturn(ImmutableSet.of("TEST-123"));
+    }
+
     private void setupRunWrapperProvider() {
         try {
             final RunWrapper mockRunWrapper = mock(RunWrapper.class);
             when(mockRunWrapper.getFullProjectName())
                     .thenReturn("multibranch-1/TEST-123-branch-name");
-            when(mockRunWrapper.getNumber()).thenReturn(1);
             when(mockRunWrapper.getDisplayName()).thenReturn("#1");
             when(mockRunWrapper.getAbsoluteUrl())
                     .thenReturn(
                             "http://localhost:8080/jenkins/multibranch-1/job/TEST-123-branch-name");
-            when(mockRunWrapper.getCurrentResult()).thenReturn("SUCCESS_BUILD_ACCEPTED");
+            when(mockRunWrapper.getCurrentResult()).thenReturn("SUCCESS_DEPLOYMENT_ACCEPTED");
             when(runWrapperProvider.getWrapper(any())).thenReturn(mockRunWrapper);
         } catch (final AbortException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private void setupBuildsApiFailure() {
-        when(buildsApi.postUpdate(any(), any(), any(), any(), any())).thenReturn(Optional.empty());
+    private void setupDeploymentsApiFailure() {
+        when(deploymentsApi.postUpdate(any(), any(), any(), any(), any()))
+                .thenReturn(Optional.empty());
     }
 
-    private void setupBuildsApiBuildAccepted() {
-        final BuildKeyResponse buildKeyResponse = new BuildKeyResponse(PIPELINE_ID, BUILD_NUMBER);
-        final BuildApiResponse buildApiResponse =
-                new BuildApiResponse(
-                        ImmutableList.of(buildKeyResponse),
+    private void setupDeploymentsApiDeploymentAccepted() {
+        final DeploymentKeyResponse deploymentKeyResponse =
+                new DeploymentKeyResponse(PIPELINE_ID, ENVIRONMENT_ID, BUILD_NUMBER);
+        final DeploymentApiResponse deploymentApiResponse =
+                new DeploymentApiResponse(
+                        ImmutableList.of(deploymentKeyResponse),
                         Collections.emptyList(),
                         Collections.emptyList());
-        when(buildsApi.postUpdate(any(), any(), any(), any(), any()))
-                .thenReturn(Optional.of(buildApiResponse));
+        when(deploymentsApi.postUpdate(any(), any(), any(), any(), any()))
+                .thenReturn(Optional.of(deploymentApiResponse));
     }
 
-    private void setupBuildApiBuildRejected() {
-        final BuildKeyResponse buildKeyResponse = new BuildKeyResponse(PIPELINE_ID, BUILD_NUMBER);
+    private void setupDeploymentsApiDeploymentRejected() {
+        final DeploymentKeyResponse deploymentKeyResponse =
+                new DeploymentKeyResponse(PIPELINE_ID, ENVIRONMENT_ID, BUILD_NUMBER);
         final ApiErrorResponse errorResponse = new ApiErrorResponse("Error message");
-        final RejectedBuildResponse buildResponse =
-                new RejectedBuildResponse(buildKeyResponse, ImmutableList.of(errorResponse));
+        final RejectedDeploymentResponse deploymentResponse =
+                new RejectedDeploymentResponse(
+                        deploymentKeyResponse, ImmutableList.of(errorResponse));
 
-        final BuildApiResponse buildApiResponse =
-                new BuildApiResponse(
+        final DeploymentApiResponse deploymentApiResponse =
+                new DeploymentApiResponse(
                         Collections.emptyList(),
-                        ImmutableList.of(buildResponse),
+                        ImmutableList.of(deploymentResponse),
                         Collections.emptyList());
-        when(buildsApi.postUpdate(any(), any(), any(), any(), any()))
-                .thenReturn(Optional.of(buildApiResponse));
+        when(deploymentsApi.postUpdate(any(), any(), any(), any(), any()))
+                .thenReturn(Optional.of(deploymentApiResponse));
     }
 
-    private void setupBuildApiUnknownIssueKeys() {
-        final BuildApiResponse buildApiResponse =
-                new BuildApiResponse(
+    private void setupDeploymentApiUnknownIssueKeys() {
+        final DeploymentApiResponse deploymentApiResponse =
+                new DeploymentApiResponse(
                         Collections.emptyList(),
                         Collections.emptyList(),
                         ImmutableList.of("TEST-123"));
-        when(buildsApi.postUpdate(any(), any(), any(), any(), any()))
-                .thenReturn(Optional.of(buildApiResponse));
+        when(deploymentsApi.postUpdate(any(), any(), any(), any(), any()))
+                .thenReturn(Optional.of(deploymentApiResponse));
     }
 
     private static WorkflowRun mockWorkflowRun() {

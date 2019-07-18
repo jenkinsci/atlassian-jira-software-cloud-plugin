@@ -1,6 +1,6 @@
 package com.atlassian.jira.cloud.jenkins;
 
-import com.atlassian.jira.cloud.jenkins.buildinfo.client.BuildsApiTest;
+import com.atlassian.jira.cloud.jenkins.common.client.BuildsApiTest;
 import okhttp3.mockwebserver.MockResponse;
 import org.apache.commons.io.IOUtils;
 

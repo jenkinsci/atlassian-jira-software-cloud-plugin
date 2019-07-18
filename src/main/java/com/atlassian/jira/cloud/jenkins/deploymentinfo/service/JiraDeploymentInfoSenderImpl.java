@@ -1,9 +1,6 @@
-package com.atlassian.jira.cloud.jenkins.buildinfo.service;
+package com.atlassian.jira.cloud.jenkins.deploymentinfo.service;
 
 import com.atlassian.jira.cloud.jenkins.auth.AccessTokenRetriever;
-import com.atlassian.jira.cloud.jenkins.buildinfo.client.BuildPayloadBuilder;
-import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.BuildApiResponse;
-import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.Builds;
 import com.atlassian.jira.cloud.jenkins.common.client.JiraApi;
 import com.atlassian.jira.cloud.jenkins.common.config.JiraSiteConfigRetriever;
 import com.atlassian.jira.cloud.jenkins.common.model.AppCredential;
@@ -11,14 +8,16 @@ import com.atlassian.jira.cloud.jenkins.common.response.JiraCommonResponse;
 import com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse;
 import com.atlassian.jira.cloud.jenkins.common.service.IssueKeyExtractor;
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
+import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.DeploymentPayloadBuilder;
+import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.DeploymentApiResponse;
+import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Deployments;
+import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Environment;
 import com.atlassian.jira.cloud.jenkins.tenantinfo.CloudIdResolver;
 import com.atlassian.jira.cloud.jenkins.util.RunWrapperProvider;
 import com.atlassian.jira.cloud.jenkins.util.SecretRetriever;
 import hudson.model.Run;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.jenkinsci.plugins.workflow.support.steps.build.RunWrapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
 import java.util.Set;
@@ -26,44 +25,42 @@ import java.util.Set;
 import static java.util.Objects.requireNonNull;
 
 /**
- * Implementation of JiraBuildInfoSender to send build updates to Jira by building the payload,
+ * Implementation of JiraDeploymentInfoSender to send build updates to Jira by building the payload,
  * generating the access token, sending the request and parsing the response.
  */
-public class JiraBuildInfoSenderImpl implements JiraBuildInfoSender {
-
-    private static final Logger log = LoggerFactory.getLogger(JiraBuildInfoSenderImpl.class);
+public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
 
     private static final String HTTPS_PROTOCOL = "https://";
 
     private final JiraSiteConfigRetriever siteConfigRetriever;
     private final SecretRetriever secretRetriever;
-    private final IssueKeyExtractor issueKeyExtractor;
     private final CloudIdResolver cloudIdResolver;
     private final AccessTokenRetriever accessTokenRetriever;
-    private final JiraApi buildsApi;
+    private final JiraApi deploymentsApi;
     private final RunWrapperProvider runWrapperProvider;
+    private final IssueKeyExtractor issueKeyExtractor;
 
-    public JiraBuildInfoSenderImpl(
+    public JiraDeploymentInfoSenderImpl(
             final JiraSiteConfigRetriever siteConfigRetriever,
             final SecretRetriever secretRetriever,
-            final IssueKeyExtractor issueKeyExtractor,
             final CloudIdResolver cloudIdResolver,
             final AccessTokenRetriever accessTokenRetriever,
-            final JiraApi buildsApi,
+            final JiraApi jiraApi,
+            final IssueKeyExtractor issueKeyExtractor,
             final RunWrapperProvider runWrapperProvider) {
         this.siteConfigRetriever = requireNonNull(siteConfigRetriever);
         this.secretRetriever = requireNonNull(secretRetriever);
-        this.issueKeyExtractor = requireNonNull(issueKeyExtractor);
         this.cloudIdResolver = requireNonNull(cloudIdResolver);
         this.accessTokenRetriever = requireNonNull(accessTokenRetriever);
-        this.buildsApi = requireNonNull(buildsApi);
+        this.deploymentsApi = requireNonNull(jiraApi);
         this.runWrapperProvider = requireNonNull(runWrapperProvider);
+        this.issueKeyExtractor = requireNonNull(issueKeyExtractor);
     }
 
     @Override
-    public JiraSendInfoResponse sendBuildInfo(final JiraBuildInfoRequest request) {
+    public JiraSendInfoResponse sendDeploymentInfo(final JiraDeploymentInfoRequest request) {
         final String jiraSite = request.getSite();
-        final WorkflowRun build = request.getBuild();
+        final WorkflowRun deployment = request.getDeployment();
 
         final Optional<JiraCloudSiteConfig> maybeSiteConfig = getSiteConfigFor(jiraSite);
 
@@ -78,10 +75,10 @@ public class JiraBuildInfoSenderImpl implements JiraBuildInfoSender {
             return JiraCommonResponse.failureSecretNotFound(jiraSite);
         }
 
-        final Set<String> issueKeys = issueKeyExtractor.extractIssueKeys(build);
+        final Set<String> issueKeys = issueKeyExtractor.extractIssueKeys(deployment);
 
         if (issueKeys.isEmpty()) {
-            return JiraBuildInfoResponse.skippedIssueKeysNotFound();
+            return JiraDeploymentInfoResponse.skippedIssueKeysNotFound(jiraSite);
         }
 
         final Optional<String> maybeCloudId = getCloudIdFor(jiraSite);
@@ -96,11 +93,12 @@ public class JiraBuildInfoSenderImpl implements JiraBuildInfoSender {
             return JiraCommonResponse.failureAccessToken(jiraSite);
         }
 
-        final Builds buildInfo = createJiraBuildInfo(build, issueKeys);
+        final Deployments deploymentInfo = createJiraDeploymentInfo(deployment, request, issueKeys);
 
-        return sendBuildInfo(maybeCloudId.get(), maybeAccessToken.get(), jiraSite, buildInfo)
-                .map(response -> handleBuildApiResponse(jiraSite, response))
-                .orElseGet(() -> handleBuildApiError(jiraSite));
+        return sendDeploymentInfo(
+                        maybeCloudId.get(), maybeAccessToken.get(), jiraSite, deploymentInfo)
+                .map(response -> handleDeploymentApiResponse(jiraSite, response))
+                .orElseGet(() -> handleDeploymentApiError(jiraSite));
     }
 
     private Optional<JiraCloudSiteConfig> getSiteConfigFor(final String jiraSite) {
@@ -122,39 +120,49 @@ public class JiraBuildInfoSenderImpl implements JiraBuildInfoSender {
         return secretRetriever.getSecretFor(credentialsId);
     }
 
-    private Builds createJiraBuildInfo(final Run build, final Set<String> issueKeys) {
+    private Deployments createJiraDeploymentInfo(
+            final Run build, final JiraDeploymentInfoRequest request, final Set<String> issueKeys) {
         final RunWrapper buildWrapper = runWrapperProvider.getWrapper(build);
 
-        return BuildPayloadBuilder.getBuildPayload(buildWrapper, issueKeys);
+        return DeploymentPayloadBuilder.getDeploymentInfo(
+                buildWrapper, buildEnvironment(request), issueKeys);
     }
 
-    private Optional<BuildApiResponse> sendBuildInfo(
+    private Optional<DeploymentApiResponse> sendDeploymentInfo(
             final String cloudId,
             final String accessToken,
             final String jiraSite,
-            final Builds buildInfo) {
-        return buildsApi.postUpdate(
-                cloudId, accessToken, jiraSite, buildInfo, BuildApiResponse.class);
+            final Deployments deploymentInfo) {
+        return deploymentsApi.postUpdate(
+                cloudId, accessToken, jiraSite, deploymentInfo, DeploymentApiResponse.class);
     }
 
-    private JiraBuildInfoResponse handleBuildApiResponse(
-            final String jiraSite, final BuildApiResponse response) {
-        if (!response.getAcceptedBuilds().isEmpty()) {
-            return JiraBuildInfoResponse.successBuildAccepted(jiraSite, response);
+    private JiraSendInfoResponse handleDeploymentApiResponse(
+            final String jiraSite, final DeploymentApiResponse response) {
+        if (!response.getAcceptedDeployments().isEmpty()) {
+            return JiraDeploymentInfoResponse.successDeploymentAccepted(jiraSite, response);
         }
 
-        if (!response.getRejectedBuilds().isEmpty()) {
-            return JiraBuildInfoResponse.failureBuildRejected(jiraSite, response);
+        if (!response.getRejectedDeployments().isEmpty()) {
+            return JiraDeploymentInfoResponse.failureDeploymentdRejected(jiraSite, response);
         }
 
         if (!response.getUnknownIssueKeys().isEmpty()) {
-            return JiraBuildInfoResponse.failureUnknownIssueKeys(jiraSite, response);
+            return JiraDeploymentInfoResponse.failureUnknownIssueKeys(jiraSite, response);
         }
 
-        return JiraBuildInfoResponse.failureUnexpectedResponse();
+        return JiraDeploymentInfoResponse.failureUnexpectedResponse();
     }
 
-    private JiraBuildInfoResponse handleBuildApiError(final String jiraSite) {
-        return JiraBuildInfoResponse.failureBuildsApiResponse(jiraSite);
+    private JiraDeploymentInfoResponse handleDeploymentApiError(final String jiraSite) {
+        return JiraDeploymentInfoResponse.failureDeploymentsApiResponse(jiraSite);
+    }
+
+    private Environment buildEnvironment(final JiraDeploymentInfoRequest request) {
+        return Environment.builder()
+                .withId(request.getEnvironmentId())
+                .withDisplayName(request.getEnvironmentName())
+                .withType(request.getEnvironmentType())
+                .build();
     }
 }

@@ -1,6 +1,7 @@
 package com.atlassian.jira.cloud.jenkins.buildinfo.client;
 
 import com.atlassian.jira.cloud.jenkins.BaseUnitTest;
+import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.Builds;
 import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.JiraBuildInfo;
 import com.google.common.collect.ImmutableSet;
 import org.jenkinsci.plugins.workflow.support.steps.build.RunWrapper;
@@ -18,9 +19,10 @@ public class BuildPayloadBuilderTest extends BaseUnitTest {
     public void testSuccessfulBuild() throws Exception {
         // when
         final RunWrapper runWrapper = mockRunWrapper("SUCCESS");
-        final JiraBuildInfo buildInfo =
-                BuildPayloadBuilder.getBuildInfo(runWrapper, ImmutableSet.of(ISSUE_KEY));
+        final Builds buildPayload =
+                BuildPayloadBuilder.getBuildPayload(runWrapper, ImmutableSet.of(ISSUE_KEY));
 
+        final JiraBuildInfo buildInfo = buildPayload.getBuilds().get(0);
         // then
         assertThat(buildInfo.getPipelineId()).isEqualTo(runWrapper.getFullProjectName());
         assertThat(buildInfo.getBuildNumber()).isEqualTo(runWrapper.getNumber());
@@ -34,8 +36,10 @@ public class BuildPayloadBuilderTest extends BaseUnitTest {
     public void testFailedBuild() throws Exception {
         // when
         final RunWrapper runWrapper = mockRunWrapper("FAILURE");
-        final JiraBuildInfo buildInfo =
-                BuildPayloadBuilder.getBuildInfo(runWrapper, ImmutableSet.of(ISSUE_KEY));
+        final Builds buildPayload =
+                BuildPayloadBuilder.getBuildPayload(runWrapper, ImmutableSet.of(ISSUE_KEY));
+
+        final JiraBuildInfo buildInfo = buildPayload.getBuilds().get(0);
 
         // then
         assertThat(buildInfo.getPipelineId()).isEqualTo(runWrapper.getFullProjectName());

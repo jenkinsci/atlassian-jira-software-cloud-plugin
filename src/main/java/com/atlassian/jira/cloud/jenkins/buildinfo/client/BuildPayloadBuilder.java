@@ -1,6 +1,8 @@
 package com.atlassian.jira.cloud.jenkins.buildinfo.client;
 
+import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.Builds;
 import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.JiraBuildInfo;
+import com.atlassian.jira.cloud.jenkins.util.JenkinsToJiraStatus;
 import hudson.AbortException;
 import org.jenkinsci.plugins.workflow.support.steps.build.RunWrapper;
 
@@ -9,46 +11,31 @@ import java.util.Set;
 
 public final class BuildPayloadBuilder {
 
-    private static final String STATUS_SUCCESSFUL = "successful";
-    private static final String STATUS_FAILED = "failed";
-    private static final String STATUS_UNKNOWN = "unknown";
-
     /**
      * Assembles a JiraBuildInfo with necessary parameters from the Jenkins context
      *
      * @param buildWrapper Jenkins context that provides project and build details
      * @param issueKeys Jira issue keys to associate the build info with
-     * @return an assembled JiraBuildInfo
+     * @return an assembled Builds payload
      */
-    public static JiraBuildInfo getBuildInfo(
+    public static Builds getBuildPayload(
             final RunWrapper buildWrapper, final Set<String> issueKeys) {
 
         try {
-            return JiraBuildInfo.builder()
+            return new Builds(JiraBuildInfo.builder()
                     .withPipelineId(buildWrapper.getFullProjectName())
                     .withBuildNumber(buildWrapper.getNumber())
                     .withDisplayName(buildWrapper.getDisplayName())
                     .withUpdateSequenceNumber(Instant.now().getEpochSecond())
                     .withLabel(buildWrapper.getDisplayName())
                     .withUrl(buildWrapper.getAbsoluteUrl())
-                    .withState(getBuildStatus(buildWrapper.getCurrentResult()))
+                    .withState(JenkinsToJiraStatus.getStatus(buildWrapper.getCurrentResult()))
                     .withLastUpdated(Instant.now().toString())
                     .withIssueKeys(issueKeys)
-                    .build();
+                    .build());
         } catch (final AbortException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private static String getBuildStatus(final String result) {
-        if ("SUCCESS".equalsIgnoreCase(result)) {
-            return STATUS_SUCCESSFUL;
-        }
-
-        if ("FAILURE".equalsIgnoreCase(result)) {
-            return STATUS_FAILED;
-        }
-
-        return STATUS_UNKNOWN;
-    }
 }
