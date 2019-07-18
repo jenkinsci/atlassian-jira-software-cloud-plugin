@@ -12,11 +12,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.atlassian.jira.cloud.jenkins.util.IssueKeyStringExtractor.ISSUE_KEY_MAX_LIMIT;
-
 /**
- * Parses the change log from the current build and extracts the issue keys
- * from the commit messages. It also tries to extract from squashed commits.
+ * Parses the change log from the current build and extracts the issue keys from the commit
+ * messages. It also tries to extract from squashed commits.
  */
 public final class ChangeLogIssueKeyExtractor implements IssueKeyExtractor {
 
@@ -32,9 +30,12 @@ public final class ChangeLogIssueKeyExtractor implements IssueKeyExtractor {
                 final ChangeLogSet.Entry changeSetEntry = (ChangeLogSet.Entry) item;
 
                 if (changeSetEntry instanceof GitChangeSet) {
-                    allIssueKeys.addAll(IssueKeyStringExtractor.extractIssueKeys(((GitChangeSet) changeSetEntry).getComment()));
+                    allIssueKeys.addAll(
+                            IssueKeyStringExtractor.extractIssueKeys(
+                                    ((GitChangeSet) changeSetEntry).getComment()));
                 }
-                allIssueKeys.addAll(IssueKeyStringExtractor.extractIssueKeys(changeSetEntry.getMsg()));
+                allIssueKeys.addAll(
+                        IssueKeyStringExtractor.extractIssueKeys(changeSetEntry.getMsg()));
 
                 if (allIssueKeys.size() >= ISSUE_KEY_MAX_LIMIT) {
                     break;
