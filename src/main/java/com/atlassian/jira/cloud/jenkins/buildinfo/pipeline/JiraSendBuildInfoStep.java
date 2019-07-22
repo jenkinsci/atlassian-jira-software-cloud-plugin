@@ -2,12 +2,15 @@ package com.atlassian.jira.cloud.jenkins.buildinfo.pipeline;
 
 import com.atlassian.jira.cloud.jenkins.Messages;
 import com.atlassian.jira.cloud.jenkins.buildinfo.service.JiraBuildInfoRequest;
+import com.atlassian.jira.cloud.jenkins.common.client.DefaultSiteLookupFailureException;
+import com.atlassian.jira.cloud.jenkins.common.config.DefaultSitePicker;
 import com.atlassian.jira.cloud.jenkins.common.factory.JiraSenderFactory;
 import com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse;
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudPluginConfig;
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
 import com.google.common.collect.ImmutableSet;
 import hudson.Extension;
+import hudson.model.Result;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.util.ListBoxModel;
@@ -21,8 +24,10 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 
 import javax.inject.Inject;
+import java.io.PrintStream;
 import java.io.Serializable;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -36,8 +41,8 @@ public class JiraSendBuildInfoStep extends Step implements Serializable {
     private String site;
 
     @DataBoundConstructor
-    public JiraSendBuildInfoStep(final String site) {
-        this.site = site;
+    public JiraSendBuildInfoStep() {
+        // Empty constructor
     }
 
     public String getSite() {
@@ -87,7 +92,8 @@ public class JiraSendBuildInfoStep extends Step implements Serializable {
     }
 
     public static class JiraSendBuildInfoStepExecution
-            extends SynchronousNonBlockingStepExecution<JiraSendInfoResponse> {
+            extends SynchronousNonBlockingStepExecution<JiraSendInfoResponse>
+            implements DefaultSitePicker {
 
         private final JiraSendBuildInfoStep step;
 
@@ -100,9 +106,16 @@ public class JiraSendBuildInfoStep extends Step implements Serializable {
         @Override
         protected JiraSendInfoResponse run() throws Exception {
             final TaskListener taskListener = getContext().get(TaskListener.class);
-            final WorkflowRun build = getContext().get(WorkflowRun.class);
+            final WorkflowRun workflowRun = getContext().get(WorkflowRun.class);
+            final Optional<String> site = pickDefaultSite(step.getSite());
 
-            final JiraBuildInfoRequest request = new JiraBuildInfoRequest(step.getSite(), build);
+            if (!site.isPresent()) {
+                workflowRun.setResult(Result.FAILURE);
+                getContext().setResult(Result.FAILURE);
+                throw new DefaultSiteLookupFailureException();
+            }
+
+            final JiraBuildInfoRequest request = new JiraBuildInfoRequest(site.get(), workflowRun);
 
             final JiraSendInfoResponse response =
                     JiraSenderFactory.getInstance().getJiraBuildInfoSender().sendBuildInfo(request);
@@ -110,6 +123,15 @@ public class JiraSendBuildInfoStep extends Step implements Serializable {
             logResult(taskListener, response);
 
             return response;
+        }
+
+        @Override
+        public PrintStream getLogger() {
+            try {
+                return getContext().get(TaskListener.class).getLogger();
+            } catch (Exception e) {
+                return null;
+            }
         }
 
         private void logResult(

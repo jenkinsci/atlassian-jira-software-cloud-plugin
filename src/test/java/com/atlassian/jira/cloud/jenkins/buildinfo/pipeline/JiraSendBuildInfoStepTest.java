@@ -1,7 +1,9 @@
 package com.atlassian.jira.cloud.jenkins.buildinfo.pipeline;
 
+import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.BuildApiResponse;
 import com.atlassian.jira.cloud.jenkins.buildinfo.service.JiraBuildInfoResponse;
 import com.atlassian.jira.cloud.jenkins.buildinfo.service.JiraBuildInfoSender;
+import com.atlassian.jira.cloud.jenkins.common.client.DefaultSiteLookupFailureException;
 import com.atlassian.jira.cloud.jenkins.common.factory.JiraSenderFactory;
 import com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse;
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudPluginConfig;
@@ -11,16 +13,10 @@ import com.cloudbees.plugins.credentials.CredentialsScope;
 import com.cloudbees.plugins.credentials.domains.Domain;
 import com.cloudbees.plugins.credentials.impl.BaseStandardCredentials;
 import com.google.common.collect.ImmutableList;
-import hudson.model.Job;
 import hudson.model.Node;
-import hudson.model.Run;
+import hudson.model.Result;
 import hudson.model.TaskListener;
 import hudson.util.Secret;
-import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.BuildApiResponse;
-import jenkins.plugins.git.GitBranchSCMHead;
-import jenkins.plugins.git.GitBranchSCMRevision;
-import jenkins.plugins.git.GitSCMSource;
-import jenkins.scm.api.SCMRevisionAction;
 import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.jenkinsci.plugins.workflow.steps.StepConfigTester;
@@ -29,6 +25,7 @@ import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.jvnet.hudson.test.BuildWatcher;
 import org.jvnet.hudson.test.JenkinsRule;
 
@@ -55,6 +52,7 @@ public class JiraSendBuildInfoStepTest {
     @ClassRule public static BuildWatcher buildWatcher = new BuildWatcher();
 
     @Rule public JenkinsRule jenkinsRule = new JenkinsRule();
+    @Rule public ExpectedException expectedException = ExpectedException.none();
 
     @Inject JiraSendBuildInfoStep.DescriptorImpl descriptor;
 
@@ -88,14 +86,18 @@ public class JiraSendBuildInfoStepTest {
 
     @Test
     public void configRoundTrip() throws Exception {
-        configRoundTrip(SITE);
+        final JiraSendBuildInfoStep build = new JiraSendBuildInfoStep();
+        build.setSite(SITE);
+        final JiraSendBuildInfoStep step = new StepConfigTester(jenkinsRule).configRoundTrip(build);
+
+        assertThat(step.getSite()).isEqualTo(SITE);
     }
 
-    private void configRoundTrip(String site) throws Exception {
-        final JiraSendBuildInfoStep step =
-                new StepConfigTester(jenkinsRule).configRoundTrip(new JiraSendBuildInfoStep(site));
+    @Test
+    public void configRoundTripPicksUpDefaultSite() throws Exception {
+        final JiraSendBuildInfoStep step = new StepConfigTester(jenkinsRule).configRoundTrip(new JiraSendBuildInfoStep());
 
-        assertThat(step.getSite()).isEqualTo(site);
+        assertThat(step.getSite()).isEqualTo(SITE);
     }
 
     @Test
@@ -104,7 +106,6 @@ public class JiraSendBuildInfoStepTest {
         final WorkflowRun mockWorkflowRun = mockWorkflowRun();
         final TaskListener mockTaskListener = mockTaskListener();
         when(mockTaskListener.getLogger()).thenReturn(mock(PrintStream.class));
-        when(mockWorkflowRun.getAction(SCMRevisionAction.class)).thenReturn(scmRevisionAction());
 
         final Map<String, Object> r = new HashMap<>();
         r.put("site", SITE);
@@ -125,14 +126,63 @@ public class JiraSendBuildInfoStepTest {
         assertThat(response.getStatus()).isEqualTo(SUCCESS_BUILD_ACCEPTED);
     }
 
+    @Test
+    public void testStepPicksupDefaultSite() throws Exception {
+        // given
+        final WorkflowRun mockWorkflowRun = mockWorkflowRun();
+        final TaskListener mockTaskListener = mockTaskListener();
+        when(mockTaskListener.getLogger()).thenReturn(mock(PrintStream.class));
+
+        final JiraSendBuildInfoStep step = (JiraSendBuildInfoStep) descriptor.newInstance(new HashMap<>());
+
+        final StepContext ctx = mock(StepContext.class);
+        when(ctx.get(Node.class)).thenReturn(jenkinsRule.getInstance());
+        when(ctx.get(WorkflowRun.class)).thenReturn(mockWorkflowRun);
+        when(ctx.get(TaskListener.class)).thenReturn(mockTaskListener);
+
+        final JiraSendBuildInfoStep.JiraSendBuildInfoStepExecution start =
+                (JiraSendBuildInfoStep.JiraSendBuildInfoStepExecution) step.start(ctx);
+
+        // when
+        final JiraSendInfoResponse response = start.run();
+
+        // then
+        assertThat(response.getStatus()).isEqualTo(SUCCESS_BUILD_ACCEPTED);
+    }
+
+    @Test
+    public void testStepWithNoSitesConfigured() throws Exception {
+        // given
+        final WorkflowRun mockWorkflowRun = mockWorkflowRun();
+        final TaskListener mockTaskListener = mockTaskListener();
+        JiraCloudPluginConfig.get().setSites(Collections.emptyList()); // clear site configs
+        when(mockTaskListener.getLogger()).thenReturn(mock(PrintStream.class));
+
+        final JiraSendBuildInfoStep step = (JiraSendBuildInfoStep) descriptor.newInstance(new HashMap<>());
+
+        final StepContext ctx = mock(StepContext.class);
+        when(ctx.get(Node.class)).thenReturn(jenkinsRule.getInstance());
+        when(ctx.get(WorkflowRun.class)).thenReturn(mockWorkflowRun);
+        when(ctx.get(TaskListener.class)).thenReturn(mockTaskListener);
+
+        final JiraSendBuildInfoStep.JiraSendBuildInfoStepExecution stepExecution =
+                (JiraSendBuildInfoStep.JiraSendBuildInfoStepExecution) step.start(ctx);
+
+        // expect exception
+        expectedException.expect(DefaultSiteLookupFailureException.class);
+        expectedException.expectMessage(
+                "Unable to determine default site. Please specify site parameter in the Jenkinsfile.");
+
+        // when
+        stepExecution.run();
+
+        // verify
+        assertThat(stepExecution.getStatus()).isEqualTo(Result.FAILURE);
+    }
+
     private static BaseStandardCredentials secretCredential() {
         return new StringCredentialsImpl(
                 CredentialsScope.GLOBAL, CREDENTIAL_ID, "test-secret", Secret.fromString("secret"));
-    }
-
-    private static SCMRevisionAction scmRevisionAction() {
-        final GitBranchSCMHead head = new GitBranchSCMHead(ISSUE_KEY + "-branch-name");
-        return new SCMRevisionAction(new GitSCMSource(""), new GitBranchSCMRevision(head, ""));
     }
 
     private static WorkflowRun mockWorkflowRun() {

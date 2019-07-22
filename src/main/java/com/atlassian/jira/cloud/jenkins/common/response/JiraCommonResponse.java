@@ -8,7 +8,7 @@ public class JiraCommonResponse extends JiraSendInfoResponse {
         super(status, message);
     }
 
-    public static JiraSendInfoResponse failureAccessToken(final String jiraSite) {
+    public static JiraCommonResponse failureAccessToken(final String jiraSite) {
         final String message = Messages.JiraCommonResponse_FAILURE_ACCESS_TOKEN(jiraSite);
         return new JiraCommonResponse(Status.FAILURE_ACCESS_TOKEN, message);
     }
@@ -18,12 +18,12 @@ public class JiraCommonResponse extends JiraSendInfoResponse {
         return new JiraCommonResponse(Status.FAILURE_SITE_CONFIG_NOT_FOUND, message);
     }
 
-    public static JiraSendInfoResponse failureSecretNotFound(final String jiraSite) {
+    public static JiraCommonResponse failureSecretNotFound(final String jiraSite) {
         final String message = Messages.JiraCommonResponse_FAILURE_SECRET_NOT_FOUND(jiraSite);
         return new JiraCommonResponse(Status.FAILURE_SECRET_NOT_FOUND, message);
     }
 
-    public static JiraSendInfoResponse failureSiteNotFound(final String jiraSite) {
+    public static JiraCommonResponse failureSiteNotFound(final String jiraSite) {
         final String message = Messages.JiraCommonResponse_FAILURE_SITE_NOT_FOUND(jiraSite);
         return new JiraCommonResponse(Status.FAILURE_SITE_NOT_FOUND, message);
     }

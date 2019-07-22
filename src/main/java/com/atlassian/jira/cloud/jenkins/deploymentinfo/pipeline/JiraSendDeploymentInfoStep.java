@@ -1,6 +1,8 @@
 package com.atlassian.jira.cloud.jenkins.deploymentinfo.pipeline;
 
 import com.atlassian.jira.cloud.jenkins.Messages;
+import com.atlassian.jira.cloud.jenkins.common.client.DefaultSiteLookupFailureException;
+import com.atlassian.jira.cloud.jenkins.common.config.DefaultSitePicker;
 import com.atlassian.jira.cloud.jenkins.common.factory.JiraSenderFactory;
 import com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse;
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudPluginConfig;
@@ -8,6 +10,7 @@ import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.service.JiraDeploymentInfoRequest;
 import com.google.common.collect.ImmutableSet;
 import hudson.Extension;
+import hudson.model.Result;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.util.ListBoxModel;
@@ -21,8 +24,10 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 
 import javax.inject.Inject;
+import java.io.PrintStream;
 import java.io.Serializable;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -40,8 +45,9 @@ public class JiraSendDeploymentInfoStep extends Step implements Serializable {
 
     @DataBoundConstructor
     public JiraSendDeploymentInfoStep(
-            final String site, final String environmentId, final String environmentName, final String environmentType) {
-        this.site = site;
+            final String environmentId,
+            final String environmentName,
+            final String environmentType) {
         this.environmentId = environmentId;
         this.environmentName = environmentName;
         this.environmentType = environmentType;
@@ -132,7 +138,8 @@ public class JiraSendDeploymentInfoStep extends Step implements Serializable {
     }
 
     public static class JiraSendDeploymentInfoStepExecution
-            extends SynchronousNonBlockingStepExecution<JiraSendInfoResponse> {
+            extends SynchronousNonBlockingStepExecution<JiraSendInfoResponse>
+            implements DefaultSitePicker {
 
         private final JiraSendDeploymentInfoStep step;
 
@@ -146,9 +153,17 @@ public class JiraSendDeploymentInfoStep extends Step implements Serializable {
         protected JiraSendInfoResponse run() throws Exception {
             final TaskListener taskListener = getContext().get(TaskListener.class);
             final WorkflowRun workflowRun = getContext().get(WorkflowRun.class);
+            final Optional<String> site = pickDefaultSite(step.getSite());
+
+            if (!site.isPresent()) {
+                workflowRun.setResult(Result.FAILURE);
+                getContext().setResult(Result.FAILURE);
+                throw new DefaultSiteLookupFailureException();
+            }
+
             final JiraDeploymentInfoRequest request =
                     new JiraDeploymentInfoRequest(
-                            step.getSite(),
+                            site.get(),
                             step.getEnvironmentId(),
                             step.getEnvironmentName(),
                             step.getEnvironmentType(),
@@ -161,6 +176,15 @@ public class JiraSendDeploymentInfoStep extends Step implements Serializable {
             logResult(taskListener, response);
 
             return response;
+        }
+
+        @Override
+        public PrintStream getLogger() {
+            try {
+                return getContext().get(TaskListener.class).getLogger();
+            } catch (Exception e) {
+                return null;
+            }
         }
 
         private void logResult(
