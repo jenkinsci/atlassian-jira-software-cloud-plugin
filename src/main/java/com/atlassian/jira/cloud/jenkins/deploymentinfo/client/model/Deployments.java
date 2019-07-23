@@ -13,7 +13,7 @@ public class Deployments implements JiraRequest {
 
     public Deployments(final JiraDeploymentInfo jiraDeploymentInfo) {
         this.deployments = Collections.singletonList(jiraDeploymentInfo);
-        this.properties = new Properties("jenkins/deployments", jiraDeploymentInfo.getPipeline().getId());
+        this.properties = new Properties("jenkins", jiraDeploymentInfo.getPipeline().getId());
     }
 
     public List<JiraDeploymentInfo> getDeployments() {

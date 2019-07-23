@@ -15,7 +15,7 @@ public class Builds implements JiraRequest {
 
     public Builds(final JiraBuildInfo jiraBuildInfo) {
         this.builds = Collections.singletonList(jiraBuildInfo);
-        this.properties = new Properties("jenkins/builds", jiraBuildInfo.getPipelineId());
+        this.properties = new Properties("jenkins", jiraBuildInfo.getPipelineId());
     }
 
     public List<JiraBuildInfo> getBuilds() {
