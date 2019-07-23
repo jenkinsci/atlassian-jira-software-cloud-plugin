@@ -35,6 +35,7 @@ public class HttpClientProviderTest extends BaseMockServerTest {
 
         // verify
         assertThat(response.code()).isEqualTo(202);
+        assertThat(server.getRequestCount()).isEqualTo(1); // first request only
     }
 
     @Test
@@ -48,6 +49,7 @@ public class HttpClientProviderTest extends BaseMockServerTest {
 
         // verify
         assertThat(response.code()).isEqualTo(404);
+        assertThat(server.getRequestCount()).isEqualTo(1); // first request only
     }
 
     @Test
@@ -61,6 +63,7 @@ public class HttpClientProviderTest extends BaseMockServerTest {
 
         // verify
         assertThat(response.code()).isEqualTo(202);
+        assertThat(server.getRequestCount()).isEqualTo(2); // 1 actual request + 1 retry
     }
 
     @Test
@@ -74,6 +77,7 @@ public class HttpClientProviderTest extends BaseMockServerTest {
 
         // verify
         assertThat(response.code()).isEqualTo(503);
+        assertThat(server.getRequestCount()).isEqualTo(4); // 1 actual request + 3 retries
     }
 
     private Request getRequest() {
