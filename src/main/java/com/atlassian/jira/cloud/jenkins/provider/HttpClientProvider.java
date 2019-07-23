@@ -58,6 +58,7 @@ public class HttpClientProvider {
                 Thread.sleep(2000); // delay between each retry
             } catch (InterruptedException e) {
                 log.error("Retry delay interrupted: " + e.getMessage());
+                Thread.currentThread().interrupt();
             }
             response = chain.proceed(request);
             currentAttempt++;
