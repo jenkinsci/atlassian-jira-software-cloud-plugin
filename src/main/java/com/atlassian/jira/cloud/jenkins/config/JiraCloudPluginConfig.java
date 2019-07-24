@@ -1,5 +1,6 @@
 package com.atlassian.jira.cloud.jenkins.config;
 
+import com.atlassian.jira.cloud.jenkins.Messages;
 import hudson.Extension;
 import jenkins.model.GlobalConfiguration;
 import net.sf.json.JSONObject;
@@ -71,11 +72,32 @@ public class JiraCloudPluginConfig extends GlobalConfiguration {
         this.sites = sites;
     }
 
-    public static Optional<JiraCloudSiteConfig> getJiraCloudSiteConfig(final String site) {
+    public static Optional<JiraCloudSiteConfig> getJiraCloudSiteConfig(
+            @Nullable final String site) {
+        final Optional<String> userProvidedSite = Optional.ofNullable(site);
+        return userProvidedSite
+                .map(JiraCloudPluginConfig::filterFromConfig)
+                .orElse(defaultFromConfig());
+    }
+
+    public static Optional<JiraCloudSiteConfig> filterFromConfig(final String site) {
         return JiraCloudPluginConfig.get()
                 .getSites()
                 .stream()
                 .filter(s -> s.getSite().equals(site))
                 .findFirst();
+    }
+
+    private static Optional<JiraCloudSiteConfig> defaultFromConfig() {
+        final List<JiraCloudSiteConfig> allSites = JiraCloudPluginConfig.get().getSites();
+        if (allSites.isEmpty()) {
+            log.warn(Messages.JiraCommonResponse_FAILURE_NO_SITE_CONFIG_PRESENT());
+            return Optional.empty();
+        } else if (allSites.size() > 1) {
+            log.warn(Messages.JiraCommonResponse_FAILURE_MULTIPLE_SITE_CONFIGS_PRESENT());
+            return Optional.empty();
+        } else {
+            return Optional.of(allSites.get(0));
+        }
     }
 }

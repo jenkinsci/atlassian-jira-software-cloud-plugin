@@ -19,6 +19,7 @@ import hudson.model.Run;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.jenkinsci.plugins.workflow.support.steps.build.RunWrapper;
 
+import javax.annotation.Nullable;
 import java.util.Optional;
 import java.util.Set;
 
@@ -101,7 +102,7 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
                 .orElseGet(() -> handleDeploymentApiError(jiraSite));
     }
 
-    private Optional<JiraCloudSiteConfig> getSiteConfigFor(final String jiraSite) {
+    private Optional<JiraCloudSiteConfig> getSiteConfigFor(@Nullable final String jiraSite) {
         return siteConfigRetriever.getJiraSiteConfig(jiraSite);
     }
 

@@ -20,6 +20,7 @@ import org.jenkinsci.plugins.workflow.support.steps.build.RunWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.util.Optional;
 import java.util.Set;
 
@@ -103,7 +104,7 @@ public class JiraBuildInfoSenderImpl implements JiraBuildInfoSender {
                 .orElseGet(() -> handleBuildApiError(jiraSite));
     }
 
-    private Optional<JiraCloudSiteConfig> getSiteConfigFor(final String jiraSite) {
+    private Optional<JiraCloudSiteConfig> getSiteConfigFor(@Nullable final String jiraSite) {
         return siteConfigRetriever.getJiraSiteConfig(jiraSite);
     }
 

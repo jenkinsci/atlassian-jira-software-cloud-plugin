@@ -1,8 +1,6 @@
 package com.atlassian.jira.cloud.jenkins.deploymentinfo.pipeline;
 
 import com.atlassian.jira.cloud.jenkins.Messages;
-import com.atlassian.jira.cloud.jenkins.common.client.DefaultSiteLookupFailureException;
-import com.atlassian.jira.cloud.jenkins.common.config.DefaultSitePicker;
 import com.atlassian.jira.cloud.jenkins.common.factory.JiraSenderFactory;
 import com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse;
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudPluginConfig;
@@ -138,8 +136,7 @@ public class JiraSendDeploymentInfoStep extends Step implements Serializable {
     }
 
     public static class JiraSendDeploymentInfoStepExecution
-            extends SynchronousNonBlockingStepExecution<JiraSendInfoResponse>
-            implements DefaultSitePicker {
+            extends SynchronousNonBlockingStepExecution<JiraSendInfoResponse> {
 
         private final JiraSendDeploymentInfoStep step;
 
@@ -153,17 +150,10 @@ public class JiraSendDeploymentInfoStep extends Step implements Serializable {
         protected JiraSendInfoResponse run() throws Exception {
             final TaskListener taskListener = getContext().get(TaskListener.class);
             final WorkflowRun workflowRun = getContext().get(WorkflowRun.class);
-            final Optional<String> site = pickDefaultSite(step.getSite());
-
-            if (!site.isPresent()) {
-                workflowRun.setResult(Result.FAILURE);
-                getContext().setResult(Result.FAILURE);
-                throw new DefaultSiteLookupFailureException();
-            }
 
             final JiraDeploymentInfoRequest request =
                     new JiraDeploymentInfoRequest(
-                            site.get(),
+                            step.getSite(),
                             step.getEnvironmentId(),
                             step.getEnvironmentName(),
                             step.getEnvironmentType(),
@@ -176,15 +166,6 @@ public class JiraSendDeploymentInfoStep extends Step implements Serializable {
             logResult(taskListener, response);
 
             return response;
-        }
-
-        @Override
-        public PrintStream getLogger() {
-            try {
-                return getContext().get(TaskListener.class).getLogger();
-            } catch (Exception e) {
-                return null;
-            }
         }
 
         private void logResult(

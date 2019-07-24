@@ -3,7 +3,6 @@ package com.atlassian.jira.cloud.jenkins.buildinfo.pipeline;
 import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.BuildApiResponse;
 import com.atlassian.jira.cloud.jenkins.buildinfo.service.JiraBuildInfoResponse;
 import com.atlassian.jira.cloud.jenkins.buildinfo.service.JiraBuildInfoSender;
-import com.atlassian.jira.cloud.jenkins.common.client.DefaultSiteLookupFailureException;
 import com.atlassian.jira.cloud.jenkins.common.factory.JiraSenderFactory;
 import com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse;
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudPluginConfig;
@@ -25,7 +24,6 @@ import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.jvnet.hudson.test.BuildWatcher;
 import org.jvnet.hudson.test.JenkinsRule;
 
@@ -52,7 +50,6 @@ public class JiraSendBuildInfoStepTest {
     @ClassRule public static BuildWatcher buildWatcher = new BuildWatcher();
 
     @Rule public JenkinsRule jenkinsRule = new JenkinsRule();
-    @Rule public ExpectedException expectedException = ExpectedException.none();
 
     @Inject JiraSendBuildInfoStep.DescriptorImpl descriptor;
 
@@ -95,7 +92,8 @@ public class JiraSendBuildInfoStepTest {
 
     @Test
     public void configRoundTripPicksUpDefaultSite() throws Exception {
-        final JiraSendBuildInfoStep step = new StepConfigTester(jenkinsRule).configRoundTrip(new JiraSendBuildInfoStep());
+        final JiraSendBuildInfoStep step =
+                new StepConfigTester(jenkinsRule).configRoundTrip(new JiraSendBuildInfoStep());
 
         assertThat(step.getSite()).isEqualTo(SITE);
     }
@@ -133,7 +131,8 @@ public class JiraSendBuildInfoStepTest {
         final TaskListener mockTaskListener = mockTaskListener();
         when(mockTaskListener.getLogger()).thenReturn(mock(PrintStream.class));
 
-        final JiraSendBuildInfoStep step = (JiraSendBuildInfoStep) descriptor.newInstance(new HashMap<>());
+        final JiraSendBuildInfoStep step =
+                (JiraSendBuildInfoStep) descriptor.newInstance(new HashMap<>());
 
         final StepContext ctx = mock(StepContext.class);
         when(ctx.get(Node.class)).thenReturn(jenkinsRule.getInstance());
@@ -158,7 +157,8 @@ public class JiraSendBuildInfoStepTest {
         JiraCloudPluginConfig.get().setSites(Collections.emptyList()); // clear site configs
         when(mockTaskListener.getLogger()).thenReturn(mock(PrintStream.class));
 
-        final JiraSendBuildInfoStep step = (JiraSendBuildInfoStep) descriptor.newInstance(new HashMap<>());
+        final JiraSendBuildInfoStep step =
+                (JiraSendBuildInfoStep) descriptor.newInstance(new HashMap<>());
 
         final StepContext ctx = mock(StepContext.class);
         when(ctx.get(Node.class)).thenReturn(jenkinsRule.getInstance());
@@ -168,16 +168,11 @@ public class JiraSendBuildInfoStepTest {
         final JiraSendBuildInfoStep.JiraSendBuildInfoStepExecution stepExecution =
                 (JiraSendBuildInfoStep.JiraSendBuildInfoStepExecution) step.start(ctx);
 
-        // expect exception
-        expectedException.expect(DefaultSiteLookupFailureException.class);
-        expectedException.expectMessage(
-                "Unable to determine default site. Please specify site parameter in the Jenkinsfile.");
-
         // when
-        stepExecution.run();
+        final JiraSendInfoResponse response = stepExecution.run();
 
         // verify
-        assertThat(stepExecution.getStatus()).isEqualTo(Result.FAILURE);
+        assertThat(response.getStatus()).isEqualTo(SUCCESS_BUILD_ACCEPTED);
     }
 
     private static BaseStandardCredentials secretCredential() {

@@ -2,6 +2,8 @@ package com.atlassian.jira.cloud.jenkins.deploymentinfo.service;
 
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 
+import javax.annotation.Nullable;
+
 import static java.util.Objects.requireNonNull;
 
 public class JiraDeploymentInfoRequest {
@@ -13,18 +15,19 @@ public class JiraDeploymentInfoRequest {
     private final WorkflowRun deployment;
 
     public JiraDeploymentInfoRequest(
-            final String site,
+            @Nullable final String site,
             final String environmentId,
             final String environmentName,
             final String environmentType,
             final WorkflowRun deployment) {
-        this.site = requireNonNull(site);
+        this.site = site;
         this.environmentId = environmentId;
         this.environmentName = environmentName;
         this.environmentType = environmentType;
         this.deployment = requireNonNull(deployment);
     }
 
+    @Nullable
     public String getSite() {
         return site;
     }

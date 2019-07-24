@@ -1,6 +1,5 @@
 package com.atlassian.jira.cloud.jenkins.deploymentinfo.pipeline;
 
-import com.atlassian.jira.cloud.jenkins.common.client.DefaultSiteLookupFailureException;
 import com.atlassian.jira.cloud.jenkins.common.factory.JiraSenderFactory;
 import com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse;
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudPluginConfig;
@@ -25,7 +24,6 @@ import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.jvnet.hudson.test.BuildWatcher;
 import org.jvnet.hudson.test.JenkinsRule;
 
@@ -54,7 +52,6 @@ public class JiraSendDeploymentInfoStepTest {
     @ClassRule public static BuildWatcher buildWatcher = new BuildWatcher();
 
     @Rule public JenkinsRule jenkinsRule = new JenkinsRule();
-    @Rule public ExpectedException expectedException = ExpectedException.none();
 
     @Inject JiraSendDeploymentInfoStep.DescriptorImpl descriptor;
 
@@ -88,12 +85,11 @@ public class JiraSendDeploymentInfoStepTest {
 
     @Test
     public void configRoundTrip() throws Exception {
-        final JiraSendDeploymentInfoStep deploymentInfoStep = new JiraSendDeploymentInfoStep(
-                ENVIRONMENT_ID, ENVIRONMENT_NAME, ENVIRONMENT_TYPE);
+        final JiraSendDeploymentInfoStep deploymentInfoStep =
+                new JiraSendDeploymentInfoStep(ENVIRONMENT_ID, ENVIRONMENT_NAME, ENVIRONMENT_TYPE);
         deploymentInfoStep.setSite(SITE);
         final JiraSendDeploymentInfoStep step =
-                new StepConfigTester(jenkinsRule)
-                        .configRoundTrip(deploymentInfoStep);
+                new StepConfigTester(jenkinsRule).configRoundTrip(deploymentInfoStep);
 
         assertThat(step.getSite()).isEqualTo(SITE);
         assertThat(step.getEnvironmentId()).isEqualTo(ENVIRONMENT_ID);
@@ -101,13 +97,13 @@ public class JiraSendDeploymentInfoStepTest {
         assertThat(step.getEnvironmentType()).isEqualTo(ENVIRONMENT_TYPE);
     }
 
-
     @Test
     public void configRoundTripPicksUpDefaultSite() throws Exception {
-        final JiraSendDeploymentInfoStep step = new StepConfigTester(jenkinsRule).configRoundTrip(
-                new JiraSendDeploymentInfoStep(
-                        ENVIRONMENT_ID, ENVIRONMENT_NAME, ENVIRONMENT_TYPE
-                ));
+        final JiraSendDeploymentInfoStep step =
+                new StepConfigTester(jenkinsRule)
+                        .configRoundTrip(
+                                new JiraSendDeploymentInfoStep(
+                                        ENVIRONMENT_ID, ENVIRONMENT_NAME, ENVIRONMENT_TYPE));
 
         assertThat(step.getSite()).isEqualTo(SITE);
     }
@@ -121,34 +117,6 @@ public class JiraSendDeploymentInfoStepTest {
 
         final Map<String, Object> r = new HashMap<>();
         r.put("site", SITE);
-        r.put("environment", ENVIRONMENT_NAME);
-        r.put("environmentType", ENVIRONMENT_TYPE);
-        final JiraSendDeploymentInfoStep step =
-                (JiraSendDeploymentInfoStep) descriptor.newInstance(r);
-
-        final StepContext ctx = mock(StepContext.class);
-        when(ctx.get(Node.class)).thenReturn(jenkinsRule.getInstance());
-        when(ctx.get(WorkflowRun.class)).thenReturn(mockWorkflowRun);
-        when(ctx.get(TaskListener.class)).thenReturn(mockTaskListener);
-
-        final JiraSendDeploymentInfoStep.JiraSendDeploymentInfoStepExecution start =
-                (JiraSendDeploymentInfoStep.JiraSendDeploymentInfoStepExecution) step.start(ctx);
-
-        // when
-        final JiraSendInfoResponse response = start.run();
-
-        // then
-        assertThat(response.getStatus()).isEqualTo(SUCCESS_DEPLOYMENT_ACCEPTED);
-    }
-
-    @Test
-    public void testStepPicksupDefaultSite() throws Exception {
-        // given
-        final WorkflowRun mockWorkflowRun = mockWorkflowRun();
-        final TaskListener mockTaskListener = mockTaskListener();
-        when(mockTaskListener.getLogger()).thenReturn(mock(PrintStream.class));
-
-        final Map<String, Object> r = new HashMap<>();
         r.put("environment", ENVIRONMENT_NAME);
         r.put("environmentType", ENVIRONMENT_TYPE);
         final JiraSendDeploymentInfoStep step =
@@ -191,16 +159,11 @@ public class JiraSendDeploymentInfoStepTest {
         final JiraSendDeploymentInfoStep.JiraSendDeploymentInfoStepExecution stepExecution =
                 (JiraSendDeploymentInfoStep.JiraSendDeploymentInfoStepExecution) step.start(ctx);
 
-        // expect exception
-        expectedException.expect(DefaultSiteLookupFailureException.class);
-        expectedException.expectMessage(
-                "Unable to determine default site. Please specify site parameter in the Jenkinsfile.");
-
         // when
-        stepExecution.run();
+        final JiraSendInfoResponse response = stepExecution.run();
 
         // verify
-        assertThat(stepExecution.getStatus()).isEqualTo(Result.FAILURE);
+        assertThat(response.getStatus()).isEqualTo(SUCCESS_DEPLOYMENT_ACCEPTED);
     }
 
     private static BaseStandardCredentials secretCredential() {
