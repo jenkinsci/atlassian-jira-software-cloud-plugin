@@ -13,7 +13,6 @@ import com.cloudbees.plugins.credentials.domains.Domain;
 import com.cloudbees.plugins.credentials.impl.BaseStandardCredentials;
 import com.google.common.collect.ImmutableList;
 import hudson.model.Node;
-import hudson.model.Result;
 import hudson.model.TaskListener;
 import hudson.util.Secret;
 import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl;
@@ -91,14 +90,6 @@ public class JiraSendBuildInfoStepTest {
     }
 
     @Test
-    public void configRoundTripPicksUpDefaultSite() throws Exception {
-        final JiraSendBuildInfoStep step =
-                new StepConfigTester(jenkinsRule).configRoundTrip(new JiraSendBuildInfoStep());
-
-        assertThat(step.getSite()).isEqualTo(SITE);
-    }
-
-    @Test
     public void testStep() throws Exception {
         // given
         final WorkflowRun mockWorkflowRun = mockWorkflowRun();
@@ -121,57 +112,6 @@ public class JiraSendBuildInfoStepTest {
         final JiraSendInfoResponse response = start.run();
 
         // then
-        assertThat(response.getStatus()).isEqualTo(SUCCESS_BUILD_ACCEPTED);
-    }
-
-    @Test
-    public void testStepPicksupDefaultSite() throws Exception {
-        // given
-        final WorkflowRun mockWorkflowRun = mockWorkflowRun();
-        final TaskListener mockTaskListener = mockTaskListener();
-        when(mockTaskListener.getLogger()).thenReturn(mock(PrintStream.class));
-
-        final JiraSendBuildInfoStep step =
-                (JiraSendBuildInfoStep) descriptor.newInstance(new HashMap<>());
-
-        final StepContext ctx = mock(StepContext.class);
-        when(ctx.get(Node.class)).thenReturn(jenkinsRule.getInstance());
-        when(ctx.get(WorkflowRun.class)).thenReturn(mockWorkflowRun);
-        when(ctx.get(TaskListener.class)).thenReturn(mockTaskListener);
-
-        final JiraSendBuildInfoStep.JiraSendBuildInfoStepExecution start =
-                (JiraSendBuildInfoStep.JiraSendBuildInfoStepExecution) step.start(ctx);
-
-        // when
-        final JiraSendInfoResponse response = start.run();
-
-        // then
-        assertThat(response.getStatus()).isEqualTo(SUCCESS_BUILD_ACCEPTED);
-    }
-
-    @Test
-    public void testStepWithNoSitesConfigured() throws Exception {
-        // given
-        final WorkflowRun mockWorkflowRun = mockWorkflowRun();
-        final TaskListener mockTaskListener = mockTaskListener();
-        JiraCloudPluginConfig.get().setSites(Collections.emptyList()); // clear site configs
-        when(mockTaskListener.getLogger()).thenReturn(mock(PrintStream.class));
-
-        final JiraSendBuildInfoStep step =
-                (JiraSendBuildInfoStep) descriptor.newInstance(new HashMap<>());
-
-        final StepContext ctx = mock(StepContext.class);
-        when(ctx.get(Node.class)).thenReturn(jenkinsRule.getInstance());
-        when(ctx.get(WorkflowRun.class)).thenReturn(mockWorkflowRun);
-        when(ctx.get(TaskListener.class)).thenReturn(mockTaskListener);
-
-        final JiraSendBuildInfoStep.JiraSendBuildInfoStepExecution stepExecution =
-                (JiraSendBuildInfoStep.JiraSendBuildInfoStepExecution) step.start(ctx);
-
-        // when
-        final JiraSendInfoResponse response = stepExecution.run();
-
-        // verify
         assertThat(response.getStatus()).isEqualTo(SUCCESS_BUILD_ACCEPTED);
     }
 

@@ -98,17 +98,6 @@ public class JiraSendDeploymentInfoStepTest {
     }
 
     @Test
-    public void configRoundTripPicksUpDefaultSite() throws Exception {
-        final JiraSendDeploymentInfoStep step =
-                new StepConfigTester(jenkinsRule)
-                        .configRoundTrip(
-                                new JiraSendDeploymentInfoStep(
-                                        ENVIRONMENT_ID, ENVIRONMENT_NAME, ENVIRONMENT_TYPE));
-
-        assertThat(step.getSite()).isEqualTo(SITE);
-    }
-
-    @Test
     public void testStep() throws Exception {
         // given
         final WorkflowRun mockWorkflowRun = mockWorkflowRun();
@@ -134,35 +123,6 @@ public class JiraSendDeploymentInfoStepTest {
         final JiraSendInfoResponse response = start.run();
 
         // then
-        assertThat(response.getStatus()).isEqualTo(SUCCESS_DEPLOYMENT_ACCEPTED);
-    }
-
-    @Test
-    public void testStepWithNoSitesConfigured() throws Exception {
-        // given
-        final WorkflowRun mockWorkflowRun = mockWorkflowRun();
-        final TaskListener mockTaskListener = mockTaskListener();
-        when(mockTaskListener.getLogger()).thenReturn(mock(PrintStream.class));
-        JiraCloudPluginConfig.get().setSites(Collections.emptyList()); // clear site configs
-
-        final Map<String, Object> r = new HashMap<>();
-        r.put("environment", ENVIRONMENT_NAME);
-        r.put("environmentType", ENVIRONMENT_TYPE);
-        final JiraSendDeploymentInfoStep step =
-                (JiraSendDeploymentInfoStep) descriptor.newInstance(r);
-
-        final StepContext ctx = mock(StepContext.class);
-        when(ctx.get(Node.class)).thenReturn(jenkinsRule.getInstance());
-        when(ctx.get(WorkflowRun.class)).thenReturn(mockWorkflowRun);
-        when(ctx.get(TaskListener.class)).thenReturn(mockTaskListener);
-
-        final JiraSendDeploymentInfoStep.JiraSendDeploymentInfoStepExecution stepExecution =
-                (JiraSendDeploymentInfoStep.JiraSendDeploymentInfoStepExecution) step.start(ctx);
-
-        // when
-        final JiraSendInfoResponse response = stepExecution.run();
-
-        // verify
         assertThat(response.getStatus()).isEqualTo(SUCCESS_DEPLOYMENT_ACCEPTED);
     }
 
