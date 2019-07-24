@@ -69,37 +69,39 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
             return JiraCommonResponse.failureSiteConfigNotFound(jiraSite);
         }
 
+        final String resolvedSiteConfig = maybeSiteConfig.get().getSite();
+
         final JiraCloudSiteConfig siteConfig = maybeSiteConfig.get();
         final Optional<String> maybeSecret = getSecretFor(siteConfig.getCredentialsId());
 
         if (!maybeSecret.isPresent()) {
-            return JiraCommonResponse.failureSecretNotFound(jiraSite);
+            return JiraCommonResponse.failureSecretNotFound(resolvedSiteConfig);
         }
 
         final Set<String> issueKeys = issueKeyExtractor.extractIssueKeys(deployment);
 
         if (issueKeys.isEmpty()) {
-            return JiraDeploymentInfoResponse.skippedIssueKeysNotFound(jiraSite);
+            return JiraDeploymentInfoResponse.skippedIssueKeysNotFound(resolvedSiteConfig);
         }
 
-        final Optional<String> maybeCloudId = getCloudIdFor(jiraSite);
+        final Optional<String> maybeCloudId = getCloudIdFor(resolvedSiteConfig);
 
         if (!maybeCloudId.isPresent()) {
-            return JiraCommonResponse.failureSiteNotFound(jiraSite);
+            return JiraCommonResponse.failureSiteNotFound(resolvedSiteConfig);
         }
 
         final Optional<String> maybeAccessToken = getAccessTokenFor(siteConfig, maybeSecret.get());
 
         if (!maybeAccessToken.isPresent()) {
-            return JiraCommonResponse.failureAccessToken(jiraSite);
+            return JiraCommonResponse.failureAccessToken(resolvedSiteConfig);
         }
 
         final Deployments deploymentInfo = createJiraDeploymentInfo(deployment, request, issueKeys);
 
         return sendDeploymentInfo(
-                        maybeCloudId.get(), maybeAccessToken.get(), jiraSite, deploymentInfo)
-                .map(response -> handleDeploymentApiResponse(jiraSite, response))
-                .orElseGet(() -> handleDeploymentApiError(jiraSite));
+                        maybeCloudId.get(), maybeAccessToken.get(), resolvedSiteConfig, deploymentInfo)
+                .map(response -> handleDeploymentApiResponse(resolvedSiteConfig, response))
+                .orElseGet(() -> handleDeploymentApiError(resolvedSiteConfig));
     }
 
     private Optional<JiraCloudSiteConfig> getSiteConfigFor(@Nullable final String jiraSite) {

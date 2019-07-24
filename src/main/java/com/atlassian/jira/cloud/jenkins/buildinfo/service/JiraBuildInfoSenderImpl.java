@@ -72,11 +72,13 @@ public class JiraBuildInfoSenderImpl implements JiraBuildInfoSender {
             return JiraCommonResponse.failureSiteConfigNotFound(jiraSite);
         }
 
+        final String resolvedSiteConfig = maybeSiteConfig.get().getSite();
+
         final JiraCloudSiteConfig siteConfig = maybeSiteConfig.get();
         final Optional<String> maybeSecret = getSecretFor(siteConfig.getCredentialsId());
 
         if (!maybeSecret.isPresent()) {
-            return JiraCommonResponse.failureSecretNotFound(jiraSite);
+            return JiraCommonResponse.failureSecretNotFound(resolvedSiteConfig);
         }
 
         final Set<String> issueKeys = issueKeyExtractor.extractIssueKeys(build);
@@ -85,23 +87,23 @@ public class JiraBuildInfoSenderImpl implements JiraBuildInfoSender {
             return JiraBuildInfoResponse.skippedIssueKeysNotFound();
         }
 
-        final Optional<String> maybeCloudId = getCloudIdFor(jiraSite);
+        final Optional<String> maybeCloudId = getCloudIdFor(resolvedSiteConfig);
 
         if (!maybeCloudId.isPresent()) {
-            return JiraCommonResponse.failureSiteNotFound(jiraSite);
+            return JiraCommonResponse.failureSiteNotFound(resolvedSiteConfig);
         }
 
         final Optional<String> maybeAccessToken = getAccessTokenFor(siteConfig, maybeSecret.get());
 
         if (!maybeAccessToken.isPresent()) {
-            return JiraCommonResponse.failureAccessToken(jiraSite);
+            return JiraCommonResponse.failureAccessToken(resolvedSiteConfig);
         }
 
         final Builds buildInfo = createJiraBuildInfo(build, issueKeys);
 
-        return sendBuildInfo(maybeCloudId.get(), maybeAccessToken.get(), jiraSite, buildInfo)
-                .map(response -> handleBuildApiResponse(jiraSite, response))
-                .orElseGet(() -> handleBuildApiError(jiraSite));
+        return sendBuildInfo(maybeCloudId.get(), maybeAccessToken.get(), resolvedSiteConfig, buildInfo)
+                .map(response -> handleBuildApiResponse(resolvedSiteConfig, response))
+                .orElseGet(() -> handleBuildApiError(resolvedSiteConfig));
     }
 
     private Optional<JiraCloudSiteConfig> getSiteConfigFor(@Nullable final String jiraSite) {
