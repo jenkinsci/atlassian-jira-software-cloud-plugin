@@ -42,6 +42,20 @@ public class JiraCloudPluginConfigTest {
     }
 
     @Test
+    public void testGetSiteConfig_whenSiteIsNotProvided() {
+        // given
+        JiraCloudSiteConfig siteConfig = new JiraCloudSiteConfig(SITE, CLIENT_ID, CREDENTIALS_ID);
+        JiraCloudPluginConfig.get().setSites(ImmutableList.of(siteConfig));
+
+        // when
+        final Optional<JiraCloudSiteConfig> config =
+                JiraCloudPluginConfig.getJiraCloudSiteConfig(null);
+
+        // then
+        assertSiteConfig(config.get(), SITE, CREDENTIALS_ID);
+    }
+
+    @Test
     public void testGetSiteConfig_whenMultipleSitesConfigured() {
         // given
         JiraCloudSiteConfig siteConfig1 = new JiraCloudSiteConfig(SITE, CLIENT_ID, CREDENTIALS_ID);

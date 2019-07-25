@@ -12,9 +12,8 @@ import com.cloudbees.plugins.credentials.CredentialsScope;
 import com.cloudbees.plugins.credentials.domains.Domain;
 import com.cloudbees.plugins.credentials.impl.BaseStandardCredentials;
 import com.google.common.collect.ImmutableList;
-import hudson.model.Job;
 import hudson.model.Node;
-import hudson.model.Run;
+import hudson.model.Result;
 import hudson.model.TaskListener;
 import hudson.util.Secret;
 import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl;
@@ -86,11 +85,11 @@ public class JiraSendDeploymentInfoStepTest {
 
     @Test
     public void configRoundTrip() throws Exception {
+        final JiraSendDeploymentInfoStep deploymentInfoStep =
+                new JiraSendDeploymentInfoStep(ENVIRONMENT_ID, ENVIRONMENT_NAME, ENVIRONMENT_TYPE);
+        deploymentInfoStep.setSite(SITE);
         final JiraSendDeploymentInfoStep step =
-                new StepConfigTester(jenkinsRule)
-                        .configRoundTrip(
-                                new JiraSendDeploymentInfoStep(
-                                        SITE, ENVIRONMENT_ID, ENVIRONMENT_NAME, ENVIRONMENT_TYPE));
+                new StepConfigTester(jenkinsRule).configRoundTrip(deploymentInfoStep);
 
         assertThat(step.getSite()).isEqualTo(SITE);
         assertThat(step.getEnvironmentId()).isEqualTo(ENVIRONMENT_ID);

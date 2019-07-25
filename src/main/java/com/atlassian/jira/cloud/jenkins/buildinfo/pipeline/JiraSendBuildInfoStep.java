@@ -20,6 +20,7 @@ import org.jenkinsci.plugins.workflow.steps.SynchronousNonBlockingStepExecution;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.Serializable;
 import java.util.List;
@@ -36,10 +37,11 @@ public class JiraSendBuildInfoStep extends Step implements Serializable {
     private String site;
 
     @DataBoundConstructor
-    public JiraSendBuildInfoStep(final String site) {
-        this.site = site;
+    public JiraSendBuildInfoStep() {
+        // Empty constructor
     }
 
+    @Nullable
     public String getSite() {
         return site;
     }
@@ -100,9 +102,10 @@ public class JiraSendBuildInfoStep extends Step implements Serializable {
         @Override
         protected JiraSendInfoResponse run() throws Exception {
             final TaskListener taskListener = getContext().get(TaskListener.class);
-            final WorkflowRun build = getContext().get(WorkflowRun.class);
+            final WorkflowRun workflowRun = getContext().get(WorkflowRun.class);
 
-            final JiraBuildInfoRequest request = new JiraBuildInfoRequest(step.getSite(), build);
+            final JiraBuildInfoRequest request =
+                    new JiraBuildInfoRequest(step.getSite(), workflowRun);
 
             final JiraSendInfoResponse response =
                     JiraSenderFactory.getInstance().getJiraBuildInfoSender().sendBuildInfo(request);

@@ -1,10 +1,10 @@
 package com.atlassian.jira.cloud.jenkins.util;
 
 import com.atlassian.jira.cloud.jenkins.common.model.IssueKey;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Set;
+import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -53,7 +53,19 @@ public class IssueKeyStringExtractorTest {
         assertThat(issuesKeys).hasSize(0);
     }
 
-    @Ignore("TODO")
     @Test
-    public void testMaxIssueKeysLimit() {}
+    public void testMaxIssueKeysLimit() {
+        final String commitWithLongMessage = getLongMessage();
+
+        final Set<IssueKey> issuesKeys = IssueKeyStringExtractor.extractIssueKeys(commitWithLongMessage);
+
+        assertThat(issuesKeys).hasSize(100); // instead of 110
+    }
+
+    private String getLongMessage() {
+        return IntStream.range(1, 110)
+                .mapToObj(seq -> "TEST-" + seq)
+                .reduce("Commit message",
+                        (accumulator, element) -> accumulator + " TEST-" + element);
+    }
 }

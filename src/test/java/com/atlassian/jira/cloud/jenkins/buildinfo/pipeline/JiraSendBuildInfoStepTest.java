@@ -1,5 +1,6 @@
 package com.atlassian.jira.cloud.jenkins.buildinfo.pipeline;
 
+import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.BuildApiResponse;
 import com.atlassian.jira.cloud.jenkins.buildinfo.service.JiraBuildInfoResponse;
 import com.atlassian.jira.cloud.jenkins.buildinfo.service.JiraBuildInfoSender;
 import com.atlassian.jira.cloud.jenkins.common.factory.JiraSenderFactory;
@@ -11,16 +12,9 @@ import com.cloudbees.plugins.credentials.CredentialsScope;
 import com.cloudbees.plugins.credentials.domains.Domain;
 import com.cloudbees.plugins.credentials.impl.BaseStandardCredentials;
 import com.google.common.collect.ImmutableList;
-import hudson.model.Job;
 import hudson.model.Node;
-import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.util.Secret;
-import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.BuildApiResponse;
-import jenkins.plugins.git.GitBranchSCMHead;
-import jenkins.plugins.git.GitBranchSCMRevision;
-import jenkins.plugins.git.GitSCMSource;
-import jenkins.scm.api.SCMRevisionAction;
 import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.jenkinsci.plugins.workflow.steps.StepConfigTester;
@@ -88,14 +82,11 @@ public class JiraSendBuildInfoStepTest {
 
     @Test
     public void configRoundTrip() throws Exception {
-        configRoundTrip(SITE);
-    }
+        final JiraSendBuildInfoStep build = new JiraSendBuildInfoStep();
+        build.setSite(SITE);
+        final JiraSendBuildInfoStep step = new StepConfigTester(jenkinsRule).configRoundTrip(build);
 
-    private void configRoundTrip(String site) throws Exception {
-        final JiraSendBuildInfoStep step =
-                new StepConfigTester(jenkinsRule).configRoundTrip(new JiraSendBuildInfoStep(site));
-
-        assertThat(step.getSite()).isEqualTo(site);
+        assertThat(step.getSite()).isEqualTo(SITE);
     }
 
     @Test
@@ -104,7 +95,6 @@ public class JiraSendBuildInfoStepTest {
         final WorkflowRun mockWorkflowRun = mockWorkflowRun();
         final TaskListener mockTaskListener = mockTaskListener();
         when(mockTaskListener.getLogger()).thenReturn(mock(PrintStream.class));
-        when(mockWorkflowRun.getAction(SCMRevisionAction.class)).thenReturn(scmRevisionAction());
 
         final Map<String, Object> r = new HashMap<>();
         r.put("site", SITE);
@@ -128,11 +118,6 @@ public class JiraSendBuildInfoStepTest {
     private static BaseStandardCredentials secretCredential() {
         return new StringCredentialsImpl(
                 CredentialsScope.GLOBAL, CREDENTIAL_ID, "test-secret", Secret.fromString("secret"));
-    }
-
-    private static SCMRevisionAction scmRevisionAction() {
-        final GitBranchSCMHead head = new GitBranchSCMHead(ISSUE_KEY + "-branch-name");
-        return new SCMRevisionAction(new GitSCMSource(""), new GitBranchSCMRevision(head, ""));
     }
 
     private static WorkflowRun mockWorkflowRun() {

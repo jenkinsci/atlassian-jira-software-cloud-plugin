@@ -8,6 +8,7 @@ import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.service.JiraDeploymentInfoRequest;
 import com.google.common.collect.ImmutableSet;
 import hudson.Extension;
+import hudson.model.Result;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.util.ListBoxModel;
@@ -21,8 +22,10 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 
 import javax.inject.Inject;
+import java.io.PrintStream;
 import java.io.Serializable;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -40,8 +43,9 @@ public class JiraSendDeploymentInfoStep extends Step implements Serializable {
 
     @DataBoundConstructor
     public JiraSendDeploymentInfoStep(
-            final String site, final String environmentId, final String environmentName, final String environmentType) {
-        this.site = site;
+            final String environmentId,
+            final String environmentName,
+            final String environmentType) {
         this.environmentId = environmentId;
         this.environmentName = environmentName;
         this.environmentType = environmentType;
@@ -146,6 +150,7 @@ public class JiraSendDeploymentInfoStep extends Step implements Serializable {
         protected JiraSendInfoResponse run() throws Exception {
             final TaskListener taskListener = getContext().get(TaskListener.class);
             final WorkflowRun workflowRun = getContext().get(WorkflowRun.class);
+
             final JiraDeploymentInfoRequest request =
                     new JiraDeploymentInfoRequest(
                             step.getSite(),
