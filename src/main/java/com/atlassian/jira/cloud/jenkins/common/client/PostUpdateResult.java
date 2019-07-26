@@ -3,6 +3,12 @@ package com.atlassian.jira.cloud.jenkins.common.client;
 import javax.annotation.Nullable;
 import java.util.Optional;
 
+/**
+ * Represents Jira update result, which can be either a successful response or an error message.
+ *
+ * @param <T> the response entity type. For Builds API, the entity type is BuildApiResponse. For
+ *     Deployments API the entity type is DeploymentApiResponse.
+ */
 public class PostUpdateResult<T> {
 
     private T responseEntity;
