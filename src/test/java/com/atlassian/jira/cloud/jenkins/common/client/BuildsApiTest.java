@@ -7,13 +7,10 @@ import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.Builds;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.OkHttpClient;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import javax.inject.Inject;
 import java.io.IOException;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -28,8 +25,6 @@ public class BuildsApiTest extends BaseMockServerTest {
     private static String ACCESS_TOKEN = "access_token";
     private static String JIRA_SITE_URL = "https://site.atlassian.net";
 
-    @Rule public ExpectedException expectedException = ExpectedException.none();
-
     @Before
     public void setup() throws IOException {
         super.setup();
@@ -43,18 +38,22 @@ public class BuildsApiTest extends BaseMockServerTest {
         BuildsApiTestGenerator.successfulResponse(this);
 
         // execute
-        Optional<BuildApiResponse> buildApiResponse =
+        final PostUpdateResult<BuildApiResponse> result =
                 buildsApi.postUpdate(
-                        CLOUD_ID, ACCESS_TOKEN, JIRA_SITE_URL, mock(Builds.class), BuildApiResponse.class);
+                        CLOUD_ID,
+                        ACCESS_TOKEN,
+                        JIRA_SITE_URL,
+                        mock(Builds.class),
+                        BuildApiResponse.class);
 
         // verify
-        assertThat(buildApiResponse.isPresent()).isTrue();
-        assertThat(buildApiResponse.get().getAcceptedBuilds()).hasSize(1);
-        assertThat(buildApiResponse.get().getAcceptedBuilds().get(0).getBuildNumber())
-                .isEqualTo(35);
-        assertThat(buildApiResponse.get().getAcceptedBuilds().get(0).getPipelineId())
+        assertThat(result.getResponseEntity().isPresent()).isTrue();
+        final BuildApiResponse buildApiResponse = result.getResponseEntity().get();
+        assertThat(buildApiResponse.getAcceptedBuilds()).hasSize(1);
+        assertThat(buildApiResponse.getAcceptedBuilds().get(0).getBuildNumber()).isEqualTo(35);
+        assertThat(buildApiResponse.getAcceptedBuilds().get(0).getPipelineId())
                 .isEqualTo("Test Pipeline Build");
-        assertThat(buildApiResponse.get().getRejectedBuilds()).hasSize(0);
+        assertThat(buildApiResponse.getRejectedBuilds()).hasSize(0);
     }
 
     @Test
@@ -63,27 +62,25 @@ public class BuildsApiTest extends BaseMockServerTest {
         BuildsApiTestGenerator.failedResponseInvalidURL(this);
 
         // execute
-        Optional<BuildApiResponse> buildApiResponse =
+        final PostUpdateResult<BuildApiResponse> result =
                 buildsApi.postUpdate(
-                        CLOUD_ID, ACCESS_TOKEN, JIRA_SITE_URL, mock(Builds.class), BuildApiResponse.class);
+                        CLOUD_ID,
+                        ACCESS_TOKEN,
+                        JIRA_SITE_URL,
+                        mock(Builds.class),
+                        BuildApiResponse.class);
 
         // verify
-        assertThat(buildApiResponse.isPresent()).isTrue();
-        assertThat(buildApiResponse.get().getAcceptedBuilds()).hasSize(0);
-        assertThat(buildApiResponse.get().getRejectedBuilds()).hasSize(1);
-        assertThat(buildApiResponse.get().getRejectedBuilds().get(0).getKey().getBuildNumber())
+        assertThat(result.getResponseEntity().isPresent()).isTrue();
+        final BuildApiResponse buildApiResponse = result.getResponseEntity().get();
+        assertThat(buildApiResponse.getAcceptedBuilds()).hasSize(0);
+        assertThat(buildApiResponse.getRejectedBuilds()).hasSize(1);
+        assertThat(buildApiResponse.getRejectedBuilds().get(0).getKey().getBuildNumber())
                 .isEqualTo(36);
-        assertThat(buildApiResponse.get().getRejectedBuilds().get(0).getKey().getPipelineId())
+        assertThat(buildApiResponse.getRejectedBuilds().get(0).getKey().getPipelineId())
                 .isEqualTo("Test Pipeline Build");
-        assertThat(buildApiResponse.get().getRejectedBuilds().get(0).getErrors()).hasSize(1);
-        assertThat(
-                        buildApiResponse
-                                .get()
-                                .getRejectedBuilds()
-                                .get(0)
-                                .getErrors()
-                                .get(0)
-                                .getMessage())
+        assertThat(buildApiResponse.getRejectedBuilds().get(0).getErrors()).hasSize(1);
+        assertThat(buildApiResponse.getRejectedBuilds().get(0).getErrors().get(0).getMessage())
                 .isEqualTo("'url' is required");
     }
 
@@ -93,30 +90,28 @@ public class BuildsApiTest extends BaseMockServerTest {
         BuildsApiTestGenerator.failedResponseUnknownIssueKey(this);
 
         // execute
-        Optional<BuildApiResponse> buildApiResponse =
+        final PostUpdateResult<BuildApiResponse> result =
                 buildsApi.postUpdate(
-                        CLOUD_ID, ACCESS_TOKEN, JIRA_SITE_URL, mock(Builds.class), BuildApiResponse.class);
+                        CLOUD_ID,
+                        ACCESS_TOKEN,
+                        JIRA_SITE_URL,
+                        mock(Builds.class),
+                        BuildApiResponse.class);
 
         // verify
-        assertThat(buildApiResponse.isPresent()).isTrue();
-        assertThat(buildApiResponse.get().getAcceptedBuilds()).hasSize(0);
-        assertThat(buildApiResponse.get().getRejectedBuilds()).hasSize(1);
-        assertThat(buildApiResponse.get().getRejectedBuilds().get(0).getKey().getBuildNumber())
+        assertThat(result.getResponseEntity().isPresent()).isTrue();
+        final BuildApiResponse buildApiResponse = result.getResponseEntity().get();
+        assertThat(buildApiResponse.getAcceptedBuilds()).hasSize(0);
+        assertThat(buildApiResponse.getRejectedBuilds()).hasSize(1);
+        assertThat(buildApiResponse.getRejectedBuilds().get(0).getKey().getBuildNumber())
                 .isEqualTo(36);
-        assertThat(buildApiResponse.get().getRejectedBuilds().get(0).getKey().getPipelineId())
+        assertThat(buildApiResponse.getRejectedBuilds().get(0).getKey().getPipelineId())
                 .isEqualTo("Test Pipeline Build");
-        assertThat(buildApiResponse.get().getRejectedBuilds().get(0).getErrors()).hasSize(1);
-        assertThat(
-                        buildApiResponse
-                                .get()
-                                .getRejectedBuilds()
-                                .get(0)
-                                .getErrors()
-                                .get(0)
-                                .getMessage())
+        assertThat(buildApiResponse.getRejectedBuilds().get(0).getErrors()).hasSize(1);
+        assertThat(buildApiResponse.getRejectedBuilds().get(0).getErrors().get(0).getMessage())
                 .isEqualTo("No valid issues found for build");
-        assertThat(buildApiResponse.get().getUnknownIssueKeys()).hasSize(1);
-        assertThat(buildApiResponse.get().getUnknownIssueKeys().get(0)).isEqualTo("TEST-110");
+        assertThat(buildApiResponse.getUnknownIssueKeys()).hasSize(1);
+        assertThat(buildApiResponse.getUnknownIssueKeys().get(0)).isEqualTo("TEST-110");
     }
 
     @Test
@@ -124,13 +119,19 @@ public class BuildsApiTest extends BaseMockServerTest {
         // setup
         BuildsApiTestGenerator.unauthorizedResponse(this);
 
-        // assertions
-        expectedException.expect(ApiUpdateFailedException.class);
-        expectedException.expectMessage(
-                "Error response code 401 when submitting to https://site.atlassian.net");
-
         // execute
-        buildsApi.postUpdate(CLOUD_ID, ACCESS_TOKEN, JIRA_SITE_URL, mock(Builds.class), BuildApiResponse.class);
+        final PostUpdateResult<BuildApiResponse> result =
+                buildsApi.postUpdate(
+                        CLOUD_ID,
+                        ACCESS_TOKEN,
+                        JIRA_SITE_URL,
+                        mock(Builds.class),
+                        BuildApiResponse.class);
+
+        // verify
+        assertThat(result.getErrorMessage().isPresent()).isTrue();
+        assertThat(result.getErrorMessage().get())
+                .isEqualTo("Error response code 401 when submitting update to Jira");
     }
 
     @Test
@@ -138,12 +139,18 @@ public class BuildsApiTest extends BaseMockServerTest {
         // setup
         BuildsApiTestGenerator.serverError(this);
 
-        // assertions
-        expectedException.expect(ApiUpdateFailedException.class);
-        expectedException.expectMessage(
-                "Error response code 500 when submitting to https://site.atlassian.net");
-
         // execute
-        buildsApi.postUpdate(CLOUD_ID, ACCESS_TOKEN, JIRA_SITE_URL, mock(Builds.class), BuildApiResponse.class);
+        final PostUpdateResult<BuildApiResponse> result =
+                buildsApi.postUpdate(
+                        CLOUD_ID,
+                        ACCESS_TOKEN,
+                        JIRA_SITE_URL,
+                        mock(Builds.class),
+                        BuildApiResponse.class);
+
+        // verify
+        assertThat(result.getErrorMessage().isPresent()).isTrue();
+        assertThat(result.getErrorMessage().get())
+                .isEqualTo("Error response code 500 when submitting update to Jira");
     }
 }

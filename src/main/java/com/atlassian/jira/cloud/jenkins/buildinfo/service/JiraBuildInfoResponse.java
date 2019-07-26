@@ -3,7 +3,6 @@ package com.atlassian.jira.cloud.jenkins.buildinfo.service;
 import com.atlassian.jira.cloud.jenkins.Messages;
 import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.BuildApiResponse;
 import com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse;
-import hudson.model.Run;
 
 public class JiraBuildInfoResponse extends JiraSendInfoResponse {
 
@@ -38,15 +37,10 @@ public class JiraBuildInfoResponse extends JiraSendInfoResponse {
         return new JiraBuildInfoResponse(Status.FAILURE_UNKNOWN_ISSUE_KEYS, message);
     }
 
-    public static JiraBuildInfoResponse failureScmRevisionNotFound(final Run build) {
+    public static JiraBuildInfoResponse failureBuildsApiResponse(
+            final String jiraSite, final String errorMessage) {
         final String message =
-                Messages.JiraBuildInfoResponse_FAILURE_SCM_REVISION_NOT_FOUND(
-                        build.getDisplayName());
-        return new JiraBuildInfoResponse(Status.FAILURE_SCM_REVISION_NOT_FOUND, message);
-    }
-
-    public static JiraBuildInfoResponse failureBuildsApiResponse(final String jiraSite) {
-        final String message = Messages.JiraBuildInfoResponse_FAILURE_BUILDS_API_RESPONSE(jiraSite);
+                Messages.JiraBuildInfoResponse_FAILURE_BUILDS_API_RESPONSE(jiraSite, errorMessage);
         return new JiraBuildInfoResponse(Status.FAILURE_BUILDS_API_RESPONSE, message);
     }
 

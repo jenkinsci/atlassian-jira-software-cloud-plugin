@@ -1,8 +1,6 @@
 package com.atlassian.jira.cloud.jenkins.common.client;
 
-import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import okhttp3.MediaType;
@@ -18,7 +16,6 @@ import javax.inject.Inject;
 import java.io.IOException;
 import java.io.NotSerializableException;
 import java.util.Objects;
-import java.util.Optional;
 
 /** Common client to talk to Build & Deployment APIs in Jira */
 public class JiraApi {
@@ -47,7 +44,7 @@ public class JiraApi {
      * @param jiraRequest An assembled payload to be submitted to Jira
      * @return Response from the API
      */
-    public <ResponseEntity> Optional<ResponseEntity> postUpdate(
+    public <ResponseEntity> PostUpdateResult<ResponseEntity> postUpdate(
             final String cloudId,
             final String accessToken,
             final String jiraSiteUrl,
@@ -58,56 +55,53 @@ public class JiraApi {
             final Request request = getRequest(cloudId, accessToken, requestPayload);
             final Response response = httpClient.newCall(request).execute();
 
-            checkForErrorResponse(jiraSiteUrl, response);
-            return Optional.ofNullable(handleResponseBody(jiraSiteUrl, response, responseClass));
-        } catch (NotSerializableException e) {
-            handleError(String.format("Empty body when submitting to %s", jiraSiteUrl));
-        } catch (JsonMappingException | JsonParseException e) {
-            handleError(String.format("Invalid JSON when submitting to %s", jiraSiteUrl));
-        } catch (JsonProcessingException e) {
-            handleError(
-                    String.format(
-                            "Unable to create the request payload for %s : %s",
-                            jiraSiteUrl, e.getMessage()));
-        } catch (IOException e) {
-            handleError(
-                    String.format(
-                            "Server exception when submitting to %s: %s",
-                            jiraSiteUrl, e.getMessage()));
-        }
+            checkForErrorResponse(response);
 
-        return Optional.empty();
+            final ResponseEntity responseEntity = handleResponseBody(response, responseClass);
+            return new PostUpdateResult<>(responseEntity);
+        } catch (NotSerializableException e) {
+            return handleError(String.format("Invalid JSON payload: %s", e.getMessage()));
+        } catch (JsonProcessingException e) {
+            return handleError(
+                    String.format("Unable to create the request payload: %s", e.getMessage()));
+        } catch (IOException e) {
+            return handleError(
+                    String.format(
+                            "Server exception when submitting update to Jira: %s", e.getMessage()));
+        } catch (ApiUpdateFailedException e) {
+            return handleError(e.getMessage());
+        } catch (Exception e) {
+            return handleError(
+                    String.format(
+                            "Unexpected error when submitting update to Jira: %s", e.getMessage()));
+        }
     }
 
-    private void checkForErrorResponse(final String jiraSiteUrl, final Response response)
-            throws IOException {
+    private void checkForErrorResponse(final Response response) throws IOException {
         if (!response.isSuccessful()) {
             final String message =
                     String.format(
-                            "Error response code %d when submitting to %s",
-                            response.code(), jiraSiteUrl);
+                            "Error response code %d when submitting update to Jira",
+                            response.code());
             final ResponseBody responseBody = response.body();
             if (responseBody != null) {
                 log.error(
                         String.format(
-                                "Error response body when submitting to %s: %s",
-                                jiraSiteUrl, responseBody.string()));
+                                "Error response body when submitting update to Jira: %s",
+                                responseBody.string()));
                 responseBody.close();
             }
 
-            handleError(message);
+            throw new ApiUpdateFailedException(message);
         }
     }
 
     private <ResponseEntity> ResponseEntity handleResponseBody(
-            final String jiraSiteUrl,
-            final Response response,
-            final Class<ResponseEntity> responseClass)
-            throws IOException {
+            final Response response, final Class<ResponseEntity> responseClass) throws IOException {
         if (response.body() == null) {
-            final String message =
-                    String.format("Empty response body when submitting to %s", jiraSiteUrl);
-            handleError(message);
+            final String message = "Empty response body when submitting update to Jira";
+
+            throw new ApiUpdateFailedException(message);
         }
 
         return objectMapper.readValue(
@@ -130,8 +124,7 @@ public class JiraApi {
                 .build();
     }
 
-    private void handleError(final String message) {
-        log.error(message);
-        throw new ApiUpdateFailedException(message);
+    private <T> PostUpdateResult<T> handleError(final String errorMessage) {
+        return new PostUpdateResult<>(errorMessage);
     }
 }

@@ -2,6 +2,7 @@ package com.atlassian.jira.cloud.jenkins.deploymentinfo.service;
 
 import com.atlassian.jira.cloud.jenkins.auth.AccessTokenRetriever;
 import com.atlassian.jira.cloud.jenkins.common.client.JiraApi;
+import com.atlassian.jira.cloud.jenkins.common.client.PostUpdateResult;
 import com.atlassian.jira.cloud.jenkins.common.config.JiraSiteConfigRetriever;
 import com.atlassian.jira.cloud.jenkins.common.model.ApiErrorResponse;
 import com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse;
@@ -254,7 +255,7 @@ public class JiraDeploymentInfoSenderImplTest {
 
     private void setupDeploymentsApiFailure() {
         when(deploymentsApi.postUpdate(any(), any(), any(), any(), any()))
-                .thenReturn(Optional.empty());
+                .thenReturn(new PostUpdateResult<>("Error"));
     }
 
     private void setupDeploymentsApiDeploymentAccepted() {
@@ -266,7 +267,7 @@ public class JiraDeploymentInfoSenderImplTest {
                         Collections.emptyList(),
                         Collections.emptyList());
         when(deploymentsApi.postUpdate(any(), any(), any(), any(), any()))
-                .thenReturn(Optional.of(deploymentApiResponse));
+                .thenReturn(new PostUpdateResult<>(deploymentApiResponse));
     }
 
     private void setupDeploymentsApiDeploymentRejected() {
@@ -283,7 +284,7 @@ public class JiraDeploymentInfoSenderImplTest {
                         ImmutableList.of(deploymentResponse),
                         Collections.emptyList());
         when(deploymentsApi.postUpdate(any(), any(), any(), any(), any()))
-                .thenReturn(Optional.of(deploymentApiResponse));
+                .thenReturn(new PostUpdateResult<>(deploymentApiResponse));
     }
 
     private void setupDeploymentApiUnknownIssueKeys() {
@@ -293,7 +294,7 @@ public class JiraDeploymentInfoSenderImplTest {
                         Collections.emptyList(),
                         ImmutableList.of("TEST-123"));
         when(deploymentsApi.postUpdate(any(), any(), any(), any(), any()))
-                .thenReturn(Optional.of(deploymentApiResponse));
+                .thenReturn(new PostUpdateResult<>(deploymentApiResponse));
     }
 
     private static WorkflowRun mockWorkflowRun() {

@@ -5,6 +5,7 @@ import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.BuildApiResponse;
 import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.BuildKeyResponse;
 import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.RejectedBuildResponse;
 import com.atlassian.jira.cloud.jenkins.common.client.JiraApi;
+import com.atlassian.jira.cloud.jenkins.common.client.PostUpdateResult;
 import com.atlassian.jira.cloud.jenkins.common.config.JiraSiteConfigRetriever;
 import com.atlassian.jira.cloud.jenkins.common.model.ApiErrorResponse;
 import com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse;
@@ -12,7 +13,6 @@ import com.atlassian.jira.cloud.jenkins.common.service.IssueKeyExtractor;
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
 import com.atlassian.jira.cloud.jenkins.tenantinfo.CloudIdResolver;
 import com.atlassian.jira.cloud.jenkins.util.RunWrapperProvider;
-import com.atlassian.jira.cloud.jenkins.util.ScmRevision;
 import com.atlassian.jira.cloud.jenkins.util.SecretRetriever;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -48,7 +48,6 @@ public class JiraBuildInfoSenderImplTest {
     public static final int BUILD_NUMBER = 1;
     private static final JiraCloudSiteConfig JIRA_SITE_CONFIG =
             new JiraCloudSiteConfig(SITE, "clientId", "credsId");
-    private static final ScmRevision SCM_REVISION = new ScmRevision(BRANCH_NAME);
 
     @Mock private JiraSiteConfigRetriever siteConfigRetriever;
 
@@ -253,7 +252,8 @@ public class JiraBuildInfoSenderImplTest {
     }
 
     private void setupBuildsApiFailure() {
-        when(buildsApi.postUpdate(any(), any(), any(), any(), any())).thenReturn(Optional.empty());
+        when(buildsApi.postUpdate(any(), any(), any(), any(), any()))
+                .thenReturn(new PostUpdateResult<>("Error"));
     }
 
     private void setupBuildsApiBuildAccepted() {
@@ -264,7 +264,7 @@ public class JiraBuildInfoSenderImplTest {
                         Collections.emptyList(),
                         Collections.emptyList());
         when(buildsApi.postUpdate(any(), any(), any(), any(), any()))
-                .thenReturn(Optional.of(buildApiResponse));
+                .thenReturn(new PostUpdateResult<>(buildApiResponse));
     }
 
     private void setupBuildApiBuildRejected() {
@@ -279,7 +279,7 @@ public class JiraBuildInfoSenderImplTest {
                         ImmutableList.of(buildResponse),
                         Collections.emptyList());
         when(buildsApi.postUpdate(any(), any(), any(), any(), any()))
-                .thenReturn(Optional.of(buildApiResponse));
+                .thenReturn(new PostUpdateResult<>(buildApiResponse));
     }
 
     private void setupBuildApiUnknownIssueKeys() {
@@ -289,7 +289,7 @@ public class JiraBuildInfoSenderImplTest {
                         Collections.emptyList(),
                         ImmutableList.of("TEST-123"));
         when(buildsApi.postUpdate(any(), any(), any(), any(), any()))
-                .thenReturn(Optional.of(buildApiResponse));
+                .thenReturn(new PostUpdateResult<>(buildApiResponse));
     }
 
     private static WorkflowRun mockWorkflowRun() {
