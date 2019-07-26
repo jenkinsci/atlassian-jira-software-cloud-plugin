@@ -55,44 +55,40 @@ public class JiraApi {
             final Request request = getRequest(cloudId, accessToken, requestPayload);
             final Response response = httpClient.newCall(request).execute();
 
-            checkForErrorResponse(jiraSiteUrl, response);
+            checkForErrorResponse(response);
 
-            final ResponseEntity responseEntity =
-                    handleResponseBody(jiraSiteUrl, response, responseClass);
+            final ResponseEntity responseEntity = handleResponseBody(response, responseClass);
             return new PostUpdateResult<>(responseEntity);
         } catch (NotSerializableException e) {
-            return handleError(String.format("Invalid JSON when submitting to %s", jiraSiteUrl));
+            return handleError(String.format("Invalid JSON payload: %s", e.getMessage()));
         } catch (JsonProcessingException e) {
             return handleError(
-                    String.format(
-                            "Unable to create the request payload for %s : %s",
-                            jiraSiteUrl, e.getMessage()));
+                    String.format("Unable to create the request payload: %s", e.getMessage()));
         } catch (IOException e) {
             return handleError(
                     String.format(
-                            "Server exception when submitting to %s: %s",
-                            jiraSiteUrl, e.getMessage()));
+                            "Server exception when submitting update to Jira: %s", e.getMessage()));
         } catch (ApiUpdateFailedException e) {
             return handleError(e.getMessage());
         } catch (Exception e) {
             return handleError(
-                    String.format("Unexpected error when submitting update to: %s", jiraSiteUrl));
+                    String.format(
+                            "Unexpected error when submitting update to Jira: %s", e.getMessage()));
         }
     }
 
-    private void checkForErrorResponse(final String jiraSiteUrl, final Response response)
-            throws IOException {
+    private void checkForErrorResponse(final Response response) throws IOException {
         if (!response.isSuccessful()) {
             final String message =
                     String.format(
-                            "Error response code %d when submitting to %s",
-                            response.code(), jiraSiteUrl);
+                            "Error response code %d when submitting update to Jira",
+                            response.code());
             final ResponseBody responseBody = response.body();
             if (responseBody != null) {
                 log.error(
                         String.format(
-                                "Error response body when submitting to %s: %s",
-                                jiraSiteUrl, responseBody.string()));
+                                "Error response body when submitting update to Jira: %s",
+                                responseBody.string()));
                 responseBody.close();
             }
 
@@ -101,14 +97,11 @@ public class JiraApi {
     }
 
     private <ResponseEntity> ResponseEntity handleResponseBody(
-            final String jiraSiteUrl,
-            final Response response,
-            final Class<ResponseEntity> responseClass)
-            throws IOException {
+            final Response response, final Class<ResponseEntity> responseClass) throws IOException {
         if (response.body() == null) {
-            final String message =
-                    String.format("Empty response body when submitting to %s", jiraSiteUrl);
-            handleError(message);
+            final String message = "Empty response body when submitting update to Jira";
+
+            throw new ApiUpdateFailedException(message);
         }
 
         return objectMapper.readValue(
@@ -132,7 +125,6 @@ public class JiraApi {
     }
 
     private <T> PostUpdateResult<T> handleError(final String errorMessage) {
-        log.error(errorMessage);
         return new PostUpdateResult<>(errorMessage);
     }
 }

@@ -131,7 +131,7 @@ public class BuildsApiTest extends BaseMockServerTest {
         // verify
         assertThat(result.getErrorMessage().isPresent()).isTrue();
         assertThat(result.getErrorMessage().get())
-                .isEqualTo("Error response code 401 when submitting to https://site.atlassian.net");
+                .isEqualTo("Error response code 401 when submitting update to Jira");
     }
 
     @Test
@@ -151,6 +151,6 @@ public class BuildsApiTest extends BaseMockServerTest {
         // verify
         assertThat(result.getErrorMessage().isPresent()).isTrue();
         assertThat(result.getErrorMessage().get())
-                .isEqualTo("Error response code 500 when submitting to https://site.atlassian.net");
+                .isEqualTo("Error response code 500 when submitting update to Jira");
     }
 }
