@@ -48,9 +48,11 @@ public class JiraDeploymentInfoResponse extends JiraSendInfoResponse {
         return new JiraDeploymentInfoResponse(Status.FAILURE_UNEXPECTED_RESPONSE, message);
     }
 
-    public static JiraDeploymentInfoResponse failureDeploymentsApiResponse(final String jiraSite) {
+    public static JiraDeploymentInfoResponse failureDeploymentsApiResponse(
+            final String jiraSite, final String errorMessage) {
         final String message =
-                Messages.JiraDeploymentInfoResponse_FAILURE_DEPLOYMENTS_API_RESPONSE(jiraSite);
+                Messages.JiraDeploymentInfoResponse_FAILURE_DEPLOYMENTS_API_RESPONSE(
+                        jiraSite, errorMessage);
         return new JiraDeploymentInfoResponse(Status.FAILURE_DEPLOYMENTS_API_RESPONSE, message);
     }
 }

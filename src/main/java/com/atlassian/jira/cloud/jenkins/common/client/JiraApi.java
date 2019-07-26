@@ -1,8 +1,6 @@
 package com.atlassian.jira.cloud.jenkins.common.client;
 
-import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import okhttp3.MediaType;
@@ -18,7 +16,6 @@ import javax.inject.Inject;
 import java.io.IOException;
 import java.io.NotSerializableException;
 import java.util.Objects;
-import java.util.Optional;
 
 /** Common client to talk to Build & Deployment APIs in Jira */
 public class JiraApi {
@@ -47,7 +44,7 @@ public class JiraApi {
      * @param jiraRequest An assembled payload to be submitted to Jira
      * @return Response from the API
      */
-    public <ResponseEntity> Optional<ResponseEntity> postUpdate(
+    public <ResponseEntity> PostUpdateResult<ResponseEntity> postUpdate(
             final String cloudId,
             final String accessToken,
             final String jiraSiteUrl,
@@ -59,24 +56,28 @@ public class JiraApi {
             final Response response = httpClient.newCall(request).execute();
 
             checkForErrorResponse(jiraSiteUrl, response);
-            return Optional.ofNullable(handleResponseBody(jiraSiteUrl, response, responseClass));
+
+            final ResponseEntity responseEntity =
+                    handleResponseBody(jiraSiteUrl, response, responseClass);
+            return new PostUpdateResult<>(responseEntity);
         } catch (NotSerializableException e) {
-            handleError(String.format("Empty body when submitting to %s", jiraSiteUrl));
-        } catch (JsonMappingException | JsonParseException e) {
-            handleError(String.format("Invalid JSON when submitting to %s", jiraSiteUrl));
+            return handleError(String.format("Invalid JSON when submitting to %s", jiraSiteUrl));
         } catch (JsonProcessingException e) {
-            handleError(
+            return handleError(
                     String.format(
                             "Unable to create the request payload for %s : %s",
                             jiraSiteUrl, e.getMessage()));
         } catch (IOException e) {
-            handleError(
+            return handleError(
                     String.format(
                             "Server exception when submitting to %s: %s",
                             jiraSiteUrl, e.getMessage()));
+        } catch (ApiUpdateFailedException e) {
+            return handleError(e.getMessage());
+        } catch (Exception e) {
+            return handleError(
+                    String.format("Unexpected error when submitting update to: %s", jiraSiteUrl));
         }
-
-        return Optional.empty();
     }
 
     private void checkForErrorResponse(final String jiraSiteUrl, final Response response)
@@ -95,7 +96,7 @@ public class JiraApi {
                 responseBody.close();
             }
 
-            handleError(message);
+            throw new ApiUpdateFailedException(message);
         }
     }
 
@@ -130,8 +131,8 @@ public class JiraApi {
                 .build();
     }
 
-    private void handleError(final String message) {
-        log.error(message);
-        throw new ApiUpdateFailedException(message);
+    private <T> PostUpdateResult<T> handleError(final String errorMessage) {
+        log.error(errorMessage);
+        return new PostUpdateResult<>(errorMessage);
     }
 }

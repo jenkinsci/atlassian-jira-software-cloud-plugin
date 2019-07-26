@@ -5,6 +5,7 @@ import com.atlassian.jira.cloud.jenkins.buildinfo.client.BuildPayloadBuilder;
 import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.BuildApiResponse;
 import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.Builds;
 import com.atlassian.jira.cloud.jenkins.common.client.JiraApi;
+import com.atlassian.jira.cloud.jenkins.common.client.PostUpdateResult;
 import com.atlassian.jira.cloud.jenkins.common.config.JiraSiteConfigRetriever;
 import com.atlassian.jira.cloud.jenkins.common.model.AppCredential;
 import com.atlassian.jira.cloud.jenkins.common.response.JiraCommonResponse;
@@ -101,9 +102,17 @@ public class JiraBuildInfoSenderImpl implements JiraBuildInfoSender {
 
         final Builds buildInfo = createJiraBuildInfo(build, issueKeys);
 
-        return sendBuildInfo(maybeCloudId.get(), maybeAccessToken.get(), resolvedSiteConfig, buildInfo)
-                .map(response -> handleBuildApiResponse(resolvedSiteConfig, response))
-                .orElseGet(() -> handleBuildApiError(resolvedSiteConfig));
+        final PostUpdateResult<BuildApiResponse> postUpdateResult =
+                sendBuildInfo(
+                        maybeCloudId.get(), maybeAccessToken.get(), resolvedSiteConfig, buildInfo);
+
+        if (postUpdateResult.getResponseEntity().isPresent()) {
+            return handleBuildApiResponse(
+                    resolvedSiteConfig, postUpdateResult.getResponseEntity().get());
+        } else {
+            final String errorMessage = postUpdateResult.getErrorMessage().orElse("");
+            return handleBuildApiError(resolvedSiteConfig, errorMessage);
+        }
     }
 
     private Optional<JiraCloudSiteConfig> getSiteConfigFor(@Nullable final String jiraSite) {
@@ -131,7 +140,7 @@ public class JiraBuildInfoSenderImpl implements JiraBuildInfoSender {
         return BuildPayloadBuilder.getBuildPayload(buildWrapper, issueKeys);
     }
 
-    private Optional<BuildApiResponse> sendBuildInfo(
+    private PostUpdateResult<BuildApiResponse> sendBuildInfo(
             final String cloudId,
             final String accessToken,
             final String jiraSite,
@@ -157,7 +166,8 @@ public class JiraBuildInfoSenderImpl implements JiraBuildInfoSender {
         return JiraBuildInfoResponse.failureUnexpectedResponse();
     }
 
-    private JiraBuildInfoResponse handleBuildApiError(final String jiraSite) {
-        return JiraBuildInfoResponse.failureBuildsApiResponse(jiraSite);
+    private JiraBuildInfoResponse handleBuildApiError(
+            final String jiraSite, final String errorMessage) {
+        return JiraBuildInfoResponse.failureBuildsApiResponse(jiraSite, errorMessage);
     }
 }

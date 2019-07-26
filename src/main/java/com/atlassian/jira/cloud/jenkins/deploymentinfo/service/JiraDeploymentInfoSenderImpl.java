@@ -2,6 +2,7 @@ package com.atlassian.jira.cloud.jenkins.deploymentinfo.service;
 
 import com.atlassian.jira.cloud.jenkins.auth.AccessTokenRetriever;
 import com.atlassian.jira.cloud.jenkins.common.client.JiraApi;
+import com.atlassian.jira.cloud.jenkins.common.client.PostUpdateResult;
 import com.atlassian.jira.cloud.jenkins.common.config.JiraSiteConfigRetriever;
 import com.atlassian.jira.cloud.jenkins.common.model.AppCredential;
 import com.atlassian.jira.cloud.jenkins.common.response.JiraCommonResponse;
@@ -98,10 +99,20 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
 
         final Deployments deploymentInfo = createJiraDeploymentInfo(deployment, request, issueKeys);
 
-        return sendDeploymentInfo(
-                        maybeCloudId.get(), maybeAccessToken.get(), resolvedSiteConfig, deploymentInfo)
-                .map(response -> handleDeploymentApiResponse(resolvedSiteConfig, response))
-                .orElseGet(() -> handleDeploymentApiError(resolvedSiteConfig));
+        final PostUpdateResult<DeploymentApiResponse> postUpdateResult =
+                sendDeploymentInfo(
+                        maybeCloudId.get(),
+                        maybeAccessToken.get(),
+                        resolvedSiteConfig,
+                        deploymentInfo);
+
+        if (postUpdateResult.getResponseEntity().isPresent()) {
+            return handleDeploymentApiResponse(
+                    resolvedSiteConfig, postUpdateResult.getResponseEntity().get());
+        } else {
+            final String errorMessage = postUpdateResult.getErrorMessage().orElse("");
+            return handleDeploymentApiError(resolvedSiteConfig, errorMessage);
+        }
     }
 
     private Optional<JiraCloudSiteConfig> getSiteConfigFor(@Nullable final String jiraSite) {
@@ -131,7 +142,7 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
                 buildWrapper, buildEnvironment(request), issueKeys);
     }
 
-    private Optional<DeploymentApiResponse> sendDeploymentInfo(
+    private PostUpdateResult<DeploymentApiResponse> sendDeploymentInfo(
             final String cloudId,
             final String accessToken,
             final String jiraSite,
@@ -157,8 +168,9 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
         return JiraDeploymentInfoResponse.failureUnexpectedResponse();
     }
 
-    private JiraDeploymentInfoResponse handleDeploymentApiError(final String jiraSite) {
-        return JiraDeploymentInfoResponse.failureDeploymentsApiResponse(jiraSite);
+    private JiraDeploymentInfoResponse handleDeploymentApiError(
+            final String jiraSite, final String errorMessage) {
+        return JiraDeploymentInfoResponse.failureDeploymentsApiResponse(jiraSite, errorMessage);
     }
 
     private Environment buildEnvironment(final JiraDeploymentInfoRequest request) {
