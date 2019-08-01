@@ -17,7 +17,7 @@ import java.io.IOException;
 import java.io.NotSerializableException;
 import java.util.Objects;
 
-/** Common client to talk to Build & Deployment APIs in Jira */
+/** Common HTTP client to talk to Jira Build and Deployment APIs in Jira */
 public class JiraApi {
 
     private static final Logger log = LoggerFactory.getLogger(JiraApi.class);
@@ -38,6 +38,8 @@ public class JiraApi {
     /**
      * Submits an update to the Atlassian Builds or Deployments API and returns the response
      *
+     * @param <ResponseEntity> Response entity, which can be either BuildApiResponse or
+     *     DeploymentApiResponse
      * @param cloudId Jira Cloud Id
      * @param accessToken Access token generated from Atlassian API
      * @param jiraSiteUrl Jira site URL
