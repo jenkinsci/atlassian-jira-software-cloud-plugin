@@ -20,6 +20,7 @@
         <filterModified>true</filterModified>
         <mockito.version>2.27.0</mockito.version>
         <jackson.version>2.9.9</jackson.version>
+        <jackson-databind.version>2.9.9.2</jackson-databind.version>
         <okhttp.version>3.14.1</okhttp.version>
         <assertj.version>3.11.1</assertj.version>
         <maven-checkstyle-plugin.version>2.17</maven-checkstyle-plugin.version>
@@ -98,7 +99,7 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>${jackson.version}</version>
+            <version>${jackson-databind.version}</version>
         </dependency>
         <!-- Credentials -->
         <dependency>
