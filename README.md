@@ -11,7 +11,7 @@ For more information, please visit the [Wiki page](https://wiki.jenkins.io/displ
 
 ### Early Access Program Signup
 
-In order to start using this Jenkins plugin for Jira Software Cloud, you need to enroll in an early access program. This allows us to enable the required set of functionality in Jira Software Cloud so you can configure the plugin and start receiving data. Please fill out this [form](https://forms.gle/z8QUubZcgy4HyJCs8) to get started.
+In order to start using this Jenkins plugin for Jira Software Cloud, you need to enroll in an early access program. This allows us to enable the required set of functionality in Jira Software Cloud so you can configure the plugin and start receiving data. Please fill out this [form](https://forms.gle/z8QUubZcgy4HyJCs8) to get started!
 
 ### Integrate Jira Software Cloud with Jenkins
 
