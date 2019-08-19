@@ -42,7 +42,7 @@ import static org.mockito.Mockito.when;
 public class JiraSendBuildInfoStepTest {
 
     private static final String SITE = "example.atlassian.net";
-    private static final String ISSUE_KEY = "TEST-123";
+    private static final String BRANCH_NAME = "TEST-123-test-feature";
     private static final String CLIENT_ID = UUID.randomUUID().toString();
     private static final String CREDENTIAL_ID = UUID.randomUUID().toString();
 
@@ -87,6 +87,15 @@ public class JiraSendBuildInfoStepTest {
         final JiraSendBuildInfoStep step = new StepConfigTester(jenkinsRule).configRoundTrip(build);
 
         assertThat(step.getSite()).isEqualTo(SITE);
+    }
+
+    @Test
+    public void configRoundTripWithBranch() throws Exception {
+        final JiraSendBuildInfoStep build = new JiraSendBuildInfoStep();
+        build.setBranch(BRANCH_NAME);
+        final JiraSendBuildInfoStep step = new StepConfigTester(jenkinsRule).configRoundTrip(build);
+
+        assertThat(step.getBranch()).isEqualTo(BRANCH_NAME);
     }
 
     @Test

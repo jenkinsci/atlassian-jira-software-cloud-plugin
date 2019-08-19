@@ -8,11 +8,13 @@ import com.atlassian.jira.cloud.jenkins.common.client.JiraApi;
 import com.atlassian.jira.cloud.jenkins.common.client.PostUpdateResult;
 import com.atlassian.jira.cloud.jenkins.common.config.JiraSiteConfigRetriever;
 import com.atlassian.jira.cloud.jenkins.common.model.AppCredential;
+import com.atlassian.jira.cloud.jenkins.common.model.IssueKey;
 import com.atlassian.jira.cloud.jenkins.common.response.JiraCommonResponse;
 import com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse;
 import com.atlassian.jira.cloud.jenkins.common.service.IssueKeyExtractor;
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
 import com.atlassian.jira.cloud.jenkins.tenantinfo.CloudIdResolver;
+import com.atlassian.jira.cloud.jenkins.util.IssueKeyStringExtractor;
 import com.atlassian.jira.cloud.jenkins.util.RunWrapperProvider;
 import com.atlassian.jira.cloud.jenkins.util.SecretRetriever;
 import hudson.model.Run;
@@ -24,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nullable;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static java.util.Objects.requireNonNull;
 
@@ -82,7 +85,7 @@ public class JiraBuildInfoSenderImpl implements JiraBuildInfoSender {
             return JiraCommonResponse.failureSecretNotFound(resolvedSiteConfig);
         }
 
-        final Set<String> issueKeys = issueKeyExtractor.extractIssueKeys(build);
+        final Set<String> issueKeys = getIssueKeys(request, build);
 
         if (issueKeys.isEmpty()) {
             return JiraBuildInfoResponse.skippedIssueKeysNotFound();
@@ -113,6 +116,17 @@ public class JiraBuildInfoSenderImpl implements JiraBuildInfoSender {
             final String errorMessage = postUpdateResult.getErrorMessage().orElse("");
             return handleBuildApiError(resolvedSiteConfig, errorMessage);
         }
+    }
+
+    private Set<String> getIssueKeys(final JiraBuildInfoRequest request, final WorkflowRun build) {
+        return Optional.ofNullable(request.getBranch())
+                .map(
+                        branch ->
+                                IssueKeyStringExtractor.extractIssueKeys(branch)
+                                        .stream()
+                                        .map(IssueKey::toString)
+                                        .collect(Collectors.toSet()))
+                .orElseGet(() -> issueKeyExtractor.extractIssueKeys(build));
     }
 
     private Optional<JiraCloudSiteConfig> getSiteConfigFor(@Nullable final String jiraSite) {
