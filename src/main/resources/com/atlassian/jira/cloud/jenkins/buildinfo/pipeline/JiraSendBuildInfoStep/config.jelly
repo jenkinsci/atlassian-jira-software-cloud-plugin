@@ -4,4 +4,7 @@
         <f:entry field="site" title="${%Site}">
             <f:select />
         </f:entry>
+        <f:entry field="branch" title="${%Branch}">
+            <f:textbox/>
+        </f:entry>
 </j:jelly>

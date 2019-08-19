@@ -35,6 +35,7 @@ public class JiraSendBuildInfoStep extends Step implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private String site;
+    private String branch;
 
     @DataBoundConstructor
     public JiraSendBuildInfoStep() {
@@ -46,9 +47,19 @@ public class JiraSendBuildInfoStep extends Step implements Serializable {
         return site;
     }
 
+    @Nullable
+    public String getBranch() {
+        return branch;
+    }
+
     @DataBoundSetter
     public void setSite(final String site) {
         this.site = site;
+    }
+
+    @DataBoundSetter
+    public void setBranch(final String branch) {
+        this.branch = branch;
     }
 
     @Override
@@ -105,7 +116,7 @@ public class JiraSendBuildInfoStep extends Step implements Serializable {
             final WorkflowRun workflowRun = getContext().get(WorkflowRun.class);
 
             final JiraBuildInfoRequest request =
-                    new JiraBuildInfoRequest(step.getSite(), workflowRun);
+                    new JiraBuildInfoRequest(step.getSite(), step.getBranch(), workflowRun);
 
             final JiraSendInfoResponse response =
                     JiraSenderFactory.getInstance().getJiraBuildInfoSender().sendBuildInfo(request);

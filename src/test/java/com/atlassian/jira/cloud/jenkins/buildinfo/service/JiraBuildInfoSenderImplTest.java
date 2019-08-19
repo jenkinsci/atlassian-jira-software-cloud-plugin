@@ -36,6 +36,8 @@ import static com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoRespo
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -187,6 +189,22 @@ public class JiraBuildInfoSenderImplTest {
     }
 
     @Test
+    public void testSendBuildInfo_whenUserProvidedBranch() {
+        // given
+        final JiraBuildInfoRequest jiraBuildInfoRequest = new JiraBuildInfoRequest(SITE, BRANCH_NAME, mockWorkflowRun());
+        setupBuildsApiBuildAccepted();
+
+        // when
+        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(jiraBuildInfoRequest);
+
+        verify(issueKeyExtractor, never()).extractIssueKeys(any());
+        assertThat(response.getStatus())
+                .isEqualTo(JiraSendInfoResponse.Status.SUCCESS_BUILD_ACCEPTED);
+        final String message = response.getMessage();
+        assertThat(message).isNotBlank();
+    }
+
+    @Test
     public void testSendBuildInfo_whenUnknownIssueKeys() {
         // given
         setupBuildApiUnknownIssueKeys();
@@ -201,7 +219,7 @@ public class JiraBuildInfoSenderImplTest {
     }
 
     private JiraBuildInfoRequest createRequest() {
-        return new JiraBuildInfoRequest(SITE, mockWorkflowRun());
+        return new JiraBuildInfoRequest(SITE, null, mockWorkflowRun());
     }
 
     private void setupMocks() {
