@@ -1,6 +1,11 @@
 package com.atlassian.jira.cloud.jenkins.common.response;
 
-public abstract class JiraSendInfoResponse {
+import java.io.Serializable;
+import java.util.Objects;
+
+public abstract class JiraSendInfoResponse implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     public enum Status {
         SUCCESS_BUILD_ACCEPTED,
@@ -33,5 +38,22 @@ public abstract class JiraSendInfoResponse {
 
     public String getMessage() {
         return message;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        final JiraSendInfoResponse that = (JiraSendInfoResponse) o;
+        return status == that.status && Objects.equals(message, that.message);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(status, message);
     }
 }
