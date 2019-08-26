@@ -7,15 +7,9 @@ This allows your entire team to see build and deployment info on any issue detai
 
 For more information, please visit the [Wiki page](https://wiki.jenkins.io/display/JENKINS/Atlassian+Jira+Software+Cloud+Plugin).
 
-## How to install
+## Integrate Jira Software Cloud with Jenkins
 
-### Early Access Program Signup
-
-In order to start using this Jenkins plugin for Jira Software Cloud, you need to enroll in an early access program. This allows us to enable the required set of functionality in Jira Software Cloud so you can configure the plugin and start receiving data. Please fill out this [form](https://forms.gle/z8QUubZcgy4HyJCs8) to get started!
-
-### Integrate Jira Software Cloud with Jenkins
-
-Once you have signed up for the Early Access Program, please follow the instructions on this page: [Integrate Jira Software Cloud with Jenkins](https://confluence.atlassian.com/adminjiracloud/integrate-jira-software-cloud-with-jenkins-972355471.html)
+Please follow the instructions on this page: [Integrate Jira Software Cloud with Jenkins](https://confluence.atlassian.com/adminjiracloud/integrate-jira-software-cloud-with-jenkins-972355471.html)
 
 ## Development
 
