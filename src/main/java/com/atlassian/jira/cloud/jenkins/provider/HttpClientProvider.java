@@ -15,6 +15,8 @@ import java.time.Duration;
 /** OkHttpClient with appropriate default timeouts */
 public class HttpClientProvider {
 
+    private static final String USER_AGENT = "atlassian-jira-software-cloud-plugin";
+
     private static final Logger log = LoggerFactory.getLogger(HttpClientProvider.class);
     private final OkHttpClient httpClient;
 
@@ -24,6 +26,7 @@ public class HttpClientProvider {
                         .connectTimeout(Duration.ofMillis(5000))
                         .readTimeout(Duration.ofMillis(5000))
                         .writeTimeout(Duration.ofMillis(5000))
+                        .addInterceptor(userAgentInterceptor())
                         .addInterceptor(retryInterceptor())
                         .build();
     }
@@ -35,6 +38,15 @@ public class HttpClientProvider {
             response = performRetry(chain, request, response);
 
             return response;
+        };
+    }
+
+    private Interceptor userAgentInterceptor() {
+        return chain -> {
+            final Request originalRequest = chain.request();
+            final Request userAgentRequest =
+                    originalRequest.newBuilder().header("User-Agent", USER_AGENT).build();
+            return chain.proceed(userAgentRequest);
         };
     }
 
