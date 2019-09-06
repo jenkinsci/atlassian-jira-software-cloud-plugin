@@ -9,7 +9,7 @@
     </parent>
     <groupId>com.atlassian.jira.software.cloud.jenkins</groupId>
     <artifactId>atlassian-jira-software-cloud</artifactId>
-    <version>1.0.2-SNAPSHOT</version>
+    <version>1.0.2</version>
     <packaging>hpi</packaging>
     <properties>
         <!-- Baseline Jenkins version you use to build the plugin. Users must have this version or newer to run. -->
@@ -53,7 +53,7 @@
         <connection>scm:git:git://github.com/jenkinsci/atlassian-jira-software-cloud-plugin.git</connection>
         <developerConnection>scm:git:git@github.com:jenkinsci/atlassian-jira-software-cloud-plugin.git</developerConnection>
         <url>https://github.com/jenkinsci/atlassian-jira-software-cloud-plugin</url>
-        <tag>atlassian-jira-software-cloud-1.0.0-beta-1</tag>
+        <tag>atlassian-jira-software-cloud-1.0.2</tag>
     </scm>
 
     <dependencies>
