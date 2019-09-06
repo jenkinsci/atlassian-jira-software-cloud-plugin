@@ -5,6 +5,7 @@ import com.atlassian.jira.cloud.jenkins.HttpClientProviderTestGenerator;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import okhttp3.mockwebserver.RecordedRequest;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -15,8 +16,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class HttpClientProviderTest extends BaseMockServerTest {
 
-    @Inject
-    private OkHttpClient httpClient;
+    @Inject private OkHttpClient httpClient;
 
     @Before
     public void setup() throws IOException {
@@ -80,8 +80,23 @@ public class HttpClientProviderTest extends BaseMockServerTest {
         assertThat(server.getRequestCount()).isEqualTo(4); // 1 actual request + 3 retries
     }
 
+    @Test
+    public void testUserAgentHeader() throws Exception {
+        // setup
+        HttpClientProviderTestGenerator.succeedWith2XXOnInitialAttempt(this);
+        final Request request = getRequest();
+
+        // execute
+        final Response response = httpClient.newCall(request).execute();
+
+        // verify
+        assertThat(response.code()).isEqualTo(202);
+        final RecordedRequest recordedRequest = server.takeRequest();
+        assertThat(recordedRequest.getHeader("User-Agent"))
+                .isEqualTo("atlassian-jira-software-cloud-plugin");
+    }
+
     private Request getRequest() {
         return new Request.Builder().url(server.url("/test")).build();
     }
-
 }
