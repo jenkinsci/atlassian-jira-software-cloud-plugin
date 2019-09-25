@@ -29,3 +29,9 @@ Start the local Jenkins instance:
 	hpi:run Runs Jenkins with the current plugin project
 
 	hpi:upload Posts the hpi file to java.net. Used during the release.
+	
+## Feedback/Issues
+
+If you would like to report any bugs or share feedback, please create a new issue at https://issues.jenkins-ci.org/ and add `atlassian-jira-software-cloud-plugin` as a component.
+
+[Link to issues](https://issues.jenkins-ci.org/issues/?filter=20841).
