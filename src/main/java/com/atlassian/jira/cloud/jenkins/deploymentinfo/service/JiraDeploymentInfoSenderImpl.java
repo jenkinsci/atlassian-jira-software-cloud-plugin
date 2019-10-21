@@ -17,10 +17,12 @@ import com.atlassian.jira.cloud.jenkins.tenantinfo.CloudIdResolver;
 import com.atlassian.jira.cloud.jenkins.util.RunWrapperProvider;
 import com.atlassian.jira.cloud.jenkins.util.SecretRetriever;
 import hudson.model.Run;
+import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.jenkinsci.plugins.workflow.support.steps.build.RunWrapper;
 
 import javax.annotation.Nullable;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -79,6 +81,13 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
             return JiraCommonResponse.failureSecretNotFound(resolvedSiteConfig);
         }
 
+        final Environment environment = buildEnvironment(request);
+        final List<String> errorMessages = EnvironmentValidator.validate(environment);
+
+        if (!errorMessages.isEmpty()) {
+            return JiraDeploymentInfoResponse.failureEnvironmentInvalid(jiraSite, errorMessages);
+        }
+
         final Set<String> issueKeys = issueKeyExtractor.extractIssueKeys(deployment);
 
         if (issueKeys.isEmpty()) {
@@ -97,7 +106,8 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
             return JiraCommonResponse.failureAccessToken(resolvedSiteConfig);
         }
 
-        final Deployments deploymentInfo = createJiraDeploymentInfo(deployment, request, issueKeys);
+        final Deployments deploymentInfo =
+                createJiraDeploymentInfo(deployment, environment, issueKeys);
 
         final PostUpdateResult<DeploymentApiResponse> postUpdateResult =
                 sendDeploymentInfo(
@@ -135,11 +145,10 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
     }
 
     private Deployments createJiraDeploymentInfo(
-            final Run build, final JiraDeploymentInfoRequest request, final Set<String> issueKeys) {
+            final Run build, final Environment environment, final Set<String> issueKeys) {
         final RunWrapper buildWrapper = runWrapperProvider.getWrapper(build);
 
-        return DeploymentPayloadBuilder.getDeploymentInfo(
-                buildWrapper, buildEnvironment(request), issueKeys);
+        return DeploymentPayloadBuilder.getDeploymentInfo(buildWrapper, environment, issueKeys);
     }
 
     private PostUpdateResult<DeploymentApiResponse> sendDeploymentInfo(
@@ -174,10 +183,16 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
     }
 
     private Environment buildEnvironment(final JiraDeploymentInfoRequest request) {
+        // JENKINS-59862: if environmentType parameter was not provided, we should fallback to
+        // "unmapped"
+        final String environmentType =
+                StringUtils.isNotBlank(request.getEnvironmentType())
+                        ? request.getEnvironmentType()
+                        : "unmapped";
         return Environment.builder()
                 .withId(request.getEnvironmentId())
                 .withDisplayName(request.getEnvironmentName())
-                .withType(request.getEnvironmentType())
+                .withType(environmentType)
                 .build();
     }
 }

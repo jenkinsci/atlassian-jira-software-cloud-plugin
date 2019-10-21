@@ -202,9 +202,53 @@ public class JiraDeploymentInfoSenderImplTest {
         assertThat(message).isNotBlank();
     }
 
+    @Test
+    public void testSendDeploymentInfo_whenMissingEnvironmentIdAndEnvironmentName() {
+        // given
+        final JiraDeploymentInfoRequest request = createRequest(null, null, null);
+
+        // when
+        final JiraSendInfoResponse response = classUnderTest.sendDeploymentInfo(request);
+
+        // then
+        assertThat(response.getStatus())
+                .isEqualTo(JiraSendInfoResponse.Status.FAILURE_ENVIRONMENT_INVALID);
+        assertThat(response.getMessage())
+                .isEqualTo(
+                        "The deployment environment is not valid. "
+                                + "The parameter environmentId is required. The parameter environmentName is required.");
+    }
+
+    @Test
+    public void testSendDeploymentInfo_whenNotAllowedEnvironmentType() {
+        // given
+        final JiraDeploymentInfoRequest request =
+                createRequest("prod-east", "Production East", "foobar");
+
+        // when
+        final JiraSendInfoResponse response = classUnderTest.sendDeploymentInfo(request);
+
+        // then
+        assertThat(response.getStatus())
+                .isEqualTo(JiraSendInfoResponse.Status.FAILURE_ENVIRONMENT_INVALID);
+        assertThat(response.getMessage())
+                .isEqualTo(
+                        "The deployment environment is not valid. "
+                                + "The parameter environmentType is not valid. "
+                                + "Allowed values are: [development, testing, staging, production, unmapped]");
+    }
+
     private JiraDeploymentInfoRequest createRequest() {
         return new JiraDeploymentInfoRequest(
                 SITE, ENVIRONMENT_ID, ENVIRONMENT_NAME, ENVIRONMENT_TYPE, mockWorkflowRun());
+    }
+
+    private JiraDeploymentInfoRequest createRequest(
+            final String environmentId,
+            final String environmentName,
+            final String environmentType) {
+        return new JiraDeploymentInfoRequest(
+                SITE, environmentId, environmentName, environmentType, mockWorkflowRun());
     }
 
     private void setupMocks() {
