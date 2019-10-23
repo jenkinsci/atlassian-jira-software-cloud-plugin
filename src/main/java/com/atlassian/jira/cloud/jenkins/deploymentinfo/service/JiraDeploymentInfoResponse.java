@@ -4,10 +4,20 @@ import com.atlassian.jira.cloud.jenkins.Messages;
 import com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.DeploymentApiResponse;
 
+import java.util.List;
+
 public class JiraDeploymentInfoResponse extends JiraSendInfoResponse {
 
     public JiraDeploymentInfoResponse(final Status status, final String message) {
         super(status, message);
+    }
+
+    public static JiraSendInfoResponse failureEnvironmentInvalid(
+            final String jiraSite, final List<String> errorMessages) {
+        final String message =
+                Messages.JiraDeploymentInfoResponse_FAILURE_ENVIRONMENT_INVALID(
+                        String.join(" ", errorMessages));
+        return new JiraDeploymentInfoResponse(Status.FAILURE_ENVIRONMENT_INVALID, message);
     }
 
     public static JiraSendInfoResponse skippedIssueKeysNotFound(final String jiraSite) {
