@@ -24,6 +24,7 @@ public class BuildPayloadBuilderTest extends BaseUnitTest {
 
         final JiraBuildInfo buildInfo = buildPayload.getBuilds().get(0);
         // then
+        assertThat(buildPayload.getProviderMetadata().getProduct()).isEqualTo("jenkins");
         assertThat(buildInfo.getPipelineId()).isEqualTo(runWrapper.getFullProjectName());
         assertThat(buildInfo.getBuildNumber()).isEqualTo(runWrapper.getNumber());
         assertThat(buildInfo.getDisplayName()).isEqualTo(runWrapper.getDisplayName());
@@ -42,6 +43,7 @@ public class BuildPayloadBuilderTest extends BaseUnitTest {
         final JiraBuildInfo buildInfo = buildPayload.getBuilds().get(0);
 
         // then
+        assertThat(buildPayload.getProviderMetadata().getProduct()).isEqualTo("jenkins");
         assertThat(buildInfo.getPipelineId()).isEqualTo(runWrapper.getFullProjectName());
         assertThat(buildInfo.getBuildNumber()).isEqualTo(runWrapper.getNumber());
         assertThat(buildInfo.getDisplayName()).isEqualTo(runWrapper.getDisplayName());
