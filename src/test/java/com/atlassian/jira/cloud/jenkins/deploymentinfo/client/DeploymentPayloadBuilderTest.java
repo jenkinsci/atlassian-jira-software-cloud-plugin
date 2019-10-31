@@ -26,6 +26,7 @@ public class DeploymentPayloadBuilderTest extends BaseUnitTest {
 
         final JiraDeploymentInfo jiraDeploymentInfo = deployments.getDeployments().get(0);
         // then
+        assertThat(deployments.getProviderMetadata().getProduct()).isEqualTo("jenkins");
         assertDeploymentResult(runWrapper, jiraDeploymentInfo, "successful");
     }
 
@@ -38,6 +39,7 @@ public class DeploymentPayloadBuilderTest extends BaseUnitTest {
 
         final JiraDeploymentInfo jiraDeploymentInfo = deployments.getDeployments().get(0);
         // then
+        assertThat(deployments.getProviderMetadata().getProduct()).isEqualTo("jenkins");
         assertDeploymentResult(runWrapper, jiraDeploymentInfo, "failed");
     }
 
