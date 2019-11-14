@@ -8,7 +8,6 @@ import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.service.JiraDeploymentInfoRequest;
 import com.google.common.collect.ImmutableSet;
 import hudson.Extension;
-import hudson.model.Result;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.util.ListBoxModel;
@@ -22,10 +21,8 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 
 import javax.inject.Inject;
-import java.io.PrintStream;
 import java.io.Serializable;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -40,15 +37,18 @@ public class JiraSendDeploymentInfoStep extends Step implements Serializable {
     private String environmentId;
     private String environmentName;
     private String environmentType;
+    private List<String> changeSet;
 
     @DataBoundConstructor
     public JiraSendDeploymentInfoStep(
             final String environmentId,
             final String environmentName,
-            final String environmentType) {
+            final String environmentType,
+            final List<String> changeSet) {
         this.environmentId = environmentId;
         this.environmentName = environmentName;
         this.environmentType = environmentType;
+        this.changeSet = changeSet;
     }
 
     public String getSite() {
@@ -85,6 +85,15 @@ public class JiraSendDeploymentInfoStep extends Step implements Serializable {
     @DataBoundSetter
     public void setEnvironmentType(final String environmentType) {
         this.environmentType = environmentType;
+    }
+
+    public List<String> getChangeSet() {
+        return changeSet;
+    }
+
+    @DataBoundSetter
+    public void setChangeSet(final List<String> changeSet) {
+        this.changeSet = changeSet;
     }
 
     @Override
@@ -157,6 +166,7 @@ public class JiraSendDeploymentInfoStep extends Step implements Serializable {
                             step.getEnvironmentId(),
                             step.getEnvironmentName(),
                             step.getEnvironmentType(),
+                            step.getChangeSet(),
                             workflowRun);
             final JiraSendInfoResponse response =
                     JiraSenderFactory.getInstance()

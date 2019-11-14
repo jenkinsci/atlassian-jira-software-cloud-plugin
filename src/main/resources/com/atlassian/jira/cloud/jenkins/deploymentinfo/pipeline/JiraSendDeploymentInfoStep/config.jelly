@@ -13,4 +13,7 @@
     <f:entry field="environmentType" title="${%EnvironmentType}">
         <f:select/>
     </f:entry>
+    <f:entry field="changeSet" title="${%ChangeSet}">
+        <f:textbox/>
+    </f:entry>
 </j:jelly>

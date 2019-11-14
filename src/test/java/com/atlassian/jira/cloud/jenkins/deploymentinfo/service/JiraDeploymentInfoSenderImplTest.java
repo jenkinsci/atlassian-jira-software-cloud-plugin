@@ -240,7 +240,7 @@ public class JiraDeploymentInfoSenderImplTest {
 
     private JiraDeploymentInfoRequest createRequest() {
         return new JiraDeploymentInfoRequest(
-                SITE, ENVIRONMENT_ID, ENVIRONMENT_NAME, ENVIRONMENT_TYPE, mockWorkflowRun());
+                SITE, ENVIRONMENT_ID, ENVIRONMENT_NAME, ENVIRONMENT_TYPE, null, mockWorkflowRun());
     }
 
     private JiraDeploymentInfoRequest createRequest(
@@ -248,7 +248,7 @@ public class JiraDeploymentInfoSenderImplTest {
             final String environmentName,
             final String environmentType) {
         return new JiraDeploymentInfoRequest(
-                SITE, environmentId, environmentName, environmentType, mockWorkflowRun());
+                SITE, environmentId, environmentName, environmentType, null, mockWorkflowRun());
     }
 
     private void setupMocks() {

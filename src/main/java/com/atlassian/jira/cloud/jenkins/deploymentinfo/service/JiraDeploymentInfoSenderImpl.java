@@ -5,6 +5,7 @@ import com.atlassian.jira.cloud.jenkins.common.client.JiraApi;
 import com.atlassian.jira.cloud.jenkins.common.client.PostUpdateResult;
 import com.atlassian.jira.cloud.jenkins.common.config.JiraSiteConfigRetriever;
 import com.atlassian.jira.cloud.jenkins.common.model.AppCredential;
+import com.atlassian.jira.cloud.jenkins.common.model.IssueKey;
 import com.atlassian.jira.cloud.jenkins.common.response.JiraCommonResponse;
 import com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse;
 import com.atlassian.jira.cloud.jenkins.common.service.IssueKeyExtractor;
@@ -14,17 +15,21 @@ import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.DeploymentAp
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Deployments;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Environment;
 import com.atlassian.jira.cloud.jenkins.tenantinfo.CloudIdResolver;
+import com.atlassian.jira.cloud.jenkins.util.IssueKeyStringExtractor;
 import com.atlassian.jira.cloud.jenkins.util.RunWrapperProvider;
 import com.atlassian.jira.cloud.jenkins.util.SecretRetriever;
+import com.google.common.collect.ImmutableSet;
 import hudson.model.Run;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.jenkinsci.plugins.workflow.support.steps.build.RunWrapper;
 
 import javax.annotation.Nullable;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static java.util.Objects.requireNonNull;
 
@@ -88,7 +93,19 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
             return JiraDeploymentInfoResponse.failureEnvironmentInvalid(jiraSite, errorMessages);
         }
 
-        final Set<String> issueKeys = issueKeyExtractor.extractIssueKeys(deployment);
+        Set<String> jenkinsIssues = issueKeyExtractor.extractIssueKeys(deployment);
+        Set<String> issues = new HashSet<>();
+        if (request.getChangeSet() != null && request.getChangeSet().size() > 0) {
+            for (String change : request.getChangeSet()) {
+                issues.addAll(
+                        IssueKeyStringExtractor.extractIssueKeys(change)
+                                .stream()
+                                .map(IssueKey::toString)
+                                .collect(Collectors.toSet()));
+            }
+        }
+        issues.addAll(jenkinsIssues);
+        final Set<String> issueKeys = ImmutableSet.copyOf(issues);
 
         if (issueKeys.isEmpty()) {
             return JiraDeploymentInfoResponse.skippedIssueKeysNotFound(resolvedSiteConfig);
