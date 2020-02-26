@@ -10,18 +10,24 @@ import com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse;
 import com.atlassian.jira.cloud.jenkins.common.service.IssueKeyExtractor;
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.DeploymentPayloadBuilder;
+import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Association;
+import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.AssociationType;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.DeploymentApiResponse;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Deployments;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Environment;
 import com.atlassian.jira.cloud.jenkins.tenantinfo.CloudIdResolver;
 import com.atlassian.jira.cloud.jenkins.util.RunWrapperProvider;
 import com.atlassian.jira.cloud.jenkins.util.SecretRetriever;
+import com.google.common.collect.ImmutableSet;
+
 import hudson.model.Run;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.jenkinsci.plugins.workflow.support.steps.build.RunWrapper;
 
 import javax.annotation.Nullable;
+
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -65,6 +71,8 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
     public JiraSendInfoResponse sendDeploymentInfo(final JiraDeploymentInfoRequest request) {
         final String jiraSite = request.getSite();
         final WorkflowRun deployment = request.getDeployment();
+        final String state = request.getState();
+        final Set<String> serviceIds = request.getServiceIds();
 
         final Optional<JiraCloudSiteConfig> maybeSiteConfig = getSiteConfigFor(jiraSite);
 
@@ -88,11 +96,20 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
             return JiraDeploymentInfoResponse.failureEnvironmentInvalid(jiraSite, errorMessages);
         }
 
+        final List<String> stateErrorMassages = StateValidator.validate(state);
+
+        if (!stateErrorMassages.isEmpty()) {
+            return JiraDeploymentInfoResponse.failureStateInvalid(stateErrorMassages);
+        }
+
         final Set<String> issueKeys = issueKeyExtractor.extractIssueKeys(deployment);
 
-        if (issueKeys.isEmpty()) {
-            return JiraDeploymentInfoResponse.skippedIssueKeysNotFound(resolvedSiteConfig);
+        if (issueKeys.isEmpty() && serviceIds.isEmpty()) {
+            return JiraDeploymentInfoResponse.skippedIssueKeysNotFoundAndServiceIdsAreEmpty(
+                    resolvedSiteConfig);
         }
+
+        final Set<Association> associations = buildAssociations(serviceIds, issueKeys);
 
         final Optional<String> maybeCloudId = getCloudIdFor(resolvedSiteConfig);
 
@@ -107,7 +124,7 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
         }
 
         final Deployments deploymentInfo =
-                createJiraDeploymentInfo(deployment, environment, issueKeys);
+                createJiraDeploymentInfo(deployment, environment, associations, state);
 
         final PostUpdateResult<DeploymentApiResponse> postUpdateResult =
                 sendDeploymentInfo(
@@ -145,10 +162,10 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
     }
 
     private Deployments createJiraDeploymentInfo(
-            final Run build, final Environment environment, final Set<String> issueKeys) {
+            final Run build, final Environment environment, final Set<Association> associations, @Nullable final String state) {
         final RunWrapper buildWrapper = runWrapperProvider.getWrapper(build);
 
-        return DeploymentPayloadBuilder.getDeploymentInfo(buildWrapper, environment, issueKeys);
+        return DeploymentPayloadBuilder.getDeploymentInfo(buildWrapper, environment, associations, state);
     }
 
     private PostUpdateResult<DeploymentApiResponse> sendDeploymentInfo(
@@ -170,8 +187,8 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
             return JiraDeploymentInfoResponse.failureDeploymentdRejected(jiraSite, response);
         }
 
-        if (!response.getUnknownIssueKeys().isEmpty()) {
-            return JiraDeploymentInfoResponse.failureUnknownIssueKeys(jiraSite, response);
+        if (!response.getUnknownAssociations().isEmpty()) {
+            return JiraDeploymentInfoResponse.failureUnknownAssociations(jiraSite, response);
         }
 
         return JiraDeploymentInfoResponse.failureUnexpectedResponse();
@@ -194,5 +211,26 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
                 .withDisplayName(request.getEnvironmentName())
                 .withType(environmentType)
                 .build();
+    }
+
+    private Set<Association> buildAssociations(
+            final Set<String> serviceIds, final Set<String> issueKeys) {
+        final HashSet<Association> associations = new HashSet<>();
+        if (!serviceIds.isEmpty()) {
+            associations.add(
+                Association.builder()
+                    .withAssociationType(AssociationType.SERVICE_ID_OR_KEYS)
+                    .withValues(serviceIds)
+                    .build());
+        }
+
+        if (!issueKeys.isEmpty()) {
+            associations.add(
+                Association.builder()
+                    .withAssociationType(AssociationType.ISSUE_KEYS)
+                    .withValues(issueKeys)
+                    .build());
+        }
+        return associations;
     }
 }

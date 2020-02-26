@@ -1,5 +1,7 @@
 package com.atlassian.jira.cloud.jenkins.deploymentinfo.service;
 
+import java.util.Set;
+
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 
 import javax.annotation.Nullable;
@@ -12,6 +14,8 @@ public class JiraDeploymentInfoRequest {
     private final String environmentId;
     private final String environmentName;
     private final String environmentType;
+    private final String state;
+    private final Set<String> serviceIds;
     private final WorkflowRun deployment;
 
     public JiraDeploymentInfoRequest(
@@ -19,11 +23,15 @@ public class JiraDeploymentInfoRequest {
             final String environmentId,
             final String environmentName,
             final String environmentType,
+            @Nullable final String state,
+            final Set<String> serviceId,
             final WorkflowRun deployment) {
         this.site = site;
         this.environmentId = environmentId;
         this.environmentName = environmentName;
         this.environmentType = environmentType;
+        this.state = state;
+        this.serviceIds = serviceId;
         this.deployment = requireNonNull(deployment);
     }
 
@@ -46,5 +54,14 @@ public class JiraDeploymentInfoRequest {
 
     public String getEnvironmentType() {
         return environmentType;
+    }
+
+    public Set<String> getServiceIds() {
+        return serviceIds;
+    }
+
+    @Nullable
+    public String getState() {
+        return state;
     }
 }

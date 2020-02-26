@@ -1,6 +1,10 @@
 package com.atlassian.jira.cloud.jenkins.deploymentinfo.client;
 
+import java.util.Set;
+
 import com.atlassian.jira.cloud.jenkins.BaseUnitTest;
+import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Association;
+import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.AssociationType;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Deployments;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Environment;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.JiraDeploymentInfo;
@@ -16,13 +20,30 @@ import static org.mockito.Mockito.when;
 public class DeploymentPayloadBuilderTest extends BaseUnitTest {
 
     private static final String ISSUE_KEY = "TEST-123";
+    private static final String SERVICE_ID = "aGVsbG8K";
+
+    private static final Association SERVICE_ID_ASSOCIATION =
+            Association.builder()
+                    .withAssociationType(AssociationType.SERVICE_ID_OR_KEYS)
+                    .withValues(ImmutableSet.of(SERVICE_ID))
+                    .build();
+
+    private static final Association ISSUE_KEY_ASSOCIATION =
+            Association.builder()
+                    .withAssociationType(AssociationType.ISSUE_KEYS)
+                    .withValues(ImmutableSet.of(ISSUE_KEY))
+                    .build();
+
+    private static final Set<Association> ASSOCIATIONS =
+            ImmutableSet.of(SERVICE_ID_ASSOCIATION, ISSUE_KEY_ASSOCIATION);
 
     @Test
     public void testSuccessfulBuild() throws Exception {
         // when
         final RunWrapper runWrapper = mockRunWrapper("SUCCESS");
         final Deployments deployments =
-                DeploymentPayloadBuilder.getDeploymentInfo(runWrapper, mockEnvironment(), ImmutableSet.of(ISSUE_KEY));
+                DeploymentPayloadBuilder.getDeploymentInfo(
+                        runWrapper, mockEnvironment(), ASSOCIATIONS, null);
 
         final JiraDeploymentInfo jiraDeploymentInfo = deployments.getDeployments().get(0);
         // then
@@ -31,11 +52,26 @@ public class DeploymentPayloadBuilderTest extends BaseUnitTest {
     }
 
     @Test
+    public void testInProgressBuild() throws Exception {
+        // when
+        final RunWrapper runWrapper = mockRunWrapper("SUCCESS");
+        final Deployments deployments =
+                DeploymentPayloadBuilder.getDeploymentInfo(
+                        runWrapper, mockEnvironment(), ASSOCIATIONS, "in_progress");
+
+        final JiraDeploymentInfo jiraDeploymentInfo = deployments.getDeployments().get(0);
+        // then
+        assertThat(deployments.getProviderMetadata().getProduct()).isEqualTo("jenkins");
+        assertDeploymentResult(runWrapper, jiraDeploymentInfo, "in_progress");
+    }
+
+    @Test
     public void testFailedBuild() throws Exception {
         // when
         final RunWrapper runWrapper = mockRunWrapper("FAILURE");
         final Deployments deployments =
-                DeploymentPayloadBuilder.getDeploymentInfo(runWrapper, mockEnvironment(), ImmutableSet.of(ISSUE_KEY));
+                DeploymentPayloadBuilder.getDeploymentInfo(
+                        runWrapper, mockEnvironment(), ASSOCIATIONS, null);
 
         final JiraDeploymentInfo jiraDeploymentInfo = deployments.getDeployments().get(0);
         // then
@@ -64,8 +100,11 @@ public class DeploymentPayloadBuilderTest extends BaseUnitTest {
         return environment;
     }
 
-    private void assertDeploymentResult(RunWrapper runWrapper, JiraDeploymentInfo jiraDeploymentInfo, String status) throws AbortException {
-        assertThat(jiraDeploymentInfo.getIssueKeys()).containsExactlyInAnyOrder(ISSUE_KEY);
+    private void assertDeploymentResult(
+            RunWrapper runWrapper, JiraDeploymentInfo jiraDeploymentInfo, String status)
+            throws AbortException {
+        assertThat(jiraDeploymentInfo.getAssociations())
+                .containsExactlyInAnyOrder(ISSUE_KEY_ASSOCIATION, SERVICE_ID_ASSOCIATION);
         assertThat(jiraDeploymentInfo.getDisplayName()).isEqualTo(runWrapper.getDisplayName());
         assertThat(jiraDeploymentInfo.getUrl()).isEqualTo(runWrapper.getAbsoluteUrl());
         assertThat(jiraDeploymentInfo.getDescription()).isEqualTo(runWrapper.getDisplayName());
@@ -74,8 +113,11 @@ public class DeploymentPayloadBuilderTest extends BaseUnitTest {
         assertThat(jiraDeploymentInfo.getEnvironment().getId()).isEqualTo("prod-east-1");
         assertThat(jiraDeploymentInfo.getEnvironment().getDisplayName()).isEqualTo("prod-east-1");
         assertThat(jiraDeploymentInfo.getEnvironment().getType()).isEqualTo("production");
-        assertThat(jiraDeploymentInfo.getPipeline().getId()).isEqualTo(runWrapper.getFullProjectName());
-        assertThat(jiraDeploymentInfo.getPipeline().getDisplayName()).isEqualTo(runWrapper.getFullProjectName());
-        assertThat(jiraDeploymentInfo.getPipeline().getUrl()).isEqualTo(runWrapper.getAbsoluteUrl());
+        assertThat(jiraDeploymentInfo.getPipeline().getId())
+                .isEqualTo(runWrapper.getFullProjectName());
+        assertThat(jiraDeploymentInfo.getPipeline().getDisplayName())
+                .isEqualTo(runWrapper.getFullProjectName());
+        assertThat(jiraDeploymentInfo.getPipeline().getUrl())
+                .isEqualTo(runWrapper.getAbsoluteUrl());
     }
 }

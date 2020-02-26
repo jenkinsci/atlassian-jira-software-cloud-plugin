@@ -13,6 +13,7 @@ public abstract class JiraSendInfoResponse implements Serializable {
         FAILURE_BUILD_REJECTED,
         FAILURE_DEPLOYMENT_REJECTED,
         FAILURE_UNKNOWN_ISSUE_KEYS,
+        FAILURE_UNKNOWN_ASSOCIATIONS,
         FAILURE_SITE_CONFIG_NOT_FOUND,
         FAILURE_SECRET_NOT_FOUND,
         FAILURE_SCM_REVISION_NOT_FOUND,
@@ -22,7 +23,9 @@ public abstract class JiraSendInfoResponse implements Serializable {
         FAILURE_DEPLOYMENTS_API_RESPONSE,
         FAILURE_UNEXPECTED_RESPONSE,
         SKIPPED_ISSUE_KEYS_NOT_FOUND,
-        FAILURE_ENVIRONMENT_INVALID
+        SKIPPED_ISSUE_KEYS_NOT_FOUND_AND_SERVICE_IDS_NOT_PROVIDED,
+        FAILURE_ENVIRONMENT_INVALID,
+        FAILURE_STATE_INVALID;
     }
 
     private final Status status;

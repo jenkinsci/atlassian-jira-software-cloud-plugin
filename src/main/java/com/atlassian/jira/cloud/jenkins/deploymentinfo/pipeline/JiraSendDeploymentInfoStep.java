@@ -8,7 +8,6 @@ import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.service.JiraDeploymentInfoRequest;
 import com.google.common.collect.ImmutableSet;
 import hudson.Extension;
-import hudson.model.Result;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.util.ListBoxModel;
@@ -21,11 +20,11 @@ import org.jenkinsci.plugins.workflow.steps.SynchronousNonBlockingStepExecution;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
-import java.io.PrintStream;
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -40,6 +39,8 @@ public class JiraSendDeploymentInfoStep extends Step implements Serializable {
     private String environmentId;
     private String environmentName;
     private String environmentType;
+    private String state;
+    private List<String> serviceIds = Collections.emptyList();
 
     @DataBoundConstructor
     public JiraSendDeploymentInfoStep(
@@ -92,6 +93,24 @@ public class JiraSendDeploymentInfoStep extends Step implements Serializable {
         return new JiraSendDeploymentInfoStepExecution(stepContext, this);
     }
 
+    public List<String> getServiceIds() {
+        return serviceIds;
+    }
+
+    @DataBoundSetter
+    public void setServiceIds(@Nullable final List<String> serviceIds) {
+        this.serviceIds = serviceIds == null ? Collections.emptyList() : serviceIds;
+    }
+
+    public String getState() {
+        return state;
+    }
+
+    @DataBoundSetter
+    public void setState(final String state) {
+        this.state = state;
+    }
+
     @Extension
     public static class DescriptorImpl extends StepDescriptor {
 
@@ -133,6 +152,20 @@ public class JiraSendDeploymentInfoStep extends Step implements Serializable {
 
             return items;
         }
+
+        @SuppressWarnings("unused")
+        public ListBoxModel doFillStateItems() {
+            ListBoxModel items = new ListBoxModel();
+            items.add("unknown", "unknown");
+            items.add("pending", "pending");
+            items.add("in_progress", "in_progress");
+            items.add("cancelled", "cancelled");
+            items.add("failed", "failed");
+            items.add("rolled_back", "rolled_back");
+            items.add("successful", "successful");
+
+            return items;
+        }
     }
 
     public static class JiraSendDeploymentInfoStepExecution
@@ -150,6 +183,7 @@ public class JiraSendDeploymentInfoStep extends Step implements Serializable {
         protected JiraSendInfoResponse run() throws Exception {
             final TaskListener taskListener = getContext().get(TaskListener.class);
             final WorkflowRun workflowRun = getContext().get(WorkflowRun.class);
+            final Set<String> serviceIds = ImmutableSet.copyOf(step.getServiceIds());
 
             final JiraDeploymentInfoRequest request =
                     new JiraDeploymentInfoRequest(
@@ -157,6 +191,8 @@ public class JiraSendDeploymentInfoStep extends Step implements Serializable {
                             step.getEnvironmentId(),
                             step.getEnvironmentName(),
                             step.getEnvironmentType(),
+                            step.getState(),
+                            serviceIds,
                             workflowRun);
             final JiraSendInfoResponse response =
                     JiraSenderFactory.getInstance()

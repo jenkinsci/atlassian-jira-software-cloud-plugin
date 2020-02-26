@@ -37,6 +37,15 @@ public class JiraBuildInfoResponse extends JiraSendInfoResponse {
         return new JiraBuildInfoResponse(Status.FAILURE_UNKNOWN_ISSUE_KEYS, message);
     }
 
+    public static JiraBuildInfoResponse failureUnknownIAssociations(
+            final String jiraSite, final BuildApiResponse response) {
+
+        final String message =
+                Messages.JiraBuildInfoResponse_FAILURE_UNKNOWN_ISSUE_KEYS(
+                        jiraSite, response.getUnknownIssueKeys());
+        return new JiraBuildInfoResponse(Status.FAILURE_UNKNOWN_ASSOCIATIONS, message);
+    }
+
     public static JiraBuildInfoResponse failureBuildsApiResponse(
             final String jiraSite, final String errorMessage) {
         final String message =

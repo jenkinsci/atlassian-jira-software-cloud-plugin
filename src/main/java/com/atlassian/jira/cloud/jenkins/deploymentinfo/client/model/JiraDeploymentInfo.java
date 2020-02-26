@@ -16,7 +16,7 @@ public final class JiraDeploymentInfo {
 
     private final Integer deploymentSequenceNumber;
     private final Long updateSequenceNumber;
-    private final Set<String> issueKeys;
+    private final Set<Association> associations;
     private final String displayName;
     private final String url;
     private final String description;
@@ -30,7 +30,7 @@ public final class JiraDeploymentInfo {
     public JiraDeploymentInfo(
             @JsonProperty("deploymentSequenceNumber") final Integer deploymentSequenceNumber,
             @JsonProperty("updateSequenceNumber") final Long updateSequenceNumber,
-            @JsonProperty("issueKeys") final Set<String> issueKeys,
+            @JsonProperty("associations") final Set<Association> associations,
             @JsonProperty("displayName") final String displayName,
             @JsonProperty("url") final String url,
             @JsonProperty("description") final String description,
@@ -41,7 +41,7 @@ public final class JiraDeploymentInfo {
             @JsonProperty("environment") final Environment environment) {
         this.deploymentSequenceNumber = deploymentSequenceNumber;
         this.updateSequenceNumber = updateSequenceNumber;
-        this.issueKeys = issueKeys;
+        this.associations = associations;
         this.displayName = displayName;
         this.url = url;
         this.description = description;
@@ -60,8 +60,8 @@ public final class JiraDeploymentInfo {
         return updateSequenceNumber;
     }
 
-    public Set<String> getIssueKeys() {
-        return issueKeys;
+    public Set<Association> getAssociations() {
+        return associations;
     }
 
     public String getDisplayName() {
@@ -107,7 +107,7 @@ public final class JiraDeploymentInfo {
     public static class Builder {
         private Integer deploymentSequenceNumber;
         private Long updateSequenceNumber;
-        private Set<String> issueKeys;
+        private Set<Association> associations;
         private String displayName;
         private String url;
         private String description;
@@ -127,8 +127,8 @@ public final class JiraDeploymentInfo {
             return this;
         }
 
-        public Builder withIssueKeys(final Set<String> issueKeys) {
-            this.issueKeys = ImmutableSet.copyOf(issueKeys);
+        public Builder withAssociations(final Set<Association> associations) {
+            this.associations = ImmutableSet.copyOf(associations);
             return this;
         }
 
@@ -176,7 +176,7 @@ public final class JiraDeploymentInfo {
             return new JiraDeploymentInfo(
                     deploymentSequenceNumber,
                     updateSequenceNumber,
-                    issueKeys,
+                    associations,
                     displayName,
                     url,
                     description,

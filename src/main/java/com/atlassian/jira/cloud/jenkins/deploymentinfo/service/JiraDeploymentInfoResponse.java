@@ -20,10 +20,21 @@ public class JiraDeploymentInfoResponse extends JiraSendInfoResponse {
         return new JiraDeploymentInfoResponse(Status.FAILURE_ENVIRONMENT_INVALID, message);
     }
 
-    public static JiraSendInfoResponse skippedIssueKeysNotFound(final String jiraSite) {
+    public static JiraSendInfoResponse failureStateInvalid(final List<String> errorMessages) {
         final String message =
-                Messages.JiraDeploymentInfoResponse_SKIPPED_ISSUE_KEYS_NOT_FOUND(jiraSite);
-        return new JiraDeploymentInfoResponse(Status.SKIPPED_ISSUE_KEYS_NOT_FOUND, message);
+            Messages.JiraDeploymentInfoResponse_FAILURE_STATE_INVALID(
+                String.join(" ", errorMessages));
+        return new JiraDeploymentInfoResponse(Status.FAILURE_STATE_INVALID, message);
+    }
+
+    public static JiraSendInfoResponse skippedIssueKeysNotFoundAndServiceIdsAreEmpty(
+            final String jiraSite) {
+        final String message =
+                Messages
+                        .JiraDeploymentInfoResponse_SKIPPED_ISSUE_KEYS_NOT_FOUND_AND_SERVICE_IDS_NOT_PROVIDED(
+                                jiraSite);
+        return new JiraDeploymentInfoResponse(
+                Status.SKIPPED_ISSUE_KEYS_NOT_FOUND_AND_SERVICE_IDS_NOT_PROVIDED, message);
     }
 
     public static JiraDeploymentInfoResponse successDeploymentAccepted(
@@ -44,13 +55,13 @@ public class JiraDeploymentInfoResponse extends JiraSendInfoResponse {
         return new JiraDeploymentInfoResponse(Status.FAILURE_DEPLOYMENT_REJECTED, message);
     }
 
-    public static JiraDeploymentInfoResponse failureUnknownIssueKeys(
+    public static JiraDeploymentInfoResponse failureUnknownAssociations(
             final String jiraSite, final DeploymentApiResponse response) {
 
         final String message =
-                Messages.JiraDeploymentInfoResponse_FAILURE_UNKNOWN_ISSUE_KEYS(
-                        jiraSite, response.getUnknownIssueKeys());
-        return new JiraDeploymentInfoResponse(Status.FAILURE_UNKNOWN_ISSUE_KEYS, message);
+                Messages.JiraBuildInfoResponse_FAILURE_UNKNOWN_ASSOCIATIONS(
+                        jiraSite, response.getUnknownAssociations());
+        return new JiraDeploymentInfoResponse(Status.FAILURE_UNKNOWN_ASSOCIATIONS, message);
     }
 
     public static JiraDeploymentInfoResponse failureUnexpectedResponse() {

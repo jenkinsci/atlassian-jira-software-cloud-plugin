@@ -8,6 +8,8 @@ import com.atlassian.jira.cloud.jenkins.common.model.ApiErrorResponse;
 import com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse;
 import com.atlassian.jira.cloud.jenkins.common.service.IssueKeyExtractor;
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
+import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Association;
+import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.AssociationType;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.DeploymentApiResponse;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.DeploymentKeyResponse;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.RejectedDeploymentResponse;
@@ -27,12 +29,14 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Collections;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import static com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse.Status.FAILURE_SECRET_NOT_FOUND;
 import static com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse.Status.FAILURE_SITE_CONFIG_NOT_FOUND;
 import static com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse.Status.FAILURE_SITE_NOT_FOUND;
-import static com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse.Status.SKIPPED_ISSUE_KEYS_NOT_FOUND;
+import static com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse.Status.SKIPPED_ISSUE_KEYS_NOT_FOUND_AND_SERVICE_IDS_NOT_PROVIDED;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -42,6 +46,7 @@ import static org.mockito.Mockito.when;
 public class JiraDeploymentInfoSenderImplTest {
 
     private static final String SITE = "example.atlassian.com";
+    private static final Set<String> SERVICE_IDS = ImmutableSet.of("aGVsbG8K");
     public static final String ENVIRONMENT_ID = "prod-east-1";
     public static final String ENVIRONMENT_NAME = "prod-east-1";
     public static final String ENVIRONMENT_TYPE = "production";
@@ -107,17 +112,20 @@ public class JiraDeploymentInfoSenderImplTest {
     }
 
     @Test
-    public void testSendDeploymentInfo_whenIssueKeysNotFound() {
+    public void testSendDeploymentInfo_whenIssueKeysNotFoundAndAssociationsAreEmpty() {
         // given
         when(issueKeyExtractor.extractIssueKeys(any())).thenReturn(Collections.emptySet());
 
         // when
-        final JiraSendInfoResponse response = classUnderTest.sendDeploymentInfo(createRequest());
+        final JiraSendInfoResponse response =
+                classUnderTest.sendDeploymentInfo(
+                        createRequest(ENVIRONMENT_ID, ENVIRONMENT_NAME, ENVIRONMENT_TYPE, Collections.emptySet(), null));
 
         // then
-        assertThat(response.getStatus()).isEqualTo(SKIPPED_ISSUE_KEYS_NOT_FOUND);
+        assertThat(response.getStatus()).isEqualTo(SKIPPED_ISSUE_KEYS_NOT_FOUND_AND_SERVICE_IDS_NOT_PROVIDED);
         final String message = response.getMessage();
-        assertThat(message).startsWith("No issue keys found in the change log");
+        assertThat(message).startsWith(
+                        "No issue keys found in the change log and service ids were not provided");
     }
 
     @Test
@@ -189,7 +197,7 @@ public class JiraDeploymentInfoSenderImplTest {
     }
 
     @Test
-    public void testSendDeploymentInfo_whenUnknownIssueKeys() {
+    public void testSendDeploymentInfo_whenUnknownAssociations() {
         // given
         setupDeploymentApiUnknownIssueKeys();
 
@@ -197,7 +205,7 @@ public class JiraDeploymentInfoSenderImplTest {
         final JiraSendInfoResponse response = classUnderTest.sendDeploymentInfo(createRequest());
 
         assertThat(response.getStatus())
-                .isEqualTo(JiraSendInfoResponse.Status.FAILURE_UNKNOWN_ISSUE_KEYS);
+                .isEqualTo(JiraSendInfoResponse.Status.FAILURE_UNKNOWN_ASSOCIATIONS);
         final String message = response.getMessage();
         assertThat(message).isNotBlank();
     }
@@ -238,17 +246,49 @@ public class JiraDeploymentInfoSenderImplTest {
                                 + "Allowed values are: [development, testing, staging, production, unmapped]");
     }
 
+    @Test
+    public void testSendDeploymentInfo_whenNotAllowedDeploymentState() {
+        // given
+        final JiraDeploymentInfoRequest request =
+                createRequest(
+                        "prod-east",
+                        "Production East",
+                        "testing",
+                        Collections.emptySet(),
+                        "foobar");
+
+        // when
+        final JiraSendInfoResponse response = classUnderTest.sendDeploymentInfo(request);
+
+        // then
+        assertThat(response.getStatus())
+                .isEqualTo(JiraSendInfoResponse.Status.FAILURE_STATE_INVALID);
+        assertThat(response.getMessage())
+                .isEqualTo(
+                        "The deployment state is not valid. "
+                                + "The parameter state is not valid. "
+                                + "Allowed values are: [unknown, pending, in_progress, cancelled, failed, rolled_back, successful]");
+    }
+
     private JiraDeploymentInfoRequest createRequest() {
-        return new JiraDeploymentInfoRequest(
-                SITE, ENVIRONMENT_ID, ENVIRONMENT_NAME, ENVIRONMENT_TYPE, mockWorkflowRun());
+        return createRequest(ENVIRONMENT_ID, ENVIRONMENT_NAME, ENVIRONMENT_TYPE);
     }
 
     private JiraDeploymentInfoRequest createRequest(
             final String environmentId,
             final String environmentName,
             final String environmentType) {
+        return createRequest(environmentId, environmentName, environmentType, SERVICE_IDS, null);
+    }
+
+    private JiraDeploymentInfoRequest createRequest(
+            final String environmentId,
+            final String environmentName,
+            final String environmentType,
+            final Set<String> serviceIds,
+            final String state) {
         return new JiraDeploymentInfoRequest(
-                SITE, environmentId, environmentName, environmentType, mockWorkflowRun());
+                SITE, environmentId, environmentName, environmentType, state, serviceIds, mockWorkflowRun());
     }
 
     private void setupMocks() {
@@ -336,7 +376,11 @@ public class JiraDeploymentInfoSenderImplTest {
                 new DeploymentApiResponse(
                         Collections.emptyList(),
                         Collections.emptyList(),
-                        ImmutableList.of("TEST-123"));
+                        ImmutableList.of(
+                                Association.builder()
+                                        .withAssociationType(AssociationType.SERVICE_ID_OR_KEYS)
+                                        .withValues(SERVICE_IDS)
+                                        .build()));
         when(deploymentsApi.postUpdate(any(), any(), any(), any(), any()))
                 .thenReturn(new PostUpdateResult<>(deploymentApiResponse));
     }
