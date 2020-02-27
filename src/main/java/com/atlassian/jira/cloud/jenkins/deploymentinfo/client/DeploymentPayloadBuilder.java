@@ -1,5 +1,7 @@
 package com.atlassian.jira.cloud.jenkins.deploymentinfo.client;
 
+import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Association;
+import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.AssociationType;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Deployments;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Environment;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.JiraDeploymentInfo;
@@ -10,6 +12,7 @@ import hudson.model.Run;
 import org.jenkinsci.plugins.workflow.support.steps.build.RunWrapper;
 
 import java.time.Instant;
+import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
 
@@ -32,7 +35,7 @@ public final class DeploymentPayloadBuilder {
                     JiraDeploymentInfo.builder()
                     .withDeploymentSequenceNumber(runWrapper.getNumber())
                     .withUpdateSequenceNumber(Instant.now().getEpochSecond())
-                    .withIssueKeys(issueKeys)
+                    .withAssociations(getAssociations(issueKeys))
                     .withDisplayName(runWrapper.getDisplayName())
                     .withUrl(runWrapper.getAbsoluteUrl())
                     .withDescription(runWrapper.getDisplayName())
@@ -45,6 +48,13 @@ public final class DeploymentPayloadBuilder {
         } catch (final AbortException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private static Set<Association> getAssociations(final Set<String> issueKeys) {
+        return Collections.singleton(Association.builder()
+            .withAssociationType(AssociationType.ISSUE_KEYS)
+            .withValues(issueKeys)
+            .build());
     }
 
     private static Pipeline getPipeline(final RunWrapper runWrapper) throws AbortException {

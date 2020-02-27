@@ -1,6 +1,8 @@
 package com.atlassian.jira.cloud.jenkins.deploymentinfo.client;
 
 import com.atlassian.jira.cloud.jenkins.BaseUnitTest;
+import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Association;
+import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.AssociationType;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Deployments;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Environment;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.JiraDeploymentInfo;
@@ -16,6 +18,12 @@ import static org.mockito.Mockito.when;
 public class DeploymentPayloadBuilderTest extends BaseUnitTest {
 
     private static final String ISSUE_KEY = "TEST-123";
+
+    private static final Association ISSUE_KEY_ASSOCIATION =
+            Association.builder()
+                    .withAssociationType(AssociationType.ISSUE_KEYS)
+                    .withValues(ImmutableSet.of(ISSUE_KEY))
+                    .build();
 
     @Test
     public void testSuccessfulBuild() throws Exception {
@@ -65,7 +73,7 @@ public class DeploymentPayloadBuilderTest extends BaseUnitTest {
     }
 
     private void assertDeploymentResult(RunWrapper runWrapper, JiraDeploymentInfo jiraDeploymentInfo, String status) throws AbortException {
-        assertThat(jiraDeploymentInfo.getIssueKeys()).containsExactlyInAnyOrder(ISSUE_KEY);
+        assertThat(jiraDeploymentInfo.getAssociations()).containsExactlyInAnyOrder(ISSUE_KEY_ASSOCIATION);
         assertThat(jiraDeploymentInfo.getDisplayName()).isEqualTo(runWrapper.getDisplayName());
         assertThat(jiraDeploymentInfo.getUrl()).isEqualTo(runWrapper.getAbsoluteUrl());
         assertThat(jiraDeploymentInfo.getDescription()).isEqualTo(runWrapper.getDisplayName());
