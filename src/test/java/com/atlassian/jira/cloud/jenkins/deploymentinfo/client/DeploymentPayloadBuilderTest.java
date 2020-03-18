@@ -20,9 +20,10 @@ public class DeploymentPayloadBuilderTest extends BaseUnitTest {
     @Test
     public void testSuccessfulBuild() throws Exception {
         // when
-        final RunWrapper runWrapper = mockRunWrapper("SUCCESS");
+        final RunWrapper runWrapper = mockRunWrapper();
         final Deployments deployments =
-                DeploymentPayloadBuilder.getDeploymentInfo(runWrapper, mockEnvironment(), ImmutableSet.of(ISSUE_KEY));
+                DeploymentPayloadBuilder
+                        .getDeploymentInfo(runWrapper, mockEnvironment(), ImmutableSet.of(ISSUE_KEY), "successful");
 
         final JiraDeploymentInfo jiraDeploymentInfo = deployments.getDeployments().get(0);
         // then
@@ -33,9 +34,10 @@ public class DeploymentPayloadBuilderTest extends BaseUnitTest {
     @Test
     public void testFailedBuild() throws Exception {
         // when
-        final RunWrapper runWrapper = mockRunWrapper("FAILURE");
+        final RunWrapper runWrapper = mockRunWrapper();
         final Deployments deployments =
-                DeploymentPayloadBuilder.getDeploymentInfo(runWrapper, mockEnvironment(), ImmutableSet.of(ISSUE_KEY));
+                DeploymentPayloadBuilder
+                        .getDeploymentInfo(runWrapper, mockEnvironment(), ImmutableSet.of(ISSUE_KEY), "failed");
 
         final JiraDeploymentInfo jiraDeploymentInfo = deployments.getDeployments().get(0);
         // then
@@ -43,7 +45,7 @@ public class DeploymentPayloadBuilderTest extends BaseUnitTest {
         assertDeploymentResult(runWrapper, jiraDeploymentInfo, "failed");
     }
 
-    private RunWrapper mockRunWrapper(final String result) throws Exception {
+    private RunWrapper mockRunWrapper() throws Exception {
         final RunWrapper runWrapper = mock(RunWrapper.class);
 
         when(runWrapper.getFullProjectName()).thenReturn("multibranch-1/TEST-123-branch-name");
@@ -51,8 +53,6 @@ public class DeploymentPayloadBuilderTest extends BaseUnitTest {
         when(runWrapper.getDisplayName()).thenReturn("#1");
         when(runWrapper.getAbsoluteUrl())
                 .thenReturn("http://localhost:8080/jenkins/multibranch-1/job/TEST-123-branch-name");
-        when(runWrapper.getCurrentResult()).thenReturn(result);
-
         return runWrapper;
     }
 

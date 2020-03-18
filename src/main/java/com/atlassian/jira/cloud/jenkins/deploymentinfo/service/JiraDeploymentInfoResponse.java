@@ -65,4 +65,11 @@ public class JiraDeploymentInfoResponse extends JiraSendInfoResponse {
                         jiraSite, errorMessage);
         return new JiraDeploymentInfoResponse(Status.FAILURE_DEPLOYMENTS_API_RESPONSE, message);
     }
+
+    public static JiraSendInfoResponse failureStateInvalid(final List<String> errorMessages) {
+        final String message =
+                Messages.JiraDeploymentInfoResponse_FAILURE_STATE_INVALID(
+                        String.join(" ", errorMessages));
+        return new JiraDeploymentInfoResponse(Status.FAILURE_STATE_INVALID, message);
+    }
 }

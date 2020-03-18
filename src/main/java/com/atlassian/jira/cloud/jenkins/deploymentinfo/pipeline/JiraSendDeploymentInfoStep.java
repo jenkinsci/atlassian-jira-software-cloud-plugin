@@ -40,6 +40,7 @@ public class JiraSendDeploymentInfoStep extends Step implements Serializable {
     private String environmentId;
     private String environmentName;
     private String environmentType;
+    private String state;
 
     @DataBoundConstructor
     public JiraSendDeploymentInfoStep(
@@ -85,6 +86,15 @@ public class JiraSendDeploymentInfoStep extends Step implements Serializable {
     @DataBoundSetter
     public void setEnvironmentType(final String environmentType) {
         this.environmentType = environmentType;
+    }
+
+    @DataBoundSetter
+    public void setState(final String state) {
+        this.state = state;
+    }
+
+    public String getState() {
+        return state;
     }
 
     @Override
@@ -157,6 +167,7 @@ public class JiraSendDeploymentInfoStep extends Step implements Serializable {
                             step.getEnvironmentId(),
                             step.getEnvironmentName(),
                             step.getEnvironmentType(),
+                            step.getState(),
                             workflowRun);
             final JiraSendInfoResponse response =
                     JiraSenderFactory.getInstance()

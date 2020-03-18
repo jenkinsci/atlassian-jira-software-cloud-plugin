@@ -36,6 +36,9 @@ import static com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoRespo
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -238,9 +241,48 @@ public class JiraDeploymentInfoSenderImplTest {
                                 + "Allowed values are: [development, testing, staging, production, unmapped]");
     }
 
+    @Test
+    public void testSendDeploymentInfo_whenNotAllowedDeploymentState() {
+        // given
+        final JiraDeploymentInfoRequest request = createRequest("test");
+        final WorkflowRun mockWorkflowRun = request.getDeployment();
+
+        // when
+        final JiraSendInfoResponse response = classUnderTest.sendDeploymentInfo(request);
+
+        // then
+        verify(mockWorkflowRun, never()).getResult();
+        assertThat(response.getStatus())
+                .isEqualTo(JiraSendInfoResponse.Status.FAILURE_STATE_INVALID);
+        assertThat(response.getMessage())
+                .isEqualTo(
+                        "The deployment state is not valid. "
+                                + "The parameter state is not valid. "
+                                + "Allowed values are: [unknown, pending, in_progress, cancelled, failed, rolled_back, successful]");
+    }
+
+    @Test
+    public void getDeploymentState_whenUsedJenkinsRunState() {
+        // given
+        when(issueKeyExtractor.extractIssueKeys(any())).thenReturn(Collections.emptySet());
+        JiraDeploymentInfoRequest request = createRequest();
+        final WorkflowRun mockWorkflowRun = request.getDeployment();
+
+        // when
+        final JiraSendInfoResponse response = classUnderTest.sendDeploymentInfo(request);
+
+        // then
+        verify(mockWorkflowRun, times(1)).getResult();
+    }
+
     private JiraDeploymentInfoRequest createRequest() {
         return new JiraDeploymentInfoRequest(
-                SITE, ENVIRONMENT_ID, ENVIRONMENT_NAME, ENVIRONMENT_TYPE, mockWorkflowRun());
+                SITE, ENVIRONMENT_ID, ENVIRONMENT_NAME, ENVIRONMENT_TYPE, null, mockWorkflowRun());
+    }
+
+    private JiraDeploymentInfoRequest createRequest(final String state) {
+        return new JiraDeploymentInfoRequest(
+                SITE, ENVIRONMENT_ID, ENVIRONMENT_NAME, ENVIRONMENT_TYPE, state, mockWorkflowRun());
     }
 
     private JiraDeploymentInfoRequest createRequest(
@@ -248,7 +290,7 @@ public class JiraDeploymentInfoSenderImplTest {
             final String environmentName,
             final String environmentType) {
         return new JiraDeploymentInfoRequest(
-                SITE, environmentId, environmentName, environmentType, mockWorkflowRun());
+                SITE, environmentId, environmentName, environmentType, null, mockWorkflowRun());
     }
 
     private void setupMocks() {
@@ -290,7 +332,6 @@ public class JiraDeploymentInfoSenderImplTest {
             when(mockRunWrapper.getAbsoluteUrl())
                     .thenReturn(
                             "http://localhost:8080/jenkins/multibranch-1/job/TEST-123-branch-name");
-            when(mockRunWrapper.getCurrentResult()).thenReturn("SUCCESS_DEPLOYMENT_ACCEPTED");
             when(runWrapperProvider.getWrapper(any())).thenReturn(mockRunWrapper);
         } catch (final AbortException e) {
             throw new RuntimeException(e);

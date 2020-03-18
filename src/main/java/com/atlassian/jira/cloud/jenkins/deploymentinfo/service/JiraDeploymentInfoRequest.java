@@ -13,17 +13,20 @@ public class JiraDeploymentInfoRequest {
     private final String environmentName;
     private final String environmentType;
     private final WorkflowRun deployment;
+    private final String state;
 
     public JiraDeploymentInfoRequest(
             @Nullable final String site,
             final String environmentId,
             final String environmentName,
             final String environmentType,
+            @Nullable final String state,
             final WorkflowRun deployment) {
         this.site = site;
         this.environmentId = environmentId;
         this.environmentName = environmentName;
         this.environmentType = environmentType;
+        this.state = state;
         this.deployment = requireNonNull(deployment);
     }
 
@@ -46,5 +49,10 @@ public class JiraDeploymentInfoRequest {
 
     public String getEnvironmentType() {
         return environmentType;
+    }
+
+    @Nullable
+    public String getState() {
+        return state;
     }
 }
