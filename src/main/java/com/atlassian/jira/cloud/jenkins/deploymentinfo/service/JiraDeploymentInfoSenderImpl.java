@@ -166,12 +166,12 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
             return JiraDeploymentInfoResponse.successDeploymentAccepted(jiraSite, response);
         }
 
-        if (!response.getRejectedDeployments().isEmpty()) {
-            return JiraDeploymentInfoResponse.failureDeploymentdRejected(jiraSite, response);
+        if (!response.getUnknownAssociations().isEmpty()) {
+            return JiraDeploymentInfoResponse.failureUnknownAssociations(jiraSite, response);
         }
 
-        if (!response.getUnknownIssueKeys().isEmpty()) {
-            return JiraDeploymentInfoResponse.failureUnknownIssueKeys(jiraSite, response);
+        if (!response.getRejectedDeployments().isEmpty()) {
+            return JiraDeploymentInfoResponse.failureDeploymentRejected(jiraSite, response);
         }
 
         return JiraDeploymentInfoResponse.failureUnexpectedResponse();

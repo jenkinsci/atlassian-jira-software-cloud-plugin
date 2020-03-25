@@ -35,7 +35,7 @@ public class JiraDeploymentInfoResponse extends JiraSendInfoResponse {
         return new JiraDeploymentInfoResponse(Status.SUCCESS_DEPLOYMENT_ACCEPTED, message);
     }
 
-    public static JiraDeploymentInfoResponse failureDeploymentdRejected(
+    public static JiraDeploymentInfoResponse failureDeploymentRejected(
             final String jiraSite, final DeploymentApiResponse response) {
 
         final String message =
@@ -44,13 +44,13 @@ public class JiraDeploymentInfoResponse extends JiraSendInfoResponse {
         return new JiraDeploymentInfoResponse(Status.FAILURE_DEPLOYMENT_REJECTED, message);
     }
 
-    public static JiraDeploymentInfoResponse failureUnknownIssueKeys(
+    public static JiraDeploymentInfoResponse failureUnknownAssociations(
             final String jiraSite, final DeploymentApiResponse response) {
 
         final String message =
-                Messages.JiraDeploymentInfoResponse_FAILURE_UNKNOWN_ISSUE_KEYS(
-                        jiraSite, response.getUnknownIssueKeys());
-        return new JiraDeploymentInfoResponse(Status.FAILURE_UNKNOWN_ISSUE_KEYS, message);
+                Messages.JiraDeploymentInfoResponse_FAILURE_UNKNOWN_ASSOCIATIONS(
+                        jiraSite, response.getUnknownAssociations());
+        return new JiraDeploymentInfoResponse(Status.FAILURE_UNKNOWN_ASSOCIATIONS, message);
     }
 
     public static JiraDeploymentInfoResponse failureUnexpectedResponse() {

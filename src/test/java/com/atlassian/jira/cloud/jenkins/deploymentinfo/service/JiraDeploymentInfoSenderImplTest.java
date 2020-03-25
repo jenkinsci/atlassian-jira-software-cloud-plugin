@@ -8,6 +8,8 @@ import com.atlassian.jira.cloud.jenkins.common.model.ApiErrorResponse;
 import com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse;
 import com.atlassian.jira.cloud.jenkins.common.service.IssueKeyExtractor;
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
+import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Association;
+import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.AssociationType;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.DeploymentApiResponse;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.DeploymentKeyResponse;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.RejectedDeploymentResponse;
@@ -189,7 +191,7 @@ public class JiraDeploymentInfoSenderImplTest {
     }
 
     @Test
-    public void testSendDeploymentInfo_whenUnknownIssueKeys() {
+    public void testSendDeploymentInfo_whenUnknownAssociations() {
         // given
         setupDeploymentApiUnknownIssueKeys();
 
@@ -197,7 +199,7 @@ public class JiraDeploymentInfoSenderImplTest {
         final JiraSendInfoResponse response = classUnderTest.sendDeploymentInfo(createRequest());
 
         assertThat(response.getStatus())
-                .isEqualTo(JiraSendInfoResponse.Status.FAILURE_UNKNOWN_ISSUE_KEYS);
+                .isEqualTo(JiraSendInfoResponse.Status.FAILURE_UNKNOWN_ASSOCIATIONS);
         final String message = response.getMessage();
         assertThat(message).isNotBlank();
     }
@@ -336,7 +338,11 @@ public class JiraDeploymentInfoSenderImplTest {
                 new DeploymentApiResponse(
                         Collections.emptyList(),
                         Collections.emptyList(),
-                        ImmutableList.of("TEST-123"));
+                        Collections.singletonList(
+                                Association.builder()
+                                        .withAssociationType(AssociationType.ISSUE_KEYS)
+                                        .withValues(ImmutableSet.of("TEST-123"))
+                                        .build()));
         when(deploymentsApi.postUpdate(any(), any(), any(), any(), any()))
                 .thenReturn(new PostUpdateResult<>(deploymentApiResponse));
     }
