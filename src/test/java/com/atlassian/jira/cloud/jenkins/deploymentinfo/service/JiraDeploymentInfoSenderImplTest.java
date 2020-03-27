@@ -34,7 +34,7 @@ import java.util.UUID;
 import static com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse.Status.FAILURE_SECRET_NOT_FOUND;
 import static com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse.Status.FAILURE_SITE_CONFIG_NOT_FOUND;
 import static com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse.Status.FAILURE_SITE_NOT_FOUND;
-import static com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse.Status.SKIPPED_ISSUE_KEYS_NOT_FOUND;
+import static com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse.Status.SKIPPED_ISSUE_KEYS_NOT_FOUND_AND_SERVICE_IDS_ARE_EMPTY;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -120,9 +120,9 @@ public class JiraDeploymentInfoSenderImplTest {
         final JiraSendInfoResponse response = classUnderTest.sendDeploymentInfo(createRequest());
 
         // then
-        assertThat(response.getStatus()).isEqualTo(SKIPPED_ISSUE_KEYS_NOT_FOUND);
+        assertThat(response.getStatus()).isEqualTo(SKIPPED_ISSUE_KEYS_NOT_FOUND_AND_SERVICE_IDS_ARE_EMPTY);
         final String message = response.getMessage();
-        assertThat(message).startsWith("No issue keys found in the change log");
+        assertThat(message).startsWith("No issue keys found in the change log and service ids were not provided");
     }
 
     @Test
@@ -279,12 +279,24 @@ public class JiraDeploymentInfoSenderImplTest {
 
     private JiraDeploymentInfoRequest createRequest() {
         return new JiraDeploymentInfoRequest(
-                SITE, ENVIRONMENT_ID, ENVIRONMENT_NAME, ENVIRONMENT_TYPE, null, mockWorkflowRun());
+                SITE,
+                ENVIRONMENT_ID,
+                ENVIRONMENT_NAME,
+                ENVIRONMENT_TYPE,
+                null,
+                Collections.emptySet(),
+                mockWorkflowRun());
     }
 
     private JiraDeploymentInfoRequest createRequest(final String state) {
         return new JiraDeploymentInfoRequest(
-                SITE, ENVIRONMENT_ID, ENVIRONMENT_NAME, ENVIRONMENT_TYPE, state, mockWorkflowRun());
+                SITE,
+                ENVIRONMENT_ID,
+                ENVIRONMENT_NAME,
+                ENVIRONMENT_TYPE,
+                state,
+                Collections.emptySet(),
+                mockWorkflowRun());
     }
 
     private JiraDeploymentInfoRequest createRequest(
@@ -292,7 +304,13 @@ public class JiraDeploymentInfoSenderImplTest {
             final String environmentName,
             final String environmentType) {
         return new JiraDeploymentInfoRequest(
-                SITE, environmentId, environmentName, environmentType, null, mockWorkflowRun());
+                SITE,
+                environmentId,
+                environmentName,
+                environmentType,
+                null,
+                Collections.emptySet(),
+                mockWorkflowRun());
     }
 
     private void setupMocks() {
