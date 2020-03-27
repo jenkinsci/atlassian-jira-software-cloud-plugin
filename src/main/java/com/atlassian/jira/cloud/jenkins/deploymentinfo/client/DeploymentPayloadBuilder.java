@@ -24,12 +24,14 @@ public final class DeploymentPayloadBuilder {
      * @param runWrapper Jenkins context that provides project and build details
      * @param environment Deployment environment
      * @param issueKeys Jira issue keys to associate the build info with
+     * @param state deployment state
      * @return an assembled Deployments payload
      */
     public static Deployments getDeploymentInfo(
             final RunWrapper runWrapper,
             final Environment environment,
-            final Set<String> issueKeys) {
+            final Set<String> issueKeys,
+            final String state) {
         try {
             return new Deployments(
                     JiraDeploymentInfo.builder()
@@ -41,7 +43,7 @@ public final class DeploymentPayloadBuilder {
                     .withDescription(runWrapper.getDisplayName())
                     .withLastUpdated(Instant.now().toString())
                     .withLabel(runWrapper.getDisplayName())
-                    .withState(JenkinsToJiraStatus.getStatus(runWrapper.getCurrentResult()))
+                    .withState(state)
                     .withPipeline(getPipeline(runWrapper))
                     .withEnvironment(environment)
                     .build());
