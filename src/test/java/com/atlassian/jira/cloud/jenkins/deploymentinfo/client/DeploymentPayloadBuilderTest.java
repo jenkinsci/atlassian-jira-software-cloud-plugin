@@ -11,6 +11,8 @@ import hudson.AbortException;
 import org.jenkinsci.plugins.workflow.support.steps.build.RunWrapper;
 import org.junit.Test;
 
+import java.util.Set;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -19,19 +21,28 @@ public class DeploymentPayloadBuilderTest extends BaseUnitTest {
 
     private static final String ISSUE_KEY = "TEST-123";
 
+    private static final String SERVICE_ID = "aGVsbG8K";
     private static final Association ISSUE_KEY_ASSOCIATION =
             Association.builder()
                     .withAssociationType(AssociationType.ISSUE_KEYS)
                     .withValues(ImmutableSet.of(ISSUE_KEY))
                     .build();
 
+    private static final Association SERVICE_ID_ASSOCIATION =
+            Association.builder()
+                    .withAssociationType(AssociationType.SERVICE_ID_OR_KEYS)
+                    .withValues(ImmutableSet.of(SERVICE_ID))
+                    .build();
+
+    private static final Set<Association> ASSOCIATIONS =
+            ImmutableSet.of(SERVICE_ID_ASSOCIATION, ISSUE_KEY_ASSOCIATION);
+
     @Test
     public void testSuccessfulBuild() throws Exception {
         // when
         final RunWrapper runWrapper = mockRunWrapper();
         final Deployments deployments =
-                DeploymentPayloadBuilder
-                        .getDeploymentInfo(runWrapper, mockEnvironment(), ImmutableSet.of(ISSUE_KEY), "successful");
+                DeploymentPayloadBuilder.getDeploymentInfo(runWrapper, mockEnvironment(), ASSOCIATIONS, "successful");
 
         final JiraDeploymentInfo jiraDeploymentInfo = deployments.getDeployments().get(0);
         // then
@@ -44,8 +55,7 @@ public class DeploymentPayloadBuilderTest extends BaseUnitTest {
         // when
         final RunWrapper runWrapper = mockRunWrapper();
         final Deployments deployments =
-                DeploymentPayloadBuilder
-                        .getDeploymentInfo(runWrapper, mockEnvironment(), ImmutableSet.of(ISSUE_KEY), "failed");
+                DeploymentPayloadBuilder.getDeploymentInfo(runWrapper, mockEnvironment(), ASSOCIATIONS, "failed");
 
         final JiraDeploymentInfo jiraDeploymentInfo = deployments.getDeployments().get(0);
         // then
@@ -73,7 +83,7 @@ public class DeploymentPayloadBuilderTest extends BaseUnitTest {
     }
 
     private void assertDeploymentResult(RunWrapper runWrapper, JiraDeploymentInfo jiraDeploymentInfo, String status) throws AbortException {
-        assertThat(jiraDeploymentInfo.getAssociations()).containsExactlyInAnyOrder(ISSUE_KEY_ASSOCIATION);
+        assertThat(jiraDeploymentInfo.getAssociations()).containsExactlyInAnyOrder(ISSUE_KEY_ASSOCIATION, SERVICE_ID_ASSOCIATION);
         assertThat(jiraDeploymentInfo.getDisplayName()).isEqualTo(runWrapper.getDisplayName());
         assertThat(jiraDeploymentInfo.getUrl()).isEqualTo(runWrapper.getAbsoluteUrl());
         assertThat(jiraDeploymentInfo.getDescription()).isEqualTo(runWrapper.getDisplayName());

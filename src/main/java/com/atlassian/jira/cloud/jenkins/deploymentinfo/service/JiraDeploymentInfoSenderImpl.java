@@ -10,6 +10,8 @@ import com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse;
 import com.atlassian.jira.cloud.jenkins.common.service.IssueKeyExtractor;
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.DeploymentPayloadBuilder;
+import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Association;
+import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.AssociationType;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.DeploymentApiResponse;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Deployments;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Environment;
@@ -25,6 +27,7 @@ import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.jenkinsci.plugins.workflow.support.steps.build.RunWrapper;
 
 import javax.annotation.Nullable;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -75,6 +78,7 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
     public JiraSendInfoResponse sendDeploymentInfo(final JiraDeploymentInfoRequest request) {
         final String jiraSite = request.getSite();
         final WorkflowRun deployment = request.getDeployment();
+        final Set<String> serviceIds = request.getServiceIds();
 
         final Optional<JiraCloudSiteConfig> maybeSiteConfig = getSiteConfigFor(jiraSite);
 
@@ -107,9 +111,11 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
 
         final Set<String> issueKeys = issueKeyExtractor.extractIssueKeys(deployment);
 
-        if (issueKeys.isEmpty()) {
-            return JiraDeploymentInfoResponse.skippedIssueKeysNotFound(resolvedSiteConfig);
+        if (issueKeys.isEmpty() && serviceIds.isEmpty()) {
+            return JiraDeploymentInfoResponse.skippedIssueKeysNotFoundAndServiceIdsAreEmpty(resolvedSiteConfig);
         }
+
+        final Set<Association> associations = buildAssociations(issueKeys, serviceIds);
 
         final Optional<String> maybeCloudId = getCloudIdFor(resolvedSiteConfig);
 
@@ -124,7 +130,7 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
         }
 
         final Deployments deploymentInfo =
-                createJiraDeploymentInfo(deployment, environment, issueKeys, deploymentState);
+                createJiraDeploymentInfo(deployment, environment, associations, deploymentState);
 
         final PostUpdateResult<DeploymentApiResponse> postUpdateResult =
                 sendDeploymentInfo(
@@ -162,10 +168,10 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
     }
 
     private Deployments createJiraDeploymentInfo(
-            final Run build, final Environment environment, final Set<String> issueKeys, final String state) {
+            final Run build, final Environment environment, final Set<Association> associations, final String state) {
         final RunWrapper buildWrapper = runWrapperProvider.getWrapper(build);
 
-        return DeploymentPayloadBuilder.getDeploymentInfo(buildWrapper, environment, issueKeys, state);
+        return DeploymentPayloadBuilder.getDeploymentInfo(buildWrapper, environment, associations, state);
     }
 
     private PostUpdateResult<DeploymentApiResponse> sendDeploymentInfo(
@@ -220,5 +226,26 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
     private String getDeploymentState(final WorkflowRun build, @Nullable final String state) {
         return Optional.ofNullable(state)
                 .orElseGet(() -> JenkinsToJiraStatus.getStatus(getJenkinsBuildStatus.apply(build)));
+    }
+
+    private Set<Association> buildAssociations(final Set<String> issueKeys, final Set<String> serviceIds) {
+        final HashSet<Association> associations = new HashSet<>();
+
+        if (!issueKeys.isEmpty()) {
+            associations.add(
+                    Association.builder()
+                            .withAssociationType(AssociationType.ISSUE_KEYS)
+                            .withValues(issueKeys)
+                            .build());
+        }
+
+        if (!serviceIds.isEmpty()) {
+            associations.add(
+                    Association.builder()
+                            .withAssociationType(AssociationType.SERVICE_ID_OR_KEYS)
+                            .withValues(serviceIds)
+                            .build());
+        }
+        return associations;
     }
 }

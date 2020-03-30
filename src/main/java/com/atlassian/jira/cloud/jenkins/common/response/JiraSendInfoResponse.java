@@ -24,7 +24,8 @@ public abstract class JiraSendInfoResponse implements Serializable {
         FAILURE_UNEXPECTED_RESPONSE,
         SKIPPED_ISSUE_KEYS_NOT_FOUND,
         FAILURE_ENVIRONMENT_INVALID,
-        FAILURE_STATE_INVALID
+        FAILURE_STATE_INVALID,
+        SKIPPED_ISSUE_KEYS_NOT_FOUND_AND_SERVICE_IDS_ARE_EMPTY
     }
 
     private final Status status;

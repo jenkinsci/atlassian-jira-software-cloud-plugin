@@ -5,10 +5,10 @@ import com.atlassian.jira.cloud.jenkins.common.factory.JiraSenderFactory;
 import com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse;
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudPluginConfig;
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
+import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.State;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.service.JiraDeploymentInfoRequest;
 import com.google.common.collect.ImmutableSet;
 import hudson.Extension;
-import hudson.model.Result;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.util.ListBoxModel;
@@ -22,10 +22,9 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 
 import javax.inject.Inject;
-import java.io.PrintStream;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -41,6 +40,7 @@ public class JiraSendDeploymentInfoStep extends Step implements Serializable {
     private String environmentName;
     private String environmentType;
     private String state;
+    private List<String> serviceIds = new ArrayList<>();
 
     @DataBoundConstructor
     public JiraSendDeploymentInfoStep(
@@ -102,6 +102,15 @@ public class JiraSendDeploymentInfoStep extends Step implements Serializable {
         return new JiraSendDeploymentInfoStepExecution(stepContext, this);
     }
 
+    public List<String> getServiceIds() {
+        return serviceIds;
+    }
+
+    @DataBoundSetter
+    public void setServiceIds(final List<String> serviceIds) {
+        this.serviceIds = serviceIds;
+    }
+
     @Extension
     public static class DescriptorImpl extends StepDescriptor {
 
@@ -143,6 +152,15 @@ public class JiraSendDeploymentInfoStep extends Step implements Serializable {
 
             return items;
         }
+
+        @SuppressWarnings("unused")
+        public ListBoxModel doFillStateItems() {
+            ListBoxModel items = new ListBoxModel();
+            for (String state : State.ALLOWED_STATES) {
+                items.add(state, state);
+            }
+            return items;
+        }
     }
 
     public static class JiraSendDeploymentInfoStepExecution
@@ -160,6 +178,7 @@ public class JiraSendDeploymentInfoStep extends Step implements Serializable {
         protected JiraSendInfoResponse run() throws Exception {
             final TaskListener taskListener = getContext().get(TaskListener.class);
             final WorkflowRun workflowRun = getContext().get(WorkflowRun.class);
+            final Set<String> serviceIds = ImmutableSet.copyOf(step.getServiceIds());
 
             final JiraDeploymentInfoRequest request =
                     new JiraDeploymentInfoRequest(
@@ -168,6 +187,7 @@ public class JiraSendDeploymentInfoStep extends Step implements Serializable {
                             step.getEnvironmentName(),
                             step.getEnvironmentType(),
                             step.getState(),
+                            serviceIds,
                             workflowRun);
             final JiraSendInfoResponse response =
                     JiraSenderFactory.getInstance()

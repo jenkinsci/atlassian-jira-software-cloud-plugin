@@ -4,6 +4,8 @@ import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 
 import javax.annotation.Nullable;
 
+import java.util.Set;
+
 import static java.util.Objects.requireNonNull;
 
 public class JiraDeploymentInfoRequest {
@@ -14,6 +16,7 @@ public class JiraDeploymentInfoRequest {
     private final String environmentType;
     private final WorkflowRun deployment;
     private final String state;
+    private final Set<String> serviceIds;
 
     public JiraDeploymentInfoRequest(
             @Nullable final String site,
@@ -21,6 +24,7 @@ public class JiraDeploymentInfoRequest {
             final String environmentName,
             final String environmentType,
             @Nullable final String state,
+            final Set<String> serviceIds,
             final WorkflowRun deployment) {
         this.site = site;
         this.environmentId = environmentId;
@@ -28,6 +32,7 @@ public class JiraDeploymentInfoRequest {
         this.environmentType = environmentType;
         this.state = state;
         this.deployment = requireNonNull(deployment);
+        this.serviceIds = serviceIds;
     }
 
     @Nullable
@@ -54,5 +59,9 @@ public class JiraDeploymentInfoRequest {
     @Nullable
     public String getState() {
         return state;
+    }
+
+    public Set<String> getServiceIds() {
+        return serviceIds;
     }
 }
