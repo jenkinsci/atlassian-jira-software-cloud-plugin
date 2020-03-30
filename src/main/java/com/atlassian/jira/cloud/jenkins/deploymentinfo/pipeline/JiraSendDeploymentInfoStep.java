@@ -5,6 +5,7 @@ import com.atlassian.jira.cloud.jenkins.common.factory.JiraSenderFactory;
 import com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse;
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudPluginConfig;
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
+import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.State;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.service.JiraDeploymentInfoRequest;
 import com.google.common.collect.ImmutableSet;
 import hudson.Extension;
@@ -149,6 +150,15 @@ public class JiraSendDeploymentInfoStep extends Step implements Serializable {
             items.add("staging", "staging");
             items.add("production", "production");
 
+            return items;
+        }
+
+        @SuppressWarnings("unused")
+        public ListBoxModel doFillStateItems() {
+            ListBoxModel items = new ListBoxModel();
+            for (String state : State.ALLOWED_STATES) {
+                items.add(state, state);
+            }
             return items;
         }
     }
