@@ -4,7 +4,8 @@
 
 Atlassian has built and open-sourced a new Jenkins plugin that is
 intended to be used specifically for integrating Jenkins with [Jira
-Software Cloud](https://www.atlassian.com/software/jira). This plugin
+Software Cloud](https://www.atlassian.com/software/jira) and [Jira
+Service Desk Cloud](https://www.atlassian.com/software/jira/service-desk). This plugin
 exists to provide a free, easy, secure, and reliable way to connect
 build and deployment information from your Jenkins server to your Jira
 Software Cloud site.  
@@ -404,7 +405,23 @@ pipeline {
  }
 ```
 
-  
+# Link Jira Service Desk Cloud with Jenkins
+
+To automatically create change requests in Jira Service Desk from Jenkins, you first need to enable Change management in your Information Technology Service Management (ITSM) project.
+
+To connect Jenkins to your Jira Service Desk Cloud project:
+
+1. First, complete the Jira Cloud and Jenkins set-up steps listed above
+
+2. In your Jira Service Desk ITSM project, navigate to **Project settings > Change management**
+
+3. Select **Connect Pipeline > Jenkins**, then copy the Service ID at the end of the set-up flow
+
+4. Go to Jenkins, select the Pipeline you want to associate with this service, and select **Build with Parameters**
+
+5. Paste the Service ID from the Change management set-up flow into the Build with Parameters field
+
+When you run the pipeline, it will automatically create a change request in Jira Service Desk.  
 
 If you have any questions,
 please <https://support.atlassian.com/contact/> and they will route it
