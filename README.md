@@ -91,7 +91,7 @@ Secret would be used with this Jenkins plugin via the configuration.
 
   
 
-![](docs/images/Screen_Shot_2019-05-29_at_2.08.41_pm.png){width="500"}
+<img src="docs/images/Screen_Shot_2019-05-29_at_2.08.41_pm.png" width=500px>
 
   
 
@@ -113,7 +113,7 @@ details.
 
   
 
-![](docs/images/Screen_Shot_2019-05-29_at_2.10.16_pm.png){width="500"}
+<img src="docs/images/Screen_Shot_2019-05-29_at_2.10.16_pm.png" width=500px>
 
   
 
@@ -136,7 +136,7 @@ see it has indeed gone to our production environment in deployment \#4. 
 
   
 
-![](docs/images/Screen_Shot_2019-05-29_at_2.39.02_pm.png){height="250"}
+<img src="docs/images/Screen_Shot_2019-05-29_at_2.39.02_pm.png" height=250>
 
   
 
