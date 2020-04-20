@@ -67,7 +67,7 @@ any holes in your firewall. 
 
   
 
-![](docs/images/screencapture-appweek-atlassian-net-secure-admin-oauth-credentials-2019-06-13-13_23_57.png){width="500"}
+![](docs/images/screencapture-appweek-atlassian-net-secure-admin-oauth-credentials-2019-06-13-13_23_57.png =500x)
 
   
 
