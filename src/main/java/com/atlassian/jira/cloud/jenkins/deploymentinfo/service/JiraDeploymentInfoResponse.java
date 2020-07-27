@@ -73,4 +73,11 @@ public class JiraDeploymentInfoResponse extends JiraSendInfoResponse {
                         String.join(" ", errorMessages));
         return new JiraDeploymentInfoResponse(Status.FAILURE_STATE_INVALID, message);
     }
+
+    public static JiraSendInfoResponse failureEnableGateWrongDeploymentDtate(final String state) {
+        final String message =
+                Messages.JiraDeploymentInfoResponse_FAILURE_ENABLE_GATE_WRONG_DEPLOYMENT_STATE(
+                        state);
+        return new JiraDeploymentInfoResponse(Status.FAILURE_STATE_INVALID, message);
+    }
 }

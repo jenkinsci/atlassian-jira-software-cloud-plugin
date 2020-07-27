@@ -15,11 +15,13 @@ import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.AssociationT
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.DeploymentApiResponse;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Deployments;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Environment;
+import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.State;
 import com.atlassian.jira.cloud.jenkins.tenantinfo.CloudIdResolver;
 import com.atlassian.jira.cloud.jenkins.util.JenkinsToJiraStatus;
 import com.atlassian.jira.cloud.jenkins.util.RunWrapperProvider;
 import com.atlassian.jira.cloud.jenkins.util.SecretRetriever;
 import com.atlassian.jira.cloud.jenkins.util.StateValidator;
+import com.google.common.collect.ImmutableMap;
 import hudson.model.Result;
 import hudson.model.Run;
 import org.apache.commons.lang.StringUtils;
@@ -29,6 +31,8 @@ import org.jenkinsci.plugins.workflow.support.steps.build.RunWrapper;
 import javax.annotation.Nullable;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
@@ -79,6 +83,7 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
         final String jiraSite = request.getSite();
         final WorkflowRun deployment = request.getDeployment();
         final Set<String> serviceIds = request.getServiceIds();
+        final Boolean enableGate = request.getEnableGate();
 
         final Optional<JiraCloudSiteConfig> maybeSiteConfig = getSiteConfigFor(jiraSite);
 
@@ -112,7 +117,8 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
         final Set<String> issueKeys = issueKeyExtractor.extractIssueKeys(deployment);
 
         if (issueKeys.isEmpty() && serviceIds.isEmpty()) {
-            return JiraDeploymentInfoResponse.skippedIssueKeysNotFoundAndServiceIdsAreEmpty(resolvedSiteConfig);
+            return JiraDeploymentInfoResponse.skippedIssueKeysNotFoundAndServiceIdsAreEmpty(
+                    resolvedSiteConfig);
         }
 
         final Set<Association> associations = buildAssociations(issueKeys, serviceIds);
@@ -129,8 +135,16 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
             return JiraCommonResponse.failureAccessToken(resolvedSiteConfig);
         }
 
+        if (enableGate && !Objects.equals(deploymentState, State.PENDING.value)) {
+            return JiraDeploymentInfoResponse.failureEnableGateWrongDeploymentDtate(
+                    deploymentState);
+        }
+
+        final Map<String, String> commands = buildCommands(enableGate);
+
         final Deployments deploymentInfo =
-                createJiraDeploymentInfo(deployment, environment, associations, deploymentState);
+                createJiraDeploymentInfo(
+                        deployment, environment, associations, deploymentState, commands);
 
         final PostUpdateResult<DeploymentApiResponse> postUpdateResult =
                 sendDeploymentInfo(
@@ -168,10 +182,15 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
     }
 
     private Deployments createJiraDeploymentInfo(
-            final Run build, final Environment environment, final Set<Association> associations, final String state) {
+            final Run build,
+            final Environment environment,
+            final Set<Association> associations,
+            final String state,
+            final Map<String, String> commands) {
         final RunWrapper buildWrapper = runWrapperProvider.getWrapper(build);
 
-        return DeploymentPayloadBuilder.getDeploymentInfo(buildWrapper, environment, associations, state);
+        return DeploymentPayloadBuilder.getDeploymentInfo(
+                buildWrapper, environment, associations, state, commands);
     }
 
     private PostUpdateResult<DeploymentApiResponse> sendDeploymentInfo(
@@ -228,7 +247,8 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
                 .orElseGet(() -> JenkinsToJiraStatus.getStatus(getJenkinsBuildStatus.apply(build)));
     }
 
-    private Set<Association> buildAssociations(final Set<String> issueKeys, final Set<String> serviceIds) {
+    private Set<Association> buildAssociations(
+            final Set<String> issueKeys, final Set<String> serviceIds) {
         final HashSet<Association> associations = new HashSet<>();
 
         if (!issueKeys.isEmpty()) {
@@ -247,5 +267,13 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
                             .build());
         }
         return associations;
+    }
+
+    private Map<String, String> buildCommands(final Boolean enableGate) {
+        final ImmutableMap.Builder<String, String> commandsBuilder = ImmutableMap.builder();
+        if (enableGate) {
+            commandsBuilder.put("command", "initiate_deployment_gating");
+        }
+        return commandsBuilder.build();
     }
 }

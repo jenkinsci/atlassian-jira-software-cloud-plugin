@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.ImmutableSet;
 
+import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -25,6 +27,7 @@ public final class JiraDeploymentInfo {
     private final String state;
     private final Pipeline pipeline;
     private final Environment environment;
+    private final Map<String, String> commands;
 
     @JsonCreator
     public JiraDeploymentInfo(
@@ -38,7 +41,8 @@ public final class JiraDeploymentInfo {
             @JsonProperty("label") final String label,
             @JsonProperty("state") final String state,
             @JsonProperty("pipeline") final Pipeline pipeline,
-            @JsonProperty("environment") final Environment environment) {
+            @JsonProperty("environment") final Environment environment,
+            @JsonProperty("commands") final Map<String, String> commands) {
         this.deploymentSequenceNumber = deploymentSequenceNumber;
         this.updateSequenceNumber = updateSequenceNumber;
         this.associations = associations;
@@ -50,6 +54,11 @@ public final class JiraDeploymentInfo {
         this.state = state;
         this.pipeline = pipeline;
         this.environment = environment;
+        this.commands = commands;
+    }
+
+    public static Builder builder() {
+        return new Builder();
     }
 
     public Integer getDeploymentSequenceNumber() {
@@ -100,8 +109,8 @@ public final class JiraDeploymentInfo {
         return SCHEMA_VERSION;
     }
 
-    public static Builder builder() {
-        return new Builder();
+    public Map<String, String> getCommands() {
+        return commands;
     }
 
     public static class Builder {
@@ -116,6 +125,7 @@ public final class JiraDeploymentInfo {
         private String state;
         private Pipeline pipeline;
         private Environment environment;
+        private Map<String, String> commands = Collections.emptyMap();
 
         public Builder withDeploymentSequenceNumber(final Integer deploymentSequenceNumber) {
             this.deploymentSequenceNumber = deploymentSequenceNumber;
@@ -172,6 +182,11 @@ public final class JiraDeploymentInfo {
             return this;
         }
 
+        public Builder withCommands(final Map<String, String> commands) {
+            this.commands = commands;
+            return this;
+        }
+
         public JiraDeploymentInfo build() {
             return new JiraDeploymentInfo(
                     deploymentSequenceNumber,
@@ -184,7 +199,8 @@ public final class JiraDeploymentInfo {
                     label,
                     state,
                     pipeline,
-                    environment);
+                    environment,
+                    commands);
         }
     }
 }

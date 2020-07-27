@@ -12,6 +12,8 @@ import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Association;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.AssociationType;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.DeploymentApiResponse;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.DeploymentKeyResponse;
+import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Deployments;
+import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.JiraDeploymentInfo;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.RejectedDeploymentResponse;
 import com.atlassian.jira.cloud.jenkins.tenantinfo.CloudIdResolver;
 import com.atlassian.jira.cloud.jenkins.util.RunWrapperProvider;
@@ -24,9 +26,11 @@ import org.jenkinsci.plugins.workflow.support.steps.build.RunWrapper;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import java.util.AbstractMap;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.UUID;
@@ -120,9 +124,12 @@ public class JiraDeploymentInfoSenderImplTest {
         final JiraSendInfoResponse response = classUnderTest.sendDeploymentInfo(createRequest());
 
         // then
-        assertThat(response.getStatus()).isEqualTo(SKIPPED_ISSUE_KEYS_NOT_FOUND_AND_SERVICE_IDS_ARE_EMPTY);
+        assertThat(response.getStatus())
+                .isEqualTo(SKIPPED_ISSUE_KEYS_NOT_FOUND_AND_SERVICE_IDS_ARE_EMPTY);
         final String message = response.getMessage();
-        assertThat(message).startsWith("No issue keys found in the change log and service ids were not provided");
+        assertThat(message)
+                .startsWith(
+                        "No issue keys found in the change log and service ids were not provided");
     }
 
     @Test
@@ -264,6 +271,63 @@ public class JiraDeploymentInfoSenderImplTest {
     }
 
     @Test
+    public void testSendDeploymentInfo_whenNotAllowedDeploymentStateForGate() {
+        // given
+        final JiraDeploymentInfoRequest request =
+                new JiraDeploymentInfoRequest(
+                        SITE,
+                        ENVIRONMENT_ID,
+                        ENVIRONMENT_NAME,
+                        ENVIRONMENT_TYPE,
+                        "in_progress",
+                        Collections.emptySet(),
+                        Boolean.TRUE,
+                        mockWorkflowRun());
+
+        // when
+        final JiraSendInfoResponse response = classUnderTest.sendDeploymentInfo(request);
+
+        // then
+        assertThat(response.getStatus())
+                .isEqualTo(JiraSendInfoResponse.Status.FAILURE_STATE_INVALID);
+        assertThat(response.getMessage())
+                .isEqualTo(
+                        "Deployment gating available only for 'pending' deployment state. Current state: in_progress");
+    }
+
+    @Test
+    public void testSendDeploymentInfo_whenGateEnabled() {
+        // given
+        setupDeploymentsApiDeploymentAccepted();
+        final JiraDeploymentInfoRequest request =
+                new JiraDeploymentInfoRequest(
+                        SITE,
+                        ENVIRONMENT_ID,
+                        ENVIRONMENT_NAME,
+                        ENVIRONMENT_TYPE,
+                        "pending",
+                        Collections.emptySet(),
+                        Boolean.TRUE,
+                        mockWorkflowRun());
+
+        final ArgumentCaptor<Deployments> deploymentsArgumentCaptor =
+                ArgumentCaptor.forClass(Deployments.class);
+
+        // when
+        final JiraSendInfoResponse response = classUnderTest.sendDeploymentInfo(request);
+
+        // then
+        assertThat(response.getStatus())
+                .isEqualTo(JiraSendInfoResponse.Status.SUCCESS_DEPLOYMENT_ACCEPTED);
+        verify(deploymentsApi)
+                .postUpdate(any(), any(), any(), deploymentsArgumentCaptor.capture(), any());
+        final JiraDeploymentInfo jiraDeploymentInfo =
+                deploymentsArgumentCaptor.getValue().getDeployments().get(0);
+        assertThat(jiraDeploymentInfo.getCommands())
+                .contains(new AbstractMap.SimpleEntry<>("command", "initiate_deployment_gating"));
+    }
+
+    @Test
     public void getDeploymentState_whenUsedJenkinsRunState() {
         // given
         when(issueKeyExtractor.extractIssueKeys(any())).thenReturn(Collections.emptySet());
@@ -285,6 +349,7 @@ public class JiraDeploymentInfoSenderImplTest {
                 ENVIRONMENT_TYPE,
                 null,
                 Collections.emptySet(),
+                Boolean.FALSE,
                 mockWorkflowRun());
     }
 
@@ -296,6 +361,7 @@ public class JiraDeploymentInfoSenderImplTest {
                 ENVIRONMENT_TYPE,
                 state,
                 Collections.emptySet(),
+                Boolean.FALSE,
                 mockWorkflowRun());
     }
 
@@ -310,6 +376,7 @@ public class JiraDeploymentInfoSenderImplTest {
                 environmentType,
                 null,
                 Collections.emptySet(),
+                Boolean.FALSE,
                 mockWorkflowRun());
     }
 
