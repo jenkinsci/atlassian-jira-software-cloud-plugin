@@ -3,6 +3,7 @@ package com.atlassian.jira.cloud.jenkins.common.client;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
+import io.github.resilience4j.ratelimiter.RequestNotPermitted;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -72,6 +73,8 @@ public class JiraApi {
                             "Server exception when submitting update to Jira: %s", e.getMessage()));
         } catch (ApiUpdateFailedException e) {
             return handleError(e.getMessage());
+        } catch (RequestNotPermitted e) {
+            return handleError("Your OAuth client riches Jira's limits " + e.getMessage());
         } catch (Exception e) {
             return handleError(
                     String.format(
