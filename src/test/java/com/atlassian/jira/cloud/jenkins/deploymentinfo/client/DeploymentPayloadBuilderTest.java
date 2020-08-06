@@ -3,9 +3,11 @@ package com.atlassian.jira.cloud.jenkins.deploymentinfo.client;
 import com.atlassian.jira.cloud.jenkins.BaseUnitTest;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Association;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.AssociationType;
+import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Command;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Deployments;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Environment;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.JiraDeploymentInfo;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import hudson.AbortException;
@@ -13,6 +15,7 @@ import org.jenkinsci.plugins.workflow.support.steps.build.RunWrapper;
 import org.junit.Test;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -40,8 +43,8 @@ public class DeploymentPayloadBuilderTest extends BaseUnitTest {
     private static final Set<Association> ASSOCIATIONS =
             ImmutableSet.of(SERVICE_ID_ASSOCIATION, ISSUE_KEY_ASSOCIATION);
 
-    private static final Map<String, String> COMMANDS =
-            ImmutableMap.of("command", "initiate_deployment_gating");
+    private static final List<Command> COMMANDS =
+            ImmutableList.of(new Command("initiate_deployment_gating"));
 
     @Test
     public void testSuccessfulBuild() throws Exception {
@@ -68,7 +71,7 @@ public class DeploymentPayloadBuilderTest extends BaseUnitTest {
                         mockEnvironment(),
                         ASSOCIATIONS,
                         "failed",
-                        Collections.emptyMap());
+                        Collections.emptyList());
 
         final JiraDeploymentInfo jiraDeploymentInfo = deployments.getDeployments().get(0);
         // then

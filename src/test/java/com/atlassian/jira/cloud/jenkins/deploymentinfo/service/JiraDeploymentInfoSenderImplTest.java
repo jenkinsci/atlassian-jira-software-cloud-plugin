@@ -10,6 +10,7 @@ import com.atlassian.jira.cloud.jenkins.common.service.IssueKeyExtractor;
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Association;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.AssociationType;
+import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Command;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.DeploymentApiResponse;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.DeploymentKeyResponse;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Deployments;
@@ -324,7 +325,7 @@ public class JiraDeploymentInfoSenderImplTest {
         final JiraDeploymentInfo jiraDeploymentInfo =
                 deploymentsArgumentCaptor.getValue().getDeployments().get(0);
         assertThat(jiraDeploymentInfo.getCommands())
-                .contains(new AbstractMap.SimpleEntry<>("command", "initiate_deployment_gating"));
+                .contains(new Command("initiate_deployment_gating"));
     }
 
     @Test

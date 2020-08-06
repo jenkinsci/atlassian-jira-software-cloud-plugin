@@ -12,6 +12,7 @@ import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.DeploymentPayloadBuilder;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Association;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.AssociationType;
+import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Command;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.DeploymentApiResponse;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Deployments;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Environment;
@@ -21,7 +22,7 @@ import com.atlassian.jira.cloud.jenkins.util.JenkinsToJiraStatus;
 import com.atlassian.jira.cloud.jenkins.util.RunWrapperProvider;
 import com.atlassian.jira.cloud.jenkins.util.SecretRetriever;
 import com.atlassian.jira.cloud.jenkins.util.StateValidator;
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableList;
 import hudson.model.Result;
 import hudson.model.Run;
 import org.apache.commons.lang.StringUtils;
@@ -31,7 +32,6 @@ import org.jenkinsci.plugins.workflow.support.steps.build.RunWrapper;
 import javax.annotation.Nullable;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -140,7 +140,7 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
                     deploymentState);
         }
 
-        final Map<String, String> commands = buildCommands(enableGate);
+        final List<Command> commands = buildCommands(enableGate);
 
         final Deployments deploymentInfo =
                 createJiraDeploymentInfo(
@@ -186,7 +186,7 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
             final Environment environment,
             final Set<Association> associations,
             final String state,
-            final Map<String, String> commands) {
+            final List<Command> commands) {
         final RunWrapper buildWrapper = runWrapperProvider.getWrapper(build);
 
         return DeploymentPayloadBuilder.getDeploymentInfo(
@@ -269,10 +269,10 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
         return associations;
     }
 
-    private Map<String, String> buildCommands(final Boolean enableGate) {
-        final ImmutableMap.Builder<String, String> commandsBuilder = ImmutableMap.builder();
+    private List<Command> buildCommands(final Boolean enableGate) {
+        final ImmutableList.Builder<Command> commandsBuilder = ImmutableList.builder();
         if (enableGate) {
-            commandsBuilder.put("command", "initiate_deployment_gating");
+            commandsBuilder.add(new Command("initiate_deployment_gating"));
         }
         return commandsBuilder.build();
     }

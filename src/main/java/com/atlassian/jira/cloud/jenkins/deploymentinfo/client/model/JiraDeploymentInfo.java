@@ -1,11 +1,12 @@
 package com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.ImmutableSet;
 
 import java.util.Collections;
-import java.util.Map;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -27,7 +28,7 @@ public final class JiraDeploymentInfo {
     private final String state;
     private final Pipeline pipeline;
     private final Environment environment;
-    private final Map<String, String> commands;
+    private final List<Command> commands;
 
     @JsonCreator
     public JiraDeploymentInfo(
@@ -42,7 +43,8 @@ public final class JiraDeploymentInfo {
             @JsonProperty("state") final String state,
             @JsonProperty("pipeline") final Pipeline pipeline,
             @JsonProperty("environment") final Environment environment,
-            @JsonProperty("commands") final Map<String, String> commands) {
+            @JsonInclude(JsonInclude.Include.NON_EMPTY) @JsonProperty("commands")
+                    final List<Command> commands) {
         this.deploymentSequenceNumber = deploymentSequenceNumber;
         this.updateSequenceNumber = updateSequenceNumber;
         this.associations = associations;
@@ -109,7 +111,7 @@ public final class JiraDeploymentInfo {
         return SCHEMA_VERSION;
     }
 
-    public Map<String, String> getCommands() {
+    public List<Command> getCommands() {
         return commands;
     }
 
@@ -125,7 +127,7 @@ public final class JiraDeploymentInfo {
         private String state;
         private Pipeline pipeline;
         private Environment environment;
-        private Map<String, String> commands = Collections.emptyMap();
+        private List<Command> commands = Collections.emptyList();
 
         public Builder withDeploymentSequenceNumber(final Integer deploymentSequenceNumber) {
             this.deploymentSequenceNumber = deploymentSequenceNumber;
@@ -182,7 +184,7 @@ public final class JiraDeploymentInfo {
             return this;
         }
 
-        public Builder withCommands(final Map<String, String> commands) {
+        public Builder withCommands(final List<Command> commands) {
             this.commands = commands;
             return this;
         }
