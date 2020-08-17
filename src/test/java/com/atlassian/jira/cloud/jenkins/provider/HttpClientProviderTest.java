@@ -120,7 +120,7 @@ public class HttpClientProviderTest extends BaseMockServerTest {
         final int numberOfAttempts = LIMIT_FOR_PERIOD + 1;
         HttpClientProviderTestGenerator.succeedWith2XXForAttempts(this, numberOfAttempts);
         final String clientId = "1";
-        final Request request = getRequest().newBuilder().addHeader("clientId", clientId).build();
+        final Request request = getRequest().newBuilder().tag(String.class, clientId).build();
 
         // execute
         try {
@@ -143,7 +143,6 @@ public class HttpClientProviderTest extends BaseMockServerTest {
         // setup
         final int numberOfAttempts = LIMIT_FOR_PERIOD + 1;
         HttpClientProviderTestGenerator.succeedWith2XXForAttempts(this, numberOfAttempts);
-        final String clientId = "1";
         final Request request = getRequest();
 
         // execute

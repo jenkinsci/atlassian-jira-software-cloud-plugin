@@ -40,7 +40,7 @@ public class HttpClientProvider {
     private Interceptor rateLimiterInterceptor(final RateLimiterRegistry rateLimiterRegistry) {
         return chain -> {
             final Request request = chain.request();
-            final String clientId = request.header("clientId");
+            final String clientId = request.tag(String.class);
             if (clientId != null) {
                 final RateLimiter rateLimiter =
                         rateLimiterRegistry.rateLimiter(
@@ -48,17 +48,15 @@ public class HttpClientProvider {
                 try {
                     return rateLimiter.executeCallable(() -> chain.proceed(request));
                 } catch (Exception e) {
-                    // case Http client errors
-                    // it should be always IOException since it's a contract of Interceptor
                     if (e instanceof IOException) {
+                        // case Http client errors
+                        // it should be always IOException since it's a contract of Interceptor
                         throw (IOException) e;
-                    }
-                    // case over limits
-                    else if (e instanceof RequestNotPermitted) {
+                    } else if (e instanceof RequestNotPermitted) {
+                        // case over limits
                         throw (RequestNotPermitted) e;
-                    }
-                    // all other cases
-                    else {
+                    } else {
+                        // all other cases
                         throw new RuntimeException(e);
                     }
                 }
