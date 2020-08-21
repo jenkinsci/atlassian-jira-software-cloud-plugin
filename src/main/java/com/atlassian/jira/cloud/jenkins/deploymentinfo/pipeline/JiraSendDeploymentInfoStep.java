@@ -147,6 +147,7 @@ public class JiraSendDeploymentInfoStep extends Step implements Serializable {
             ListBoxModel items = new ListBoxModel();
             items.add("development", "development");
             items.add("testing", "testing");
+            items.add("acceptance", "acceptance");
             items.add("staging", "staging");
             items.add("production", "production");
 

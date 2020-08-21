@@ -240,7 +240,7 @@ public class JiraDeploymentInfoSenderImplTest {
                 .isEqualTo(
                         "The deployment environment is not valid. "
                                 + "The parameter environmentType is not valid. "
-                                + "Allowed values are: [development, testing, staging, production, unmapped]");
+                                + "Allowed values are: [development, testing, acceptance, staging, production, unmapped]");
     }
 
     @Test

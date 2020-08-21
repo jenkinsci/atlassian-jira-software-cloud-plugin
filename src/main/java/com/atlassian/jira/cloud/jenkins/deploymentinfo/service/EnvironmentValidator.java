@@ -11,7 +11,7 @@ import java.util.Set;
 public final class EnvironmentValidator {
 
     private static final Set<String> ALLOWED_ENVS =
-            ImmutableSet.of("development", "testing", "staging", "production", "unmapped");
+            ImmutableSet.of("development", "testing", "acceptance", "staging", "production", "unmapped");
 
     public static List<String> validate(final Environment environment) {
         final List<String> errorMessages = new ArrayList<>();
