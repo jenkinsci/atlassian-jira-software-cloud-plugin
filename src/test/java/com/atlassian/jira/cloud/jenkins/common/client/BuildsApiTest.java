@@ -4,16 +4,23 @@ import com.atlassian.jira.cloud.jenkins.BaseMockServerTest;
 import com.atlassian.jira.cloud.jenkins.BuildsApiTestGenerator;
 import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.BuildApiResponse;
 import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.Builds;
+import com.atlassian.jira.cloud.jenkins.checkgatestatus.client.model.DetailKeyResponse;
+import com.atlassian.jira.cloud.jenkins.checkgatestatus.client.model.GateStatusResponse;
+import com.atlassian.jira.cloud.jenkins.checkgatestatus.client.model.GatingStatus;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.OkHttpClient;
+import okhttp3.Request;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 
 import javax.inject.Inject;
 import java.io.IOException;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 public class BuildsApiTest extends BaseMockServerTest {
 
@@ -24,6 +31,7 @@ public class BuildsApiTest extends BaseMockServerTest {
     private static String CLOUD_ID = "cloud_id";
     private static String ACCESS_TOKEN = "access_token";
     private static String JIRA_SITE_URL = "https://site.atlassian.net";
+    private static String CLIENT_ID = "client_id";
 
     @Before
     public void setup() throws IOException {
@@ -42,7 +50,7 @@ public class BuildsApiTest extends BaseMockServerTest {
                 buildsApi.postUpdate(
                         CLOUD_ID,
                         ACCESS_TOKEN,
-                        JIRA_SITE_URL,
+                        CLIENT_ID,
                         mock(Builds.class),
                         BuildApiResponse.class);
 
@@ -66,7 +74,7 @@ public class BuildsApiTest extends BaseMockServerTest {
                 buildsApi.postUpdate(
                         CLOUD_ID,
                         ACCESS_TOKEN,
-                        JIRA_SITE_URL,
+                        CLIENT_ID,
                         mock(Builds.class),
                         BuildApiResponse.class);
 
@@ -94,7 +102,7 @@ public class BuildsApiTest extends BaseMockServerTest {
                 buildsApi.postUpdate(
                         CLOUD_ID,
                         ACCESS_TOKEN,
-                        JIRA_SITE_URL,
+                        CLIENT_ID,
                         mock(Builds.class),
                         BuildApiResponse.class);
 
@@ -124,7 +132,7 @@ public class BuildsApiTest extends BaseMockServerTest {
                 buildsApi.postUpdate(
                         CLOUD_ID,
                         ACCESS_TOKEN,
-                        JIRA_SITE_URL,
+                        CLIENT_ID,
                         mock(Builds.class),
                         BuildApiResponse.class);
 
@@ -144,7 +152,7 @@ public class BuildsApiTest extends BaseMockServerTest {
                 buildsApi.postUpdate(
                         CLOUD_ID,
                         ACCESS_TOKEN,
-                        JIRA_SITE_URL,
+                        CLIENT_ID,
                         mock(Builds.class),
                         BuildApiResponse.class);
 
@@ -152,5 +160,48 @@ public class BuildsApiTest extends BaseMockServerTest {
         assertThat(result.getErrorMessage().isPresent()).isTrue();
         assertThat(result.getErrorMessage().get())
                 .isEqualTo("Error response code 500 when submitting update to Jira");
+    }
+
+    @Test
+    public void testRequestContainsTags() {
+        // setup
+        final OkHttpClient mockHttpClient = mock(OkHttpClient.class);
+        final JiraApi jiraApi = new JiraApi(mockHttpClient, objectMapper, JIRA_SITE_URL);
+        final ArgumentCaptor<Request> requestCaptor = ArgumentCaptor.forClass(Request.class);
+
+        // execute
+        final PostUpdateResult<BuildApiResponse> result =
+                jiraApi.postUpdate(
+                        CLOUD_ID,
+                        ACCESS_TOKEN,
+                        CLIENT_ID,
+                        mock(Builds.class),
+                        BuildApiResponse.class);
+
+        // verify
+        verify(mockHttpClient).newCall(requestCaptor.capture());
+        final Request request = requestCaptor.getValue();
+        assertThat(request.tag(String.class)).isEqualTo(CLIENT_ID);
+    }
+
+    @Test
+    public void testGetUpdate() throws IOException {
+        BuildsApiTestGenerator.successfulGateResponse(this);
+
+        final PostUpdateResult<GateStatusResponse> result =
+                buildsApi.getResult(
+                        ACCESS_TOKEN, mock(Map.class), CLIENT_ID, GateStatusResponse.class);
+
+        // verify
+        assertThat(result.getResponseEntity().isPresent()).isTrue();
+        final GateStatusResponse response = result.getResponseEntity().get();
+        assertThat(response.getStatus()).isEqualTo(GatingStatus.AWAITING);
+        assertThat(response.getDetailKeyResponse()).isNotEmpty();
+        assertThat(response.getDetailKeyResponse()).hasSize(1);
+        final DetailKeyResponse detailKeyResponse = response.getDetailKeyResponse().get(0);
+        assertThat(detailKeyResponse.getIssueKey()).isEqualTo("CT-40");
+        assertThat(detailKeyResponse.getType()).isEqualTo("issue");
+        assertThat(detailKeyResponse.getIssueLink())
+                .isEqualTo("https://site.atlassian.net/servicedesk/customer/portal/4/CT-40");
     }
 }

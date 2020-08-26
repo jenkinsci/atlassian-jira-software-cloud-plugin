@@ -26,7 +26,20 @@ public class HttpClientProviderTestGenerator {
     }
 
     private static void mockResponse(HttpClientProviderTest testClass, int responseCode) {
-        testClass.server.enqueue(new MockResponse().setBody("test-response").setResponseCode(responseCode));
+        testClass.server.enqueue(
+                new MockResponse().setBody("test-response").setResponseCode(responseCode));
+    }
+
+    public static void failWith404ForAllAttempts(HttpClientProviderTest testClass) {
+        mockResponse(testClass, 404);
+        mockResponse(testClass, 404);
+        mockResponse(testClass, 404);
+        mockResponse(testClass, 404);
+    }
+
+    public static void failWith404AndThenSucceed2XX(HttpClientProviderTest testClass) {
+        mockResponse(testClass, 404);
+        mockResponse(testClass, 200);
     }
 
 }

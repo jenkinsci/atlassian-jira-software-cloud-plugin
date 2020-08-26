@@ -1,0 +1,11 @@
+{
+  "gatingStatus": "awaiting",
+  "updatedTimestamp": "2020-08-16T16:08:13.814+00:00",
+  "details": [
+    {
+      "type": "issue",
+      "issueKey": "CT-40",
+      "issueLink": "https://site.atlassian.net/servicedesk/customer/portal/4/CT-40"
+    }
+  ]
+}

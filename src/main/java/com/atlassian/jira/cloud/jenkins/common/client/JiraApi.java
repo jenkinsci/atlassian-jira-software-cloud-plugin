@@ -3,18 +3,21 @@ package com.atlassian.jira.cloud.jenkins.common.client;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
+import io.github.resilience4j.ratelimiter.RequestNotPermitted;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
+import org.apache.commons.lang.text.StrSubstitutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import java.io.IOException;
 import java.io.NotSerializableException;
+import java.util.Map;
 import java.util.Objects;
 
 /** Common HTTP client to talk to Jira Build and Deployment APIs in Jira */
@@ -42,19 +45,19 @@ public class JiraApi {
      *     DeploymentApiResponse
      * @param cloudId Jira Cloud Id
      * @param accessToken Access token generated from Atlassian API
-     * @param jiraSiteUrl Jira site URL
+     * @param clientId oAuth client id
      * @param jiraRequest An assembled payload to be submitted to Jira
      * @return Response from the API
      */
     public <ResponseEntity> PostUpdateResult<ResponseEntity> postUpdate(
             final String cloudId,
             final String accessToken,
-            final String jiraSiteUrl,
+            final String clientId,
             final JiraRequest jiraRequest,
             final Class<ResponseEntity> responseClass) {
         try {
             final String requestPayload = objectMapper.writeValueAsString(jiraRequest);
-            final Request request = getRequest(cloudId, accessToken, requestPayload);
+            final Request request = getRequest(cloudId, accessToken, requestPayload, clientId);
             final Response response = httpClient.newCall(request).execute();
 
             checkForErrorResponse(response);
@@ -72,6 +75,50 @@ public class JiraApi {
                             "Server exception when submitting update to Jira: %s", e.getMessage()));
         } catch (ApiUpdateFailedException e) {
             return handleError(e.getMessage());
+        } catch (RequestNotPermitted e) {
+            return handleError("Your OAuth client riches Jira's limits " + e.getMessage());
+        } catch (Exception e) {
+            return handleError(
+                    String.format(
+                            "Unexpected error when submitting update to Jira: %s", e.getMessage()));
+        }
+    }
+
+    /**
+     * Submits an update to the Atlassian Builds or Deployments API and returns the response
+     *
+     * @param <ResponseEntity> Response entity, which can be either BuildApiResponse or
+     *     DeploymentApiResponse
+     * @param accessToken Access token generated from Atlassian API
+     * @param pathParams Params to be injected to the url
+     * @return Response from the API
+     */
+    public <ResponseEntity> PostUpdateResult<ResponseEntity> getResult(
+            final String accessToken,
+            final Map<String, String> pathParams,
+            final String clientId,
+            final Class<ResponseEntity> responseClass) {
+        try {
+            final Request request = getRequest(accessToken, pathParams, clientId);
+            final Response response = httpClient.newCall(request).execute();
+
+            checkForErrorResponse(response);
+
+            final ResponseEntity responseEntity = handleResponseBody(response, responseClass);
+            return new PostUpdateResult<>(responseEntity);
+        } catch (NotSerializableException e) {
+            return handleError(String.format("Invalid JSON payload: %s", e.getMessage()));
+        } catch (JsonProcessingException e) {
+            return handleError(
+                    String.format("Unable to create the request payload: %s", e.getMessage()));
+        } catch (IOException e) {
+            return handleError(
+                    String.format(
+                            "Server exception when submitting update to Jira: %s", e.getMessage()));
+        } catch (ApiUpdateFailedException e) {
+            return handleError(e.getMessage());
+        } catch (RequestNotPermitted e) {
+            return handleError("Your OAuth client riches Jira's limits " + e.getMessage());
         } catch (Exception e) {
             return handleError(
                     String.format(
@@ -117,12 +164,27 @@ public class JiraApi {
     }
 
     private Request getRequest(
-            final String cloudId, final String accessToken, final String requestPayload) {
+            final String cloudId,
+            final String accessToken,
+            final String requestPayload,
+            final String clientId) {
         RequestBody body = RequestBody.create(JSON, requestPayload);
         return new Request.Builder()
                 .url(String.format(this.apiEndpoint, cloudId))
                 .addHeader("Authorization", "Bearer " + accessToken)
+                .tag(String.class, clientId)
                 .post(body)
+                .build();
+    }
+
+    private Request getRequest(
+            final String accessToken, final Map<String, String> pathParams, final String clientId) {
+        final String url = StrSubstitutor.replace(this.apiEndpoint, pathParams);
+        return new Request.Builder()
+                .url(url)
+                .addHeader("Authorization", "Bearer " + accessToken)
+                .tag(String.class, clientId)
+                .get()
                 .build();
     }
 

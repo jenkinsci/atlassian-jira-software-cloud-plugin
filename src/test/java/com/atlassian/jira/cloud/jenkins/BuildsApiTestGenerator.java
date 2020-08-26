@@ -33,4 +33,7 @@ public class BuildsApiTestGenerator {
         testClass.server.enqueue(new MockResponse().setBody(response).setResponseCode(responseCode));
     }
 
+    public static void successfulGateResponse(BuildsApiTest testClass) throws IOException {
+        mockResponse(testClass, "builds_api_response/gate_check_success.json", 202);
+    }
 }

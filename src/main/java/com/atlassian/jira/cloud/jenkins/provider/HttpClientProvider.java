@@ -1,6 +1,10 @@
 package com.atlassian.jira.cloud.jenkins.provider;
 
+import com.atlassian.jira.cloud.jenkins.Config;
 import com.google.inject.Provides;
+import io.github.resilience4j.ratelimiter.RateLimiter;
+import io.github.resilience4j.ratelimiter.RateLimiterRegistry;
+import io.github.resilience4j.ratelimiter.RequestNotPermitted;
 import okhttp3.Interceptor;
 import okhttp3.Interceptor.Chain;
 import okhttp3.OkHttpClient;
@@ -11,8 +15,11 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.time.Duration;
+import java.util.function.Predicate;
 
-/** OkHttpClient with appropriate default timeouts */
+/**
+ * OkHttpClient with appropriate default timeouts
+ */
 public class HttpClientProvider {
 
     private static final String USER_AGENT = "atlassian-jira-software-cloud-plugin";
@@ -20,7 +27,12 @@ public class HttpClientProvider {
     private static final Logger log = LoggerFactory.getLogger(HttpClientProvider.class);
     private final OkHttpClient httpClient;
 
+    private final Predicate<Response> serverInternalPredicate = response -> response.code() >= 500;
+    private final Predicate<Response> notFoudPredicate = response ->
+            response.code() == 404 && response.request().url().toString().endsWith("gating-status");
+
     public HttpClientProvider() {
+        final RateLimiterRegistry rateLimiterRegistry = Config.RATE_LIMITER_REGISTRY;
         httpClient =
                 new OkHttpClient.Builder()
                         .connectTimeout(Duration.ofMillis(5000))
@@ -28,14 +40,54 @@ public class HttpClientProvider {
                         .writeTimeout(Duration.ofMillis(5000))
                         .addInterceptor(userAgentInterceptor())
                         .addInterceptor(retryInterceptor())
+                        .addInterceptor(gateRetryInterceptor())
+                        .addInterceptor(rateLimiterInterceptor(rateLimiterRegistry))
                         .build();
+    }
+
+    private Interceptor rateLimiterInterceptor(final RateLimiterRegistry rateLimiterRegistry) {
+        return chain -> {
+            final Request request = chain.request();
+            final String clientId = request.tag(String.class);
+            if (clientId != null) {
+                final RateLimiter rateLimiter =
+                        rateLimiterRegistry.rateLimiter(
+                                clientId, Config.ATLASSIAN_RATE_LIMITER_CONFIG);
+                try {
+                    return rateLimiter.executeCallable(() -> chain.proceed(request));
+                } catch (Exception e) {
+                    if (e instanceof IOException) {
+                        // case Http client errors
+                        // it should be always IOException since it's a contract of Interceptor
+                        throw (IOException) e;
+                    } else if (e instanceof RequestNotPermitted) {
+                        // case over limits
+                        throw (RequestNotPermitted) e;
+                    } else {
+                        // all other cases
+                        throw new RuntimeException(e);
+                    }
+                }
+            }
+            return chain.proceed(request);
+        };
+    }
+
+    private Interceptor gateRetryInterceptor() {
+        return chain -> {
+            Request request = chain.request();
+            Response response = chain.proceed(request);
+            response = performRetry(chain, request, response, notFoudPredicate);
+
+            return response;
+        };
     }
 
     private Interceptor retryInterceptor() {
         return chain -> {
             Request request = chain.request();
             Response response = chain.proceed(request);
-            response = performRetry(chain, request, response);
+            response = performRetry(chain, request, response, serverInternalPredicate);
 
             return response;
         };
@@ -51,13 +103,16 @@ public class HttpClientProvider {
     }
 
     private Response performRetry(
-            final Chain chain, final Request request, final Response originalResponse)
+            final Chain chain,
+            final Request request,
+            final Response originalResponse,
+            final Predicate<Response> retryPredicate)
             throws IOException {
         Response response = originalResponse;
         final int MAX_RETRIES = 3;
         int currentAttempt = 1;
 
-        while (response.code() >= 500 && currentAttempt <= MAX_RETRIES) {
+        while (retryPredicate.test(response) && currentAttempt <= MAX_RETRIES) {
             log.warn(
                     String.format(
                             "Received %d for request to %s. Retry attempt %d of %d.",
@@ -67,7 +122,7 @@ public class HttpClientProvider {
                             MAX_RETRIES));
             response.close();
             try {
-                Thread.sleep(2000); // delay between each retry
+                Thread.sleep(5000); // delay between each retry
             } catch (InterruptedException e) {
                 log.error("Retry delay interrupted: " + e.getMessage());
                 Thread.currentThread().interrupt();
