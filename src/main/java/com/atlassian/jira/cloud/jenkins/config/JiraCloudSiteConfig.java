@@ -8,7 +8,6 @@ import com.atlassian.jira.cloud.jenkins.util.SiteValidator;
 import com.cloudbees.plugins.credentials.CredentialsMatchers;
 import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
 import com.cloudbees.plugins.credentials.domains.URIRequirementBuilder;
-import com.thoughtworks.xstream.annotations.XStreamAlias;
 import hudson.Extension;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Descriptor;
@@ -34,7 +33,6 @@ import static java.util.Objects.requireNonNull;
  * This class encapsulates Jira Cloud site configuration to be used to send build information to
  * Jira.
  */
-@XStreamAlias("atl-jsw-site-configuration")
 public class JiraCloudSiteConfig extends AbstractDescribableImpl<JiraCloudSiteConfig> {
 
     public static final String DEFAULT_SITE = "sitename.atlassian.net";
