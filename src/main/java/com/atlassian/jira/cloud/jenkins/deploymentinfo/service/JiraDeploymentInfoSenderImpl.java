@@ -83,6 +83,7 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
         final WorkflowRun deployment = request.getDeployment();
         final Set<String> serviceIds = request.getServiceIds();
         final Boolean enableGating = request.getEnableGating();
+        final Set<String> requestIssueKeys = request.getIssueKeys();
 
         final Optional<JiraCloudSiteConfig> maybeSiteConfig = getSiteConfigFor(jiraSite);
 
@@ -113,7 +114,13 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
             return JiraDeploymentInfoResponse.failureStateInvalid(errorMessages);
         }
 
-        final Set<String> issueKeys = issueKeyExtractor.extractIssueKeys(deployment);
+        final Set<String> issueKeys;
+
+        if (requestIssueKeys.isEmpty()) {
+            issueKeys = issueKeyExtractor.extractIssueKeys(deployment);
+        } else {
+            issueKeys = requestIssueKeys;
+        }
 
         if (issueKeys.isEmpty() && serviceIds.isEmpty()) {
             return JiraDeploymentInfoResponse.skippedIssueKeysNotFoundAndServiceIdsAreEmpty(

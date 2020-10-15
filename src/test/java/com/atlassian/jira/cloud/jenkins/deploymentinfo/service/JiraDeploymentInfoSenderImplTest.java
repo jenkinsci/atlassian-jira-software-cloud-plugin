@@ -33,6 +33,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Collections;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import static com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse.Status.FAILURE_SECRET_NOT_FOUND;
@@ -186,6 +187,22 @@ public class JiraDeploymentInfoSenderImplTest {
     }
 
     @Test
+    public void testSendDeploymentInfo_whenDeploymentAcceptedWithExternalIssueKeys() {
+        // given
+        setupDeploymentsApiDeploymentAccepted();
+
+        // when
+        final JiraSendInfoResponse response =
+                classUnderTest.sendDeploymentInfo(createRequest(ImmutableSet.of("TEST-123")));
+
+        // then
+        assertThat(response.getStatus())
+                .isEqualTo(JiraSendInfoResponse.Status.SUCCESS_DEPLOYMENT_ACCEPTED);
+        final String message = response.getMessage();
+        assertThat(message).isNotBlank();
+    }
+
+    @Test
     public void testSendDeploymentInfo_whenDeploymentRejected() {
         // given
         setupDeploymentsApiDeploymentRejected();
@@ -283,6 +300,7 @@ public class JiraDeploymentInfoSenderImplTest {
                         "pending",
                         Collections.emptySet(),
                         Boolean.TRUE,
+                        Collections.emptySet(),
                         mockWorkflowRun());
 
         final ArgumentCaptor<Deployments> deploymentsArgumentCaptor =
@@ -317,6 +335,10 @@ public class JiraDeploymentInfoSenderImplTest {
     }
 
     private JiraDeploymentInfoRequest createRequest() {
+        return createRequest(Collections.emptySet());
+    }
+
+    private JiraDeploymentInfoRequest createRequest(final Set<String> issueKeys) {
         return new JiraDeploymentInfoRequest(
                 SITE,
                 ENVIRONMENT_ID,
@@ -325,6 +347,7 @@ public class JiraDeploymentInfoSenderImplTest {
                 null,
                 Collections.emptySet(),
                 Boolean.FALSE,
+                issueKeys,
                 mockWorkflowRun());
     }
 
@@ -337,6 +360,7 @@ public class JiraDeploymentInfoSenderImplTest {
                 state,
                 Collections.emptySet(),
                 Boolean.FALSE,
+                Collections.emptySet(),
                 mockWorkflowRun());
     }
 
@@ -352,6 +376,7 @@ public class JiraDeploymentInfoSenderImplTest {
                 null,
                 Collections.emptySet(),
                 Boolean.FALSE,
+                Collections.emptySet(),
                 mockWorkflowRun());
     }
 
