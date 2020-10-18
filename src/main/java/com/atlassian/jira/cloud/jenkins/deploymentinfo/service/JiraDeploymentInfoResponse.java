@@ -20,11 +20,14 @@ public class JiraDeploymentInfoResponse extends JiraSendInfoResponse {
         return new JiraDeploymentInfoResponse(Status.FAILURE_ENVIRONMENT_INVALID, message);
     }
 
-    public static JiraSendInfoResponse skippedIssueKeysNotFoundAndServiceIdsAreEmpty(final String jiraSite) {
+    public static JiraSendInfoResponse skippedIssueKeysNotFoundAndServiceIdsAreEmpty(
+            final String jiraSite) {
         final String message =
-                Messages.JiraDeploymentInfoResponse_SKIPPED_ISSUE_KEYS_NOT_FOUND_AND_SERVICE_IDS_NOT_PROVIDED(
-                        jiraSite);
-        return new JiraDeploymentInfoResponse(Status.SKIPPED_ISSUE_KEYS_NOT_FOUND_AND_SERVICE_IDS_ARE_EMPTY, message);
+                Messages
+                        .JiraDeploymentInfoResponse_SKIPPED_ISSUE_KEYS_NOT_FOUND_AND_SERVICE_IDS_NOT_PROVIDED(
+                                jiraSite);
+        return new JiraDeploymentInfoResponse(
+                Status.SKIPPED_ISSUE_KEYS_NOT_FOUND_AND_SERVICE_IDS_ARE_EMPTY, message);
     }
 
     public static JiraDeploymentInfoResponse successDeploymentAccepted(
@@ -71,13 +74,6 @@ public class JiraDeploymentInfoResponse extends JiraSendInfoResponse {
         final String message =
                 Messages.JiraDeploymentInfoResponse_FAILURE_STATE_INVALID(
                         String.join(" ", errorMessages));
-        return new JiraDeploymentInfoResponse(Status.FAILURE_STATE_INVALID, message);
-    }
-
-    public static JiraSendInfoResponse failureEnableGateWrongDeploymentDtate(final String state) {
-        final String message =
-                Messages.JiraDeploymentInfoResponse_FAILURE_ENABLE_GATE_WRONG_DEPLOYMENT_STATE(
-                        state);
         return new JiraDeploymentInfoResponse(Status.FAILURE_STATE_INVALID, message);
     }
 }

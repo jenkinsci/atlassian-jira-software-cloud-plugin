@@ -19,7 +19,7 @@
     <f:entry field="serviceIds" title="${%ServiceIds}">
         <f:textbox/>
     </f:entry>
-    <f:entry field="enableGate" title="${%EnableGate}">
+    <f:entry field="enableGating" title="${%EnableGating}">
         <f:checkbox/>
     </f:entry>
 </j:jelly>

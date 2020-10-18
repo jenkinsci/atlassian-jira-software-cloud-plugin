@@ -31,7 +31,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import java.util.AbstractMap;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.UUID;
@@ -269,31 +268,6 @@ public class JiraDeploymentInfoSenderImplTest {
                         "The deployment state is not valid. "
                                 + "The parameter state is not valid. "
                                 + "Allowed values are: [unknown, pending, in_progress, cancelled, failed, rolled_back, successful]");
-    }
-
-    @Test
-    public void testSendDeploymentInfo_whenNotAllowedDeploymentStateForGate() {
-        // given
-        final JiraDeploymentInfoRequest request =
-                new JiraDeploymentInfoRequest(
-                        SITE,
-                        ENVIRONMENT_ID,
-                        ENVIRONMENT_NAME,
-                        ENVIRONMENT_TYPE,
-                        "in_progress",
-                        Collections.emptySet(),
-                        Boolean.TRUE,
-                        mockWorkflowRun());
-
-        // when
-        final JiraSendInfoResponse response = classUnderTest.sendDeploymentInfo(request);
-
-        // then
-        assertThat(response.getStatus())
-                .isEqualTo(JiraSendInfoResponse.Status.FAILURE_STATE_INVALID);
-        assertThat(response.getMessage())
-                .isEqualTo(
-                        "Deployment gating available only for 'pending' deployment state. Current state: in_progress");
     }
 
     @Test

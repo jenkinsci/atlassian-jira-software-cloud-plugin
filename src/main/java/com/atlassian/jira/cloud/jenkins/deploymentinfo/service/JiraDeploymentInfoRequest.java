@@ -16,7 +16,7 @@ public class JiraDeploymentInfoRequest {
     private final WorkflowRun deployment;
     private final String state;
     private final Set<String> serviceIds;
-    private final Boolean enableGate;
+    private final Boolean enableGating;
 
     public JiraDeploymentInfoRequest(
             @Nullable final String site,
@@ -25,7 +25,7 @@ public class JiraDeploymentInfoRequest {
             final String environmentType,
             @Nullable final String state,
             final Set<String> serviceIds,
-            final Boolean enableGate,
+            final Boolean enableGating,
             final WorkflowRun deployment) {
         this.site = site;
         this.environmentId = environmentId;
@@ -34,7 +34,7 @@ public class JiraDeploymentInfoRequest {
         this.state = state;
         this.deployment = requireNonNull(deployment);
         this.serviceIds = serviceIds;
-        this.enableGate = enableGate;
+        this.enableGating = enableGating;
     }
 
     @Nullable
@@ -67,7 +67,7 @@ public class JiraDeploymentInfoRequest {
         return serviceIds;
     }
 
-    public Boolean getEnableGate() {
-        return enableGate;
+    public Boolean getEnableGating() {
+        return enableGating;
     }
 }

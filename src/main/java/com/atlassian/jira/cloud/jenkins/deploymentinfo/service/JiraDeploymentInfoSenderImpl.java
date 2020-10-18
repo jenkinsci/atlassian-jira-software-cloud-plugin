@@ -16,7 +16,6 @@ import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Command;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.DeploymentApiResponse;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Deployments;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Environment;
-import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.State;
 import com.atlassian.jira.cloud.jenkins.tenantinfo.CloudIdResolver;
 import com.atlassian.jira.cloud.jenkins.util.JenkinsToJiraStatus;
 import com.atlassian.jira.cloud.jenkins.util.RunWrapperProvider;
@@ -32,7 +31,6 @@ import org.jenkinsci.plugins.workflow.support.steps.build.RunWrapper;
 import javax.annotation.Nullable;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
@@ -48,10 +46,11 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
     private static final String HTTPS_PROTOCOL = "https://";
 
     // this code do the same thing as RunWrapper#getCurrentResult()
-    private static final Function<WorkflowRun, String> getJenkinsBuildStatus = run ->
-            Optional.ofNullable(run.getResult())
-                    .map(Result::toString)
-                    .orElseGet(Result.SUCCESS::toString);
+    private static final Function<WorkflowRun, String> getJenkinsBuildStatus =
+            run ->
+                    Optional.ofNullable(run.getResult())
+                            .map(Result::toString)
+                            .orElseGet(Result.SUCCESS::toString);
 
     private final JiraSiteConfigRetriever siteConfigRetriever;
     private final SecretRetriever secretRetriever;
@@ -83,7 +82,7 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
         final String jiraSite = request.getSite();
         final WorkflowRun deployment = request.getDeployment();
         final Set<String> serviceIds = request.getServiceIds();
-        final Boolean enableGate = request.getEnableGate();
+        final Boolean enableGating = request.getEnableGating();
 
         final Optional<JiraCloudSiteConfig> maybeSiteConfig = getSiteConfigFor(jiraSite);
 
@@ -135,12 +134,7 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
             return JiraCommonResponse.failureAccessToken(resolvedSiteConfig);
         }
 
-        if (enableGate && !Objects.equals(deploymentState, State.PENDING.value)) {
-            return JiraDeploymentInfoResponse.failureEnableGateWrongDeploymentDtate(
-                    deploymentState);
-        }
-
-        final List<Command> commands = buildCommands(enableGate);
+        final List<Command> commands = buildCommands(enableGating);
 
         final Deployments deploymentInfo =
                 createJiraDeploymentInfo(
@@ -269,9 +263,9 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
         return associations;
     }
 
-    private List<Command> buildCommands(final Boolean enableGate) {
+    private List<Command> buildCommands(final Boolean enableGating) {
         final ImmutableList.Builder<Command> commandsBuilder = ImmutableList.builder();
-        if (enableGate) {
+        if (enableGating) {
             commandsBuilder.add(new Command("initiate_deployment_gating"));
         }
         return commandsBuilder.build();
