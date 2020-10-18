@@ -1,8 +1,8 @@
-package com.atlassian.jira.cloud.jenkins.checkgatestatus.service;
+package com.atlassian.jira.cloud.jenkins.checkgatingstatus.service;
 
 import com.atlassian.jira.cloud.jenkins.auth.AccessTokenRetriever;
-import com.atlassian.jira.cloud.jenkins.checkgatestatus.client.model.GateStatusResponse;
-import com.atlassian.jira.cloud.jenkins.checkgatestatus.client.model.GatingStatus;
+import com.atlassian.jira.cloud.jenkins.checkgatingstatus.client.model.GatingStatusResponse;
+import com.atlassian.jira.cloud.jenkins.checkgatingstatus.client.model.GatingStatus;
 import com.atlassian.jira.cloud.jenkins.common.client.JiraApi;
 import com.atlassian.jira.cloud.jenkins.common.client.PostUpdateResult;
 import com.atlassian.jira.cloud.jenkins.common.config.JiraSiteConfigRetriever;
@@ -10,7 +10,6 @@ import com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse;
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
 import com.atlassian.jira.cloud.jenkins.tenantinfo.CloudIdResolver;
 import com.atlassian.jira.cloud.jenkins.util.SecretRetriever;
-import hudson.model.Run;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.junit.Before;
@@ -19,7 +18,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.UUID;
@@ -33,7 +31,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class JiraGateStatusRetrieverImplTest {
+public class JiraGatingStatusRetrieverImplTest {
 
     public static final String ENVIRONMENT_ID = "prod-east-1";
     public static final String PIPELINE_ID = UUID.randomUUID().toString();
@@ -50,12 +48,12 @@ public class JiraGateStatusRetrieverImplTest {
     @Mock private JiraApi jiraApi;
     @Mock private WorkflowRun run;
 
-    private JiraGateStatusRetrieverImpl classUnderTest;
+    private JiraGatingStatusRetrieverImpl classUnderTest;
 
     @Before
     public void before() throws Exception {
         classUnderTest =
-                new JiraGateStatusRetrieverImpl(
+                new JiraGatingStatusRetrieverImpl(
                         siteConfigRetriever,
                         secretRetriever,
                         cloudIdResolver,
@@ -71,7 +69,7 @@ public class JiraGateStatusRetrieverImplTest {
         when(siteConfigRetriever.getJiraSiteConfig(any())).thenReturn(Optional.empty());
 
         // when
-        final JiraGateStatusResponse response = classUnderTest.getGateState(createRequest());
+        final JiraGatingStatusResponse response = classUnderTest.getGatingState(createRequest());
 
         // then
         assertThat(response.getStatus()).isEqualTo(FAILURE_SITE_CONFIG_NOT_FOUND);
@@ -83,7 +81,7 @@ public class JiraGateStatusRetrieverImplTest {
         when(secretRetriever.getSecretFor(any())).thenReturn(Optional.empty());
 
         // when
-        final JiraGateStatusResponse response = classUnderTest.getGateState(createRequest());
+        final JiraGatingStatusResponse response = classUnderTest.getGatingState(createRequest());
 
         // then
         assertThat(response.getStatus()).isEqualTo(FAILURE_SECRET_NOT_FOUND);
@@ -95,7 +93,7 @@ public class JiraGateStatusRetrieverImplTest {
         when(cloudIdResolver.getCloudId(any())).thenReturn(Optional.empty());
 
         // when
-        final JiraGateStatusResponse response = classUnderTest.getGateState(createRequest());
+        final JiraGatingStatusResponse response = classUnderTest.getGatingState(createRequest());
 
         // then
         assertThat(response.getStatus()).isEqualTo(FAILURE_SITE_NOT_FOUND);
@@ -107,7 +105,7 @@ public class JiraGateStatusRetrieverImplTest {
         when(accessTokenRetriever.getAccessToken(any())).thenReturn(Optional.empty());
 
         // when
-        final JiraGateStatusResponse response = classUnderTest.getGateState(createRequest());
+        final JiraGatingStatusResponse response = classUnderTest.getGatingState(createRequest());
 
         // then
         assertThat(response.getStatus())
@@ -120,7 +118,7 @@ public class JiraGateStatusRetrieverImplTest {
         setupApiFailure();
 
         // when
-        final JiraGateStatusResponse response = classUnderTest.getGateState(createRequest());
+        final JiraGatingStatusResponse response = classUnderTest.getGatingState(createRequest());
 
         // then
         assertThat(response.getStatus()).isEqualTo(JiraSendInfoResponse.Status.FAILURE_GATE_CHECK);
@@ -132,14 +130,14 @@ public class JiraGateStatusRetrieverImplTest {
         setupApiSuccess();
 
         // when
-        final JiraGateStatusResponse response = classUnderTest.getGateState(createRequest());
+        final JiraGatingStatusResponse response = classUnderTest.getGatingState(createRequest());
 
         // then
         assertThat(response.getStatus()).isEqualTo(JiraSendInfoResponse.Status.SUCCESS_GATE_CHECK);
     }
 
-    private GateStatusRequest createRequest() {
-        return new GateStatusRequest(SITE, ENVIRONMENT_ID, run);
+    private GatingStatusRequest createRequest() {
+        return new GatingStatusRequest(SITE, ENVIRONMENT_ID, run);
     }
 
     private void setupMocks() {
@@ -180,9 +178,9 @@ public class JiraGateStatusRetrieverImplTest {
     }
 
     private void setupApiSuccess() {
-        final GateStatusResponse gateStatusResponse =
-                new GateStatusResponse(GatingStatus.AWAITING, Collections.emptyList());
+        final GatingStatusResponse gatingStatusResponse =
+                new GatingStatusResponse(GatingStatus.AWAITING, Collections.emptyList());
         when(jiraApi.getResult(any(), any(), any(), any()))
-                .thenReturn(new PostUpdateResult<>(gateStatusResponse));
+                .thenReturn(new PostUpdateResult<>(gatingStatusResponse));
     }
 }

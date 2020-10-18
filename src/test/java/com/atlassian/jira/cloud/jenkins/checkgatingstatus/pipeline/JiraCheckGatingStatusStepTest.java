@@ -1,9 +1,9 @@
-package com.atlassian.jira.cloud.jenkins.checkgatestatus.pipeline;
+package com.atlassian.jira.cloud.jenkins.checkgatingstatus.pipeline;
 
-import com.atlassian.jira.cloud.jenkins.checkgatestatus.client.model.GateStatusResponse;
-import com.atlassian.jira.cloud.jenkins.checkgatestatus.client.model.GatingStatus;
-import com.atlassian.jira.cloud.jenkins.checkgatestatus.service.JiraGateStatusResponse;
-import com.atlassian.jira.cloud.jenkins.checkgatestatus.service.JiraGateStatusRetriever;
+import com.atlassian.jira.cloud.jenkins.checkgatingstatus.client.model.GatingStatusResponse;
+import com.atlassian.jira.cloud.jenkins.checkgatingstatus.client.model.GatingStatus;
+import com.atlassian.jira.cloud.jenkins.checkgatingstatus.service.JiraGatingStatusResponse;
+import com.atlassian.jira.cloud.jenkins.checkgatingstatus.service.JiraGatingStatusRetriever;
 import com.atlassian.jira.cloud.jenkins.common.factory.JiraSenderFactory;
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudPluginConfig;
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
@@ -47,7 +47,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class JiraCheckGateStatusStepTest {
+public class JiraCheckGatingStatusStepTest {
     private static final String SITE = "example.atlassian.net";
     private static final String ENVIRONMENT_ID = UUID.randomUUID().toString();
     private static final String CLIENT_ID = UUID.randomUUID().toString();
@@ -57,9 +57,9 @@ public class JiraCheckGateStatusStepTest {
 
     @Rule public JenkinsRule jenkinsRule = new JenkinsRule();
 
-    @Inject JiraCheckGateStatusStep.DescriptorImpl descriptor;
+    @Inject JiraCheckGatingStatusStep.DescriptorImpl descriptor;
 
-    final JiraGateStatusRetriever mockRetriever = mock(JiraGateStatusRetriever.class);
+    final JiraGatingStatusRetriever mockRetriever = mock(JiraGatingStatusRetriever.class);
 
     private static BaseStandardCredentials secretCredential() {
         return new StringCredentialsImpl(
@@ -89,10 +89,10 @@ public class JiraCheckGateStatusStepTest {
 
     @Test
     public void configRoundTrip() throws Exception {
-        final JiraCheckGateStatusStep deploymentInfoStep =
-                new JiraCheckGateStatusStep(ENVIRONMENT_ID);
+        final JiraCheckGatingStatusStep deploymentInfoStep =
+                new JiraCheckGatingStatusStep(ENVIRONMENT_ID);
         deploymentInfoStep.setSite(SITE);
-        final JiraCheckGateStatusStep step =
+        final JiraCheckGatingStatusStep step =
                 new StepConfigTester(jenkinsRule).configRoundTrip(deploymentInfoStep);
 
         assertThat(step.getSite()).isEqualTo(SITE);
@@ -109,21 +109,21 @@ public class JiraCheckGateStatusStepTest {
         final Map<String, Object> r = new HashMap<>();
         r.put("site", SITE);
         r.put("environmentId", ENVIRONMENT_ID);
-        final JiraCheckGateStatusStep step = (JiraCheckGateStatusStep) descriptor.newInstance(r);
+        final JiraCheckGatingStatusStep step = (JiraCheckGatingStatusStep) descriptor.newInstance(r);
 
         final StepContext ctx = mock(StepContext.class);
         when(ctx.get(Node.class)).thenReturn(jenkinsRule.getInstance());
         when(ctx.get(WorkflowRun.class)).thenReturn(mockWorkflowRun);
         when(ctx.get(TaskListener.class)).thenReturn(mockTaskListener);
 
-        final JiraCheckGateStatusStep.CheckGateStateExecution start =
-                (JiraCheckGateStatusStep.CheckGateStateExecution) step.start(ctx);
+        final JiraCheckGatingStatusStep.CheckGatingStatusExecution start =
+                (JiraCheckGatingStatusStep.CheckGatingStatusExecution) step.start(ctx);
 
-        final GateStatusResponse apiResponse =
-                new GateStatusResponse(GatingStatus.AWAITING, Collections.emptyList());
-        final JiraGateStatusResponse gateStatusResponse =
-                JiraGateStatusResponse.success(apiResponse);
-        when(mockRetriever.getGateState(any())).thenReturn(gateStatusResponse);
+        final GatingStatusResponse apiResponse =
+                new GatingStatusResponse(GatingStatus.AWAITING, Collections.emptyList());
+        final JiraGatingStatusResponse gateStatusResponse =
+                JiraGatingStatusResponse.success(apiResponse);
+        when(mockRetriever.getGatingState(any())).thenReturn(gateStatusResponse);
 
         // when
         final Boolean response = start.run();
@@ -142,21 +142,21 @@ public class JiraCheckGateStatusStepTest {
         final Map<String, Object> r = new HashMap<>();
         r.put("site", SITE);
         r.put("environmentId", ENVIRONMENT_ID);
-        final JiraCheckGateStatusStep step = (JiraCheckGateStatusStep) descriptor.newInstance(r);
+        final JiraCheckGatingStatusStep step = (JiraCheckGatingStatusStep) descriptor.newInstance(r);
 
         final StepContext ctx = mock(StepContext.class);
         when(ctx.get(Node.class)).thenReturn(jenkinsRule.getInstance());
         when(ctx.get(WorkflowRun.class)).thenReturn(mockWorkflowRun);
         when(ctx.get(TaskListener.class)).thenReturn(mockTaskListener);
 
-        final JiraCheckGateStatusStep.CheckGateStateExecution start =
-                (JiraCheckGateStatusStep.CheckGateStateExecution) step.start(ctx);
+        final JiraCheckGatingStatusStep.CheckGatingStatusExecution start =
+                (JiraCheckGatingStatusStep.CheckGatingStatusExecution) step.start(ctx);
 
-        final GateStatusResponse apiResponse =
-                new GateStatusResponse(GatingStatus.ALLOWED, Collections.emptyList());
-        final JiraGateStatusResponse gateStatusResponse =
-                JiraGateStatusResponse.success(apiResponse);
-        when(mockRetriever.getGateState(any())).thenReturn(gateStatusResponse);
+        final GatingStatusResponse apiResponse =
+                new GatingStatusResponse(GatingStatus.ALLOWED, Collections.emptyList());
+        final JiraGatingStatusResponse gateStatusResponse =
+                JiraGatingStatusResponse.success(apiResponse);
+        when(mockRetriever.getGatingState(any())).thenReturn(gateStatusResponse);
 
         // when
         final Boolean response = start.run();
@@ -178,7 +178,7 @@ public class JiraCheckGateStatusStepTest {
         final Map<String, Object> r = new HashMap<>();
         r.put("site", SITE);
         r.put("environmentId", ENVIRONMENT_ID);
-        final JiraCheckGateStatusStep step = (JiraCheckGateStatusStep) descriptor.newInstance(r);
+        final JiraCheckGatingStatusStep step = (JiraCheckGatingStatusStep) descriptor.newInstance(r);
 
         final StepContext ctx = mock(StepContext.class);
         when(ctx.get(Node.class)).thenReturn(jenkinsRule.getInstance());
@@ -186,14 +186,14 @@ public class JiraCheckGateStatusStepTest {
         when(ctx.get(TaskListener.class)).thenReturn(mockTaskListener);
         when(mockWorkflowRun.getExecutor()).thenReturn(executor);
 
-        final JiraCheckGateStatusStep.CheckGateStateExecution start =
-                (JiraCheckGateStatusStep.CheckGateStateExecution) step.start(ctx);
+        final JiraCheckGatingStatusStep.CheckGatingStatusExecution start =
+                (JiraCheckGatingStatusStep.CheckGatingStatusExecution) step.start(ctx);
 
-        final GateStatusResponse apiResponse =
-                new GateStatusResponse(GatingStatus.PREVENTED, Collections.emptyList());
-        final JiraGateStatusResponse gateStatusResponse =
-                JiraGateStatusResponse.success(apiResponse);
-        when(mockRetriever.getGateState(any())).thenReturn(gateStatusResponse);
+        final GatingStatusResponse apiResponse =
+                new GatingStatusResponse(GatingStatus.PREVENTED, Collections.emptyList());
+        final JiraGatingStatusResponse gateStatusResponse =
+                JiraGatingStatusResponse.success(apiResponse);
+        when(mockRetriever.getGatingState(any())).thenReturn(gateStatusResponse);
 
         // when
         final Boolean response = start.run();

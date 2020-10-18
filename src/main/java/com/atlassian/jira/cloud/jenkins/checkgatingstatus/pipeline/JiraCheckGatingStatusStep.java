@@ -1,9 +1,9 @@
-package com.atlassian.jira.cloud.jenkins.checkgatestatus.pipeline;
+package com.atlassian.jira.cloud.jenkins.checkgatingstatus.pipeline;
 
 import com.atlassian.jira.cloud.jenkins.Messages;
-import com.atlassian.jira.cloud.jenkins.checkgatestatus.client.model.GatingStatus;
-import com.atlassian.jira.cloud.jenkins.checkgatestatus.service.GateStatusRequest;
-import com.atlassian.jira.cloud.jenkins.checkgatestatus.service.JiraGateStatusResponse;
+import com.atlassian.jira.cloud.jenkins.checkgatingstatus.client.model.GatingStatus;
+import com.atlassian.jira.cloud.jenkins.checkgatingstatus.service.GatingStatusRequest;
+import com.atlassian.jira.cloud.jenkins.checkgatingstatus.service.JiraGatingStatusResponse;
 import com.atlassian.jira.cloud.jenkins.common.factory.JiraSenderFactory;
 import com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse;
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudPluginConfig;
@@ -12,11 +12,9 @@ import com.google.common.collect.ImmutableSet;
 import hudson.AbortException;
 import hudson.Extension;
 import hudson.model.Result;
-import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.util.ListBoxModel;
 import jenkins.model.CauseOfInterruption;
-import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.jenkinsci.plugins.workflow.steps.Step;
 import org.jenkinsci.plugins.workflow.steps.StepContext;
@@ -31,14 +29,14 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Set;
 
-public class JiraCheckGateStatusStep extends Step implements Serializable {
+public class JiraCheckGatingStatusStep extends Step implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private String site;
     private String environmentId;
 
     @DataBoundConstructor
-    public JiraCheckGateStatusStep(final String environmentId) {
+    public JiraCheckGatingStatusStep(final String environmentId) {
         this.environmentId = environmentId;
     }
 
@@ -53,7 +51,7 @@ public class JiraCheckGateStatusStep extends Step implements Serializable {
 
     @Override
     public StepExecution start(final StepContext context) {
-        return new CheckGateStateExecution(context, this);
+        return new CheckGatingStatusExecution(context, this);
     }
 
     public String getEnvironmentId() {
@@ -83,7 +81,7 @@ public class JiraCheckGateStatusStep extends Step implements Serializable {
 
         @Override
         public String getFunctionName() {
-            return "checkGateStatus";
+            return "checkGatingStatus";
         }
 
         @Override
@@ -92,15 +90,15 @@ public class JiraCheckGateStatusStep extends Step implements Serializable {
         }
     }
 
-    public static class CheckGateStateExecution
+    public static class CheckGatingStatusExecution
             extends SynchronousNonBlockingStepExecution<Boolean> {
 
         private static final long serialVersionUID = 1L;
 
-        private final JiraCheckGateStatusStep step;
+        private final JiraCheckGatingStatusStep step;
 
-        public CheckGateStateExecution(
-                final StepContext context, final JiraCheckGateStatusStep step) {
+        public CheckGatingStatusExecution(
+                final StepContext context, final JiraCheckGatingStatusStep step) {
             super(context);
             this.step = step;
         }
@@ -108,7 +106,7 @@ public class JiraCheckGateStatusStep extends Step implements Serializable {
         /**
          * This execution returns
          *
-         * @return {@code true}, if deployment has been approved {@code false}, if gate status is
+         * @return {@code true}, if deployment has been approved {@code false}, if gating status is
          *     unknown or not approved/rejected yet
          * @throws AbortException if deployment has been rejected, or client has reached limits
          */
@@ -117,13 +115,13 @@ public class JiraCheckGateStatusStep extends Step implements Serializable {
             final TaskListener taskListener = getContext().get(TaskListener.class);
             final WorkflowRun run = getContext().get(WorkflowRun.class);
 
-            final GateStatusRequest gateStatusRequest =
-                    new GateStatusRequest(step.getSite(), step.getEnvironmentId(), run);
+            final GatingStatusRequest gatingStatusRequest =
+                    new GatingStatusRequest(step.getSite(), step.getEnvironmentId(), run);
 
-            final JiraGateStatusResponse response =
+            final JiraGatingStatusResponse response =
                     JiraSenderFactory.getInstance()
                             .getJiraGateStateRetriever()
-                            .getGateState(gateStatusRequest);
+                            .getGatingState(gatingStatusRequest);
 
             logResult(taskListener, response);
 
@@ -150,7 +148,7 @@ public class JiraCheckGateStatusStep extends Step implements Serializable {
             taskListener
                     .getLogger()
                     .println(
-                            "checkGateStatus: "
+                            "checkGatingStatus: "
                                     + response.getStatus()
                                     + ": "
                                     + response.getMessage());

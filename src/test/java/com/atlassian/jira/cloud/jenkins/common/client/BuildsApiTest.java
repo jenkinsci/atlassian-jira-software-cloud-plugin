@@ -4,9 +4,9 @@ import com.atlassian.jira.cloud.jenkins.BaseMockServerTest;
 import com.atlassian.jira.cloud.jenkins.BuildsApiTestGenerator;
 import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.BuildApiResponse;
 import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.Builds;
-import com.atlassian.jira.cloud.jenkins.checkgatestatus.client.model.DetailKeyResponse;
-import com.atlassian.jira.cloud.jenkins.checkgatestatus.client.model.GateStatusResponse;
-import com.atlassian.jira.cloud.jenkins.checkgatestatus.client.model.GatingStatus;
+import com.atlassian.jira.cloud.jenkins.checkgatingstatus.client.model.DetailKeyResponse;
+import com.atlassian.jira.cloud.jenkins.checkgatingstatus.client.model.GatingStatusResponse;
+import com.atlassian.jira.cloud.jenkins.checkgatingstatus.client.model.GatingStatus;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -188,13 +188,13 @@ public class BuildsApiTest extends BaseMockServerTest {
     public void testGetUpdate() throws IOException {
         BuildsApiTestGenerator.successfulGateResponse(this);
 
-        final PostUpdateResult<GateStatusResponse> result =
+        final PostUpdateResult<GatingStatusResponse> result =
                 buildsApi.getResult(
-                        ACCESS_TOKEN, mock(Map.class), CLIENT_ID, GateStatusResponse.class);
+                        ACCESS_TOKEN, mock(Map.class), CLIENT_ID, GatingStatusResponse.class);
 
         // verify
         assertThat(result.getResponseEntity().isPresent()).isTrue();
-        final GateStatusResponse response = result.getResponseEntity().get();
+        final GatingStatusResponse response = result.getResponseEntity().get();
         assertThat(response.getStatus()).isEqualTo(GatingStatus.AWAITING);
         assertThat(response.getDetailKeyResponse()).isNotEmpty();
         assertThat(response.getDetailKeyResponse()).hasSize(1);

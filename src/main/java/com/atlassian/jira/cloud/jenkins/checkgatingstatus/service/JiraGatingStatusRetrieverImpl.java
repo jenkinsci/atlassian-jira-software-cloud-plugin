@@ -1,7 +1,7 @@
-package com.atlassian.jira.cloud.jenkins.checkgatestatus.service;
+package com.atlassian.jira.cloud.jenkins.checkgatingstatus.service;
 
 import com.atlassian.jira.cloud.jenkins.auth.AccessTokenRetriever;
-import com.atlassian.jira.cloud.jenkins.checkgatestatus.client.model.GateStatusResponse;
+import com.atlassian.jira.cloud.jenkins.checkgatingstatus.client.model.GatingStatusResponse;
 import com.atlassian.jira.cloud.jenkins.common.client.JiraApi;
 import com.atlassian.jira.cloud.jenkins.common.client.PostUpdateResult;
 import com.atlassian.jira.cloud.jenkins.common.config.JiraSiteConfigRetriever;
@@ -15,7 +15,7 @@ import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 
 import java.util.Optional;
 
-public class JiraGateStatusRetrieverImpl implements JiraGateStatusRetriever {
+public class JiraGatingStatusRetrieverImpl implements JiraGatingStatusRetriever {
 
     private static final String HTTPS_PROTOCOL = "https://";
 
@@ -23,23 +23,23 @@ public class JiraGateStatusRetrieverImpl implements JiraGateStatusRetriever {
     private final SecretRetriever secretRetriever;
     private final CloudIdResolver cloudIdResolver;
     private final AccessTokenRetriever accessTokenRetriever;
-    private final JiraApi gateApi;
+    private final JiraApi gatingApi;
 
-    public JiraGateStatusRetrieverImpl(
+    public JiraGatingStatusRetrieverImpl(
             final JiraSiteConfigRetriever siteConfigRetriever,
             final SecretRetriever secretRetriever,
             final CloudIdResolver cloudIdResolver,
             final AccessTokenRetriever accessTokenRetriever,
-            final JiraApi gateApi) {
+            final JiraApi gatingApi) {
         this.siteConfigRetriever = siteConfigRetriever;
         this.secretRetriever = secretRetriever;
         this.cloudIdResolver = cloudIdResolver;
         this.accessTokenRetriever = accessTokenRetriever;
-        this.gateApi = gateApi;
+        this.gatingApi = gatingApi;
     }
 
     @Override
-    public JiraGateStatusResponse getGateState(final GateStatusRequest request) {
+    public JiraGatingStatusResponse getGatingState(final GatingStatusRequest request) {
         final String jiraSite = request.getSite();
         final WorkflowRun run = request.getRun();
 
@@ -47,7 +47,7 @@ public class JiraGateStatusRetrieverImpl implements JiraGateStatusRetriever {
                 siteConfigRetriever.getJiraSiteConfig(jiraSite);
 
         if (!maybeSiteConfig.isPresent()) {
-            return JiraGateStatusResponse.of(
+            return JiraGatingStatusResponse.of(
                     JiraCommonResponse.failureSiteConfigNotFound(jiraSite));
         }
 
@@ -58,7 +58,7 @@ public class JiraGateStatusRetrieverImpl implements JiraGateStatusRetriever {
                 secretRetriever.getSecretFor(siteConfig.getCredentialsId());
 
         if (!maybeSecret.isPresent()) {
-            return JiraGateStatusResponse.of(
+            return JiraGatingStatusResponse.of(
                     JiraCommonResponse.failureSecretNotFound(resolvedSiteConfig));
         }
 
@@ -66,7 +66,7 @@ public class JiraGateStatusRetrieverImpl implements JiraGateStatusRetriever {
                 cloudIdResolver.getCloudId(HTTPS_PROTOCOL + resolvedSiteConfig);
 
         if (!maybeCloudId.isPresent()) {
-            return JiraGateStatusResponse.of(
+            return JiraGatingStatusResponse.of(
                     JiraCommonResponse.failureSiteNotFound(resolvedSiteConfig));
         }
 
@@ -78,7 +78,7 @@ public class JiraGateStatusRetrieverImpl implements JiraGateStatusRetriever {
                 accessTokenRetriever.getAccessToken(appCredential);
 
         if (!maybeAccessToken.isPresent()) {
-            return JiraGateStatusResponse.of(
+            return JiraGatingStatusResponse.of(
                     JiraCommonResponse.failureAccessToken(resolvedSiteConfig));
         }
 
@@ -90,18 +90,18 @@ public class JiraGateStatusRetrieverImpl implements JiraGateStatusRetriever {
                         .put("environmentId", request.getEnvironmentId())
                         .build();
 
-        final PostUpdateResult<GateStatusResponse> result =
-                gateApi.getResult(
+        final PostUpdateResult<GatingStatusResponse> result =
+                gatingApi.getResult(
                         maybeAccessToken.get(),
                         pathParams,
                         siteConfig.getClientId(),
-                        GateStatusResponse.class);
+                        GatingStatusResponse.class);
 
         if (result.getResponseEntity().isPresent()) {
-            return JiraGateStatusResponse.success(result.getResponseEntity().get());
+            return JiraGatingStatusResponse.success(result.getResponseEntity().get());
         } else {
             final String errorMessage = result.getErrorMessage().orElse("");
-            return JiraGateStatusResponse.failure(errorMessage);
+            return JiraGatingStatusResponse.failure(errorMessage);
         }
     }
 }

@@ -1,17 +1,17 @@
-package com.atlassian.jira.cloud.jenkins.checkgatestatus.service;
+package com.atlassian.jira.cloud.jenkins.checkgatingstatus.service;
 
 import jline.internal.Nullable;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 
 import static java.util.Objects.requireNonNull;
 
-public class GateStatusRequest {
+public class GatingStatusRequest {
 
     private final String site;
     private final String environmentId;
     private final WorkflowRun run;
 
-    public GateStatusRequest(
+    public GatingStatusRequest(
             @Nullable final String site, final String environmentId, final WorkflowRun run) {
         this.site = site;
         this.environmentId = requireNonNull(environmentId);

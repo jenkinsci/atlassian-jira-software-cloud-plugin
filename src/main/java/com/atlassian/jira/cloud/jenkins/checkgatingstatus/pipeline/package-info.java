@@ -1,6 +1,6 @@
 @ParametersAreNonnullByDefault
 @ReturnValuesAreNonnullByDefault
-package com.atlassian.jira.cloud.jenkins.checkgatestatus.client.model;
+package com.atlassian.jira.cloud.jenkins.checkgatingstatus.pipeline;
 
 import edu.umd.cs.findbugs.annotations.ReturnValuesAreNonnullByDefault;
 

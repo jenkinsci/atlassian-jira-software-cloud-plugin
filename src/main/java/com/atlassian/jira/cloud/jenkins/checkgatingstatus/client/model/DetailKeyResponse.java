@@ -1,4 +1,4 @@
-package com.atlassian.jira.cloud.jenkins.checkgatestatus.client.model;
+package com.atlassian.jira.cloud.jenkins.checkgatingstatus.client.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;

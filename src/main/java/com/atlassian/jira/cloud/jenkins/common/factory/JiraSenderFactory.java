@@ -3,8 +3,8 @@ package com.atlassian.jira.cloud.jenkins.common.factory;
 import com.atlassian.jira.cloud.jenkins.auth.AccessTokenRetriever;
 import com.atlassian.jira.cloud.jenkins.buildinfo.service.JiraBuildInfoSender;
 import com.atlassian.jira.cloud.jenkins.buildinfo.service.JiraBuildInfoSenderImpl;
-import com.atlassian.jira.cloud.jenkins.checkgatestatus.service.JiraGateStatusRetriever;
-import com.atlassian.jira.cloud.jenkins.checkgatestatus.service.JiraGateStatusRetrieverImpl;
+import com.atlassian.jira.cloud.jenkins.checkgatingstatus.service.JiraGatingStatusRetriever;
+import com.atlassian.jira.cloud.jenkins.checkgatingstatus.service.JiraGatingStatusRetrieverImpl;
 import com.atlassian.jira.cloud.jenkins.common.client.JiraApi;
 import com.atlassian.jira.cloud.jenkins.common.config.JiraSiteConfigRetriever;
 import com.atlassian.jira.cloud.jenkins.common.config.JiraSiteConfigRetrieverImpl;
@@ -30,7 +30,7 @@ public final class JiraSenderFactory {
 
     private JiraBuildInfoSender jiraBuildInfoSender;
     private JiraDeploymentInfoSender jiraDeploymentInfoSender;
-    private JiraGateStatusRetriever jiraGateStatusRetriever;
+    private JiraGatingStatusRetriever jiraGatingStatusRetriever;
 
     private JiraSenderFactory() {
         final ObjectMapperProvider objectMapperProvider = new ObjectMapperProvider();
@@ -88,8 +88,8 @@ public final class JiraSenderFactory {
                         changeLogIssueKeyExtractor,
                         new RunWrapperProviderImpl());
 
-        this.jiraGateStatusRetriever =
-                new JiraGateStatusRetrieverImpl(
+        this.jiraGatingStatusRetriever =
+                new JiraGatingStatusRetrieverImpl(
                         siteConfigRetriever,
                         secretRetriever,
                         cloudIdResolver,
@@ -118,7 +118,7 @@ public final class JiraSenderFactory {
         return jiraDeploymentInfoSender;
     }
 
-    public JiraGateStatusRetriever getJiraGateStateRetriever() {
-        return jiraGateStatusRetriever;
+    public JiraGatingStatusRetriever getJiraGateStateRetriever() {
+        return jiraGatingStatusRetriever;
     }
 }
