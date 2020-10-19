@@ -12,6 +12,7 @@ import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.DeploymentPayloadBuilder;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Association;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.AssociationType;
+import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Command;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.DeploymentApiResponse;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Deployments;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Environment;
@@ -20,6 +21,7 @@ import com.atlassian.jira.cloud.jenkins.util.JenkinsToJiraStatus;
 import com.atlassian.jira.cloud.jenkins.util.RunWrapperProvider;
 import com.atlassian.jira.cloud.jenkins.util.SecretRetriever;
 import com.atlassian.jira.cloud.jenkins.util.StateValidator;
+import com.google.common.collect.ImmutableList;
 import hudson.model.Result;
 import hudson.model.Run;
 import org.apache.commons.lang.StringUtils;
@@ -44,10 +46,11 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
     private static final String HTTPS_PROTOCOL = "https://";
 
     // this code do the same thing as RunWrapper#getCurrentResult()
-    private static final Function<WorkflowRun, String> getJenkinsBuildStatus = run ->
-            Optional.ofNullable(run.getResult())
-                    .map(Result::toString)
-                    .orElseGet(Result.SUCCESS::toString);
+    private static final Function<WorkflowRun, String> getJenkinsBuildStatus =
+            run ->
+                    Optional.ofNullable(run.getResult())
+                            .map(Result::toString)
+                            .orElseGet(Result.SUCCESS::toString);
 
     private final JiraSiteConfigRetriever siteConfigRetriever;
     private final SecretRetriever secretRetriever;
@@ -79,6 +82,7 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
         final String jiraSite = request.getSite();
         final WorkflowRun deployment = request.getDeployment();
         final Set<String> serviceIds = request.getServiceIds();
+        final Boolean enableGating = request.getEnableGating();
 
         final Optional<JiraCloudSiteConfig> maybeSiteConfig = getSiteConfigFor(jiraSite);
 
@@ -112,7 +116,8 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
         final Set<String> issueKeys = issueKeyExtractor.extractIssueKeys(deployment);
 
         if (issueKeys.isEmpty() && serviceIds.isEmpty()) {
-            return JiraDeploymentInfoResponse.skippedIssueKeysNotFoundAndServiceIdsAreEmpty(resolvedSiteConfig);
+            return JiraDeploymentInfoResponse.skippedIssueKeysNotFoundAndServiceIdsAreEmpty(
+                    resolvedSiteConfig);
         }
 
         final Set<Association> associations = buildAssociations(issueKeys, serviceIds);
@@ -129,8 +134,11 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
             return JiraCommonResponse.failureAccessToken(resolvedSiteConfig);
         }
 
+        final List<Command> commands = buildCommands(enableGating);
+
         final Deployments deploymentInfo =
-                createJiraDeploymentInfo(deployment, environment, associations, deploymentState);
+                createJiraDeploymentInfo(
+                        deployment, environment, associations, deploymentState, commands);
 
         final PostUpdateResult<DeploymentApiResponse> postUpdateResult =
                 sendDeploymentInfo(
@@ -168,10 +176,15 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
     }
 
     private Deployments createJiraDeploymentInfo(
-            final Run build, final Environment environment, final Set<Association> associations, final String state) {
+            final Run build,
+            final Environment environment,
+            final Set<Association> associations,
+            final String state,
+            final List<Command> commands) {
         final RunWrapper buildWrapper = runWrapperProvider.getWrapper(build);
 
-        return DeploymentPayloadBuilder.getDeploymentInfo(buildWrapper, environment, associations, state);
+        return DeploymentPayloadBuilder.getDeploymentInfo(
+                buildWrapper, environment, associations, state, commands);
     }
 
     private PostUpdateResult<DeploymentApiResponse> sendDeploymentInfo(
@@ -228,7 +241,8 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
                 .orElseGet(() -> JenkinsToJiraStatus.getStatus(getJenkinsBuildStatus.apply(build)));
     }
 
-    private Set<Association> buildAssociations(final Set<String> issueKeys, final Set<String> serviceIds) {
+    private Set<Association> buildAssociations(
+            final Set<String> issueKeys, final Set<String> serviceIds) {
         final HashSet<Association> associations = new HashSet<>();
 
         if (!issueKeys.isEmpty()) {
@@ -247,5 +261,13 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
                             .build());
         }
         return associations;
+    }
+
+    private List<Command> buildCommands(final Boolean enableGating) {
+        final ImmutableList.Builder<Command> commandsBuilder = ImmutableList.builder();
+        if (enableGating) {
+            commandsBuilder.add(new Command("initiate_deployment_gating"));
+        }
+        return commandsBuilder.build();
     }
 }

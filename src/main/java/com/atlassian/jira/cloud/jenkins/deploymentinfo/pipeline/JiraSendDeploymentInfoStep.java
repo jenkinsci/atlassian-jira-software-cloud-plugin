@@ -41,6 +41,7 @@ public class JiraSendDeploymentInfoStep extends Step implements Serializable {
     private String environmentType;
     private String state;
     private List<String> serviceIds = new ArrayList<>();
+    private Boolean enableGating = Boolean.FALSE;
 
     @DataBoundConstructor
     public JiraSendDeploymentInfoStep(
@@ -109,6 +110,15 @@ public class JiraSendDeploymentInfoStep extends Step implements Serializable {
     @DataBoundSetter
     public void setServiceIds(final List<String> serviceIds) {
         this.serviceIds = serviceIds;
+    }
+
+    public Boolean getEnableGating() {
+        return enableGating;
+    }
+
+    @DataBoundSetter
+    public void setEnableGating(final Boolean enableGating) {
+        this.enableGating = enableGating;
     }
 
     @Extension
@@ -188,6 +198,7 @@ public class JiraSendDeploymentInfoStep extends Step implements Serializable {
                             step.getEnvironmentType(),
                             step.getState(),
                             serviceIds,
+                            step.getEnableGating(),
                             workflowRun);
             final JiraSendInfoResponse response =
                     JiraSenderFactory.getInstance()

@@ -20,11 +20,14 @@ public class JiraDeploymentInfoResponse extends JiraSendInfoResponse {
         return new JiraDeploymentInfoResponse(Status.FAILURE_ENVIRONMENT_INVALID, message);
     }
 
-    public static JiraSendInfoResponse skippedIssueKeysNotFoundAndServiceIdsAreEmpty(final String jiraSite) {
+    public static JiraSendInfoResponse skippedIssueKeysNotFoundAndServiceIdsAreEmpty(
+            final String jiraSite) {
         final String message =
-                Messages.JiraDeploymentInfoResponse_SKIPPED_ISSUE_KEYS_NOT_FOUND_AND_SERVICE_IDS_NOT_PROVIDED(
-                        jiraSite);
-        return new JiraDeploymentInfoResponse(Status.SKIPPED_ISSUE_KEYS_NOT_FOUND_AND_SERVICE_IDS_ARE_EMPTY, message);
+                Messages
+                        .JiraDeploymentInfoResponse_SKIPPED_ISSUE_KEYS_NOT_FOUND_AND_SERVICE_IDS_NOT_PROVIDED(
+                                jiraSite);
+        return new JiraDeploymentInfoResponse(
+                Status.SKIPPED_ISSUE_KEYS_NOT_FOUND_AND_SERVICE_IDS_ARE_EMPTY, message);
     }
 
     public static JiraDeploymentInfoResponse successDeploymentAccepted(
