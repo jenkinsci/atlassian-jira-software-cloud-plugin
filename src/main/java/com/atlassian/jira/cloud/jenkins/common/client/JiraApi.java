@@ -3,6 +3,7 @@ package com.atlassian.jira.cloud.jenkins.common.client;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
+import io.github.resilience4j.ratelimiter.RequestNotPermitted;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -42,19 +43,19 @@ public class JiraApi {
      *     DeploymentApiResponse
      * @param cloudId Jira Cloud Id
      * @param accessToken Access token generated from Atlassian API
-     * @param jiraSiteUrl Jira site URL
+     * @param clientId oAuth client id
      * @param jiraRequest An assembled payload to be submitted to Jira
      * @return Response from the API
      */
     public <ResponseEntity> PostUpdateResult<ResponseEntity> postUpdate(
             final String cloudId,
             final String accessToken,
-            final String jiraSiteUrl,
+            final String clientId,
             final JiraRequest jiraRequest,
             final Class<ResponseEntity> responseClass) {
         try {
             final String requestPayload = objectMapper.writeValueAsString(jiraRequest);
-            final Request request = getRequest(cloudId, accessToken, requestPayload);
+            final Request request = getRequest(cloudId, accessToken, requestPayload, clientId);
             final Response response = httpClient.newCall(request).execute();
 
             checkForErrorResponse(response);
@@ -72,6 +73,8 @@ public class JiraApi {
                             "Server exception when submitting update to Jira: %s", e.getMessage()));
         } catch (ApiUpdateFailedException e) {
             return handleError(e.getMessage());
+        } catch (RequestNotPermitted e) {
+            return handleError("Your OAuth client reached Jira's limits " + e.getMessage());
         } catch (Exception e) {
             return handleError(
                     String.format(
@@ -117,11 +120,12 @@ public class JiraApi {
     }
 
     private Request getRequest(
-            final String cloudId, final String accessToken, final String requestPayload) {
+            final String cloudId, final String accessToken, final String requestPayload, final String clientId) {
         RequestBody body = RequestBody.create(JSON, requestPayload);
         return new Request.Builder()
                 .url(String.format(this.apiEndpoint, cloudId))
                 .addHeader("Authorization", "Bearer " + accessToken)
+                .tag(String.class, clientId)
                 .post(body)
                 .build();
     }

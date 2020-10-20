@@ -1,6 +1,10 @@
 package com.atlassian.jira.cloud.jenkins.provider;
 
+import com.atlassian.jira.cloud.jenkins.Config;
 import com.google.inject.Provides;
+import io.github.resilience4j.ratelimiter.RateLimiter;
+import io.github.resilience4j.ratelimiter.RateLimiterRegistry;
+import io.github.resilience4j.ratelimiter.RequestNotPermitted;
 import okhttp3.Interceptor;
 import okhttp3.Interceptor.Chain;
 import okhttp3.OkHttpClient;
@@ -21,6 +25,7 @@ public class HttpClientProvider {
     private final OkHttpClient httpClient;
 
     public HttpClientProvider() {
+        final RateLimiterRegistry rateLimiterRegistry = Config.RATE_LIMITER_REGISTRY;
         httpClient =
                 new OkHttpClient.Builder()
                         .connectTimeout(Duration.ofMillis(5000))
@@ -28,7 +33,36 @@ public class HttpClientProvider {
                         .writeTimeout(Duration.ofMillis(5000))
                         .addInterceptor(userAgentInterceptor())
                         .addInterceptor(retryInterceptor())
+                        .addInterceptor(rateLimiterInterceptor(rateLimiterRegistry))
                         .build();
+    }
+
+    private Interceptor rateLimiterInterceptor(final RateLimiterRegistry rateLimiterRegistry) {
+        return chain -> {
+            final Request request = chain.request();
+            final String clientId = request.tag(String.class);
+            if (clientId != null) {
+                final RateLimiter rateLimiter =
+                        rateLimiterRegistry.rateLimiter(
+                                clientId, Config.ATLASSIAN_RATE_LIMITER_CONFIG);
+                try {
+                    return rateLimiter.executeCallable(() -> chain.proceed(request));
+                } catch (Exception e) {
+                    if (e instanceof IOException) {
+                        // case Http client errors
+                        // it should be always IOException since it's a contract of Interceptor
+                        throw (IOException) e;
+                    } else if (e instanceof RequestNotPermitted) {
+                        // case over limits
+                        throw (RequestNotPermitted) e;
+                    } else {
+                        // all other cases
+                        throw new RuntimeException(e);
+                    }
+                }
+            }
+            return chain.proceed(request);
+        };
     }
 
     private Interceptor retryInterceptor() {
