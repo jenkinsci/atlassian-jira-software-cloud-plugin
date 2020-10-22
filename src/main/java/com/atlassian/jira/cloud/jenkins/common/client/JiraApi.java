@@ -76,7 +76,7 @@ public class JiraApi {
         } catch (ApiUpdateFailedException e) {
             return handleError(e.getMessage());
         } catch (RequestNotPermitted e) {
-            return handleError("Your OAuth client riches Jira's limits " + e.getMessage());
+            return handleError("Your OAuth client reached Jira's limits " + e.getMessage());
         } catch (Exception e) {
             return handleError(
                     String.format(
@@ -118,7 +118,7 @@ public class JiraApi {
         } catch (ApiUpdateFailedException e) {
             return handleError(e.getMessage());
         } catch (RequestNotPermitted e) {
-            return handleError("Your OAuth client riches Jira's limits " + e.getMessage());
+            return handleError("Your OAuth client reached Jira's limits " + e.getMessage());
         } catch (Exception e) {
             return handleError(
                     String.format(

@@ -8,8 +8,13 @@ import com.atlassian.jira.cloud.jenkins.common.model.ApiErrorResponse;
 import com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse;
 import com.atlassian.jira.cloud.jenkins.common.service.IssueKeyExtractor;
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
+import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Association;
+import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.AssociationType;
+import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Command;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.DeploymentApiResponse;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.DeploymentKeyResponse;
+import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Deployments;
+import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.JiraDeploymentInfo;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.RejectedDeploymentResponse;
 import com.atlassian.jira.cloud.jenkins.tenantinfo.CloudIdResolver;
 import com.atlassian.jira.cloud.jenkins.util.RunWrapperProvider;
@@ -22,6 +27,7 @@ import org.jenkinsci.plugins.workflow.support.steps.build.RunWrapper;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -32,10 +38,13 @@ import java.util.UUID;
 import static com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse.Status.FAILURE_SECRET_NOT_FOUND;
 import static com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse.Status.FAILURE_SITE_CONFIG_NOT_FOUND;
 import static com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse.Status.FAILURE_SITE_NOT_FOUND;
-import static com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse.Status.SKIPPED_ISSUE_KEYS_NOT_FOUND;
+import static com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse.Status.SKIPPED_ISSUE_KEYS_NOT_FOUND_AND_SERVICE_IDS_ARE_EMPTY;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -115,9 +124,12 @@ public class JiraDeploymentInfoSenderImplTest {
         final JiraSendInfoResponse response = classUnderTest.sendDeploymentInfo(createRequest());
 
         // then
-        assertThat(response.getStatus()).isEqualTo(SKIPPED_ISSUE_KEYS_NOT_FOUND);
+        assertThat(response.getStatus())
+                .isEqualTo(SKIPPED_ISSUE_KEYS_NOT_FOUND_AND_SERVICE_IDS_ARE_EMPTY);
         final String message = response.getMessage();
-        assertThat(message).startsWith("No issue keys found in the change log");
+        assertThat(message)
+                .startsWith(
+                        "No issue keys found in the change log and service ids were not provided");
     }
 
     @Test
@@ -189,7 +201,7 @@ public class JiraDeploymentInfoSenderImplTest {
     }
 
     @Test
-    public void testSendDeploymentInfo_whenUnknownIssueKeys() {
+    public void testSendDeploymentInfo_whenUnknownAssociations() {
         // given
         setupDeploymentApiUnknownIssueKeys();
 
@@ -197,7 +209,7 @@ public class JiraDeploymentInfoSenderImplTest {
         final JiraSendInfoResponse response = classUnderTest.sendDeploymentInfo(createRequest());
 
         assertThat(response.getStatus())
-                .isEqualTo(JiraSendInfoResponse.Status.FAILURE_UNKNOWN_ISSUE_KEYS);
+                .isEqualTo(JiraSendInfoResponse.Status.FAILURE_UNKNOWN_ASSOCIATIONS);
         final String message = response.getMessage();
         assertThat(message).isNotBlank();
     }
@@ -238,9 +250,94 @@ public class JiraDeploymentInfoSenderImplTest {
                                 + "Allowed values are: [development, testing, staging, production, unmapped]");
     }
 
+    @Test
+    public void testSendDeploymentInfo_whenNotAllowedDeploymentState() {
+        // given
+        final JiraDeploymentInfoRequest request = createRequest("test");
+        final WorkflowRun mockWorkflowRun = request.getDeployment();
+
+        // when
+        final JiraSendInfoResponse response = classUnderTest.sendDeploymentInfo(request);
+
+        // then
+        verify(mockWorkflowRun, never()).getResult();
+        assertThat(response.getStatus())
+                .isEqualTo(JiraSendInfoResponse.Status.FAILURE_STATE_INVALID);
+        assertThat(response.getMessage())
+                .isEqualTo(
+                        "The deployment state is not valid. "
+                                + "The parameter state is not valid. "
+                                + "Allowed values are: [unknown, pending, in_progress, cancelled, failed, rolled_back, successful]");
+    }
+
+    @Test
+    public void testSendDeploymentInfo_whenGateEnabled() {
+        // given
+        setupDeploymentsApiDeploymentAccepted();
+        final JiraDeploymentInfoRequest request =
+                new JiraDeploymentInfoRequest(
+                        SITE,
+                        ENVIRONMENT_ID,
+                        ENVIRONMENT_NAME,
+                        ENVIRONMENT_TYPE,
+                        "pending",
+                        Collections.emptySet(),
+                        Boolean.TRUE,
+                        mockWorkflowRun());
+
+        final ArgumentCaptor<Deployments> deploymentsArgumentCaptor =
+                ArgumentCaptor.forClass(Deployments.class);
+
+        // when
+        final JiraSendInfoResponse response = classUnderTest.sendDeploymentInfo(request);
+
+        // then
+        assertThat(response.getStatus())
+                .isEqualTo(JiraSendInfoResponse.Status.SUCCESS_DEPLOYMENT_ACCEPTED);
+        verify(deploymentsApi)
+                .postUpdate(any(), any(), any(), deploymentsArgumentCaptor.capture(), any());
+        final JiraDeploymentInfo jiraDeploymentInfo =
+                deploymentsArgumentCaptor.getValue().getDeployments().get(0);
+        assertThat(jiraDeploymentInfo.getCommands())
+                .contains(new Command("initiate_deployment_gating"));
+    }
+
+    @Test
+    public void getDeploymentState_whenUsedJenkinsRunState() {
+        // given
+        when(issueKeyExtractor.extractIssueKeys(any())).thenReturn(Collections.emptySet());
+        JiraDeploymentInfoRequest request = createRequest();
+        final WorkflowRun mockWorkflowRun = request.getDeployment();
+
+        // when
+        final JiraSendInfoResponse response = classUnderTest.sendDeploymentInfo(request);
+
+        // then
+        verify(mockWorkflowRun, times(1)).getResult();
+    }
+
     private JiraDeploymentInfoRequest createRequest() {
         return new JiraDeploymentInfoRequest(
-                SITE, ENVIRONMENT_ID, ENVIRONMENT_NAME, ENVIRONMENT_TYPE, mockWorkflowRun());
+                SITE,
+                ENVIRONMENT_ID,
+                ENVIRONMENT_NAME,
+                ENVIRONMENT_TYPE,
+                null,
+                Collections.emptySet(),
+                Boolean.FALSE,
+                mockWorkflowRun());
+    }
+
+    private JiraDeploymentInfoRequest createRequest(final String state) {
+        return new JiraDeploymentInfoRequest(
+                SITE,
+                ENVIRONMENT_ID,
+                ENVIRONMENT_NAME,
+                ENVIRONMENT_TYPE,
+                state,
+                Collections.emptySet(),
+                Boolean.FALSE,
+                mockWorkflowRun());
     }
 
     private JiraDeploymentInfoRequest createRequest(
@@ -248,7 +345,14 @@ public class JiraDeploymentInfoSenderImplTest {
             final String environmentName,
             final String environmentType) {
         return new JiraDeploymentInfoRequest(
-                SITE, environmentId, environmentName, environmentType, mockWorkflowRun());
+                SITE,
+                environmentId,
+                environmentName,
+                environmentType,
+                null,
+                Collections.emptySet(),
+                Boolean.FALSE,
+                mockWorkflowRun());
     }
 
     private void setupMocks() {
@@ -290,7 +394,6 @@ public class JiraDeploymentInfoSenderImplTest {
             when(mockRunWrapper.getAbsoluteUrl())
                     .thenReturn(
                             "http://localhost:8080/jenkins/multibranch-1/job/TEST-123-branch-name");
-            when(mockRunWrapper.getCurrentResult()).thenReturn("SUCCESS_DEPLOYMENT_ACCEPTED");
             when(runWrapperProvider.getWrapper(any())).thenReturn(mockRunWrapper);
         } catch (final AbortException e) {
             throw new RuntimeException(e);
@@ -336,7 +439,11 @@ public class JiraDeploymentInfoSenderImplTest {
                 new DeploymentApiResponse(
                         Collections.emptyList(),
                         Collections.emptyList(),
-                        ImmutableList.of("TEST-123"));
+                        Collections.singletonList(
+                                Association.builder()
+                                        .withAssociationType(AssociationType.ISSUE_KEYS)
+                                        .withValues(ImmutableSet.of("TEST-123"))
+                                        .build()));
         when(deploymentsApi.postUpdate(any(), any(), any(), any(), any()))
                 .thenReturn(new PostUpdateResult<>(deploymentApiResponse));
     }

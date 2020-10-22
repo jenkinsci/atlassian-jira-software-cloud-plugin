@@ -1,11 +1,8 @@
 package com.atlassian.jira.cloud.jenkins.util;
 
+import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.State;
+
 public final class JenkinsToJiraStatus {
-
-    private static final String STATUS_SUCCESSFUL = "successful";
-    private static final String STATUS_FAILED = "failed";
-    private static final String STATUS_UNKNOWN = "unknown";
-
     /**
      * Maps a Jenkins Build status to Jira API build/deployment status 
      * @param jenkinsBuildStatus Status from Jenkins context (Run)
@@ -13,13 +10,13 @@ public final class JenkinsToJiraStatus {
      */
     public static String getStatus(final String jenkinsBuildStatus) {
         if ("SUCCESS".equalsIgnoreCase(jenkinsBuildStatus)) {
-            return STATUS_SUCCESSFUL;
+            return State.SUCCESSFUL.value;
         }
 
         if ("FAILURE".equalsIgnoreCase(jenkinsBuildStatus)) {
-            return STATUS_FAILED;
+            return State.FAILED.value;
         }
 
-        return STATUS_UNKNOWN;
+        return State.UNKNOWN.value;
     }
 }
