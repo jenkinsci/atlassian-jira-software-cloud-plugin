@@ -18,6 +18,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.UUID;
@@ -69,7 +70,7 @@ public class JiraGatingStatusRetrieverImplTest {
         when(siteConfigRetriever.getJiraSiteConfig(any())).thenReturn(Optional.empty());
 
         // when
-        final JiraGatingStatusResponse response = classUnderTest.getGatingState(createRequest());
+        final JiraGatingStatusResponse response = classUnderTest.getGatingStatus(createRequest());
 
         // then
         assertThat(response.getStatus()).isEqualTo(FAILURE_SITE_CONFIG_NOT_FOUND);
@@ -81,7 +82,7 @@ public class JiraGatingStatusRetrieverImplTest {
         when(secretRetriever.getSecretFor(any())).thenReturn(Optional.empty());
 
         // when
-        final JiraGatingStatusResponse response = classUnderTest.getGatingState(createRequest());
+        final JiraGatingStatusResponse response = classUnderTest.getGatingStatus(createRequest());
 
         // then
         assertThat(response.getStatus()).isEqualTo(FAILURE_SECRET_NOT_FOUND);
@@ -93,7 +94,7 @@ public class JiraGatingStatusRetrieverImplTest {
         when(cloudIdResolver.getCloudId(any())).thenReturn(Optional.empty());
 
         // when
-        final JiraGatingStatusResponse response = classUnderTest.getGatingState(createRequest());
+        final JiraGatingStatusResponse response = classUnderTest.getGatingStatus(createRequest());
 
         // then
         assertThat(response.getStatus()).isEqualTo(FAILURE_SITE_NOT_FOUND);
@@ -105,7 +106,7 @@ public class JiraGatingStatusRetrieverImplTest {
         when(accessTokenRetriever.getAccessToken(any())).thenReturn(Optional.empty());
 
         // when
-        final JiraGatingStatusResponse response = classUnderTest.getGatingState(createRequest());
+        final JiraGatingStatusResponse response = classUnderTest.getGatingStatus(createRequest());
 
         // then
         assertThat(response.getStatus())
@@ -118,7 +119,7 @@ public class JiraGatingStatusRetrieverImplTest {
         setupApiFailure();
 
         // when
-        final JiraGatingStatusResponse response = classUnderTest.getGatingState(createRequest());
+        final JiraGatingStatusResponse response = classUnderTest.getGatingStatus(createRequest());
 
         // then
         assertThat(response.getStatus()).isEqualTo(JiraSendInfoResponse.Status.FAILURE_GATE_CHECK);
@@ -130,7 +131,7 @@ public class JiraGatingStatusRetrieverImplTest {
         setupApiSuccess();
 
         // when
-        final JiraGatingStatusResponse response = classUnderTest.getGatingState(createRequest());
+        final JiraGatingStatusResponse response = classUnderTest.getGatingStatus(createRequest());
 
         // then
         assertThat(response.getStatus()).isEqualTo(JiraSendInfoResponse.Status.SUCCESS_GATE_CHECK);
@@ -179,7 +180,13 @@ public class JiraGatingStatusRetrieverImplTest {
 
     private void setupApiSuccess() {
         final GatingStatusResponse gatingStatusResponse =
-                new GatingStatusResponse(GatingStatus.AWAITING, Collections.emptyList());
+                new GatingStatusResponse(
+                        LocalDateTime.now().toString(),
+                        GatingStatus.AWAITING,
+                        Collections.emptyList(),
+                        PIPELINE_ID,
+                        ENVIRONMENT_ID,
+                        BUILD_NUMBER);
         when(jiraApi.getResult(any(), any(), any(), any()))
                 .thenReturn(new PostUpdateResult<>(gatingStatusResponse));
     }

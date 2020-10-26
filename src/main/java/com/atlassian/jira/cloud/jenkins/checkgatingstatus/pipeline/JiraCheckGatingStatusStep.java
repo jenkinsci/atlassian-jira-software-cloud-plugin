@@ -11,6 +11,7 @@ import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
 import com.google.common.collect.ImmutableSet;
 import hudson.AbortException;
 import hudson.Extension;
+import hudson.model.Executor;
 import hudson.model.Result;
 import hudson.model.TaskListener;
 import hudson.util.ListBoxModel;
@@ -29,6 +30,12 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Set;
 
+import static java.util.Objects.requireNonNull;
+
+/**
+ * Implementation of the "checkGatingStatus" step that can be used in Jenkinsfile to check gating
+ * status managed by Jira Service Desk.
+ */
 public class JiraCheckGatingStatusStep extends Step implements Serializable {
     private static final long serialVersionUID = 1L;
 
@@ -112,8 +119,9 @@ public class JiraCheckGatingStatusStep extends Step implements Serializable {
          */
         @Override
         protected Boolean run() throws Exception {
-            final TaskListener taskListener = getContext().get(TaskListener.class);
-            final WorkflowRun run = getContext().get(WorkflowRun.class);
+            final TaskListener taskListener = requireNonNull(getContext().get(TaskListener.class));
+            final WorkflowRun run = requireNonNull(getContext().get(WorkflowRun.class));
+            final Executor executor = requireNonNull(run.getExecutor());
 
             final GatingStatusRequest gatingStatusRequest =
                     new GatingStatusRequest(step.getSite(), step.getEnvironmentId(), run);
@@ -121,7 +129,7 @@ public class JiraCheckGatingStatusStep extends Step implements Serializable {
             final JiraGatingStatusResponse response =
                     JiraSenderFactory.getInstance()
                             .getJiraGateStateRetriever()
-                            .getGatingState(gatingStatusRequest);
+                            .getGatingStatus(gatingStatusRequest);
 
             logResult(taskListener, response);
 
@@ -134,7 +142,8 @@ public class JiraCheckGatingStatusStep extends Step implements Serializable {
                     return true;
                 case EXPIRED:
                 case PREVENTED:
-                    run.getExecutor().interrupt(Result.ABORTED, new DeploymentAborted());
+                    executor.interrupt(Result.ABORTED, new DeploymentAborted());
+                    return false;
                 case AWAITING:
                     return false;
                 case INVALID:

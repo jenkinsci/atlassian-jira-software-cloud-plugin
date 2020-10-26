@@ -39,7 +39,7 @@ public class JiraGatingStatusRetrieverImpl implements JiraGatingStatusRetriever 
     }
 
     @Override
-    public JiraGatingStatusResponse getGatingState(final GatingStatusRequest request) {
+    public JiraGatingStatusResponse getGatingStatus(final GatingStatusRequest request) {
         final String jiraSite = request.getSite();
         final WorkflowRun run = request.getRun();
 

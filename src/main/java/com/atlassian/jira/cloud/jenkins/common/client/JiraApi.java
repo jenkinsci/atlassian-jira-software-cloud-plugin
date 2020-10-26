@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import io.github.resilience4j.ratelimiter.RequestNotPermitted;
+import okhttp3.HttpUrl;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -17,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Inject;
 import java.io.IOException;
 import java.io.NotSerializableException;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -177,11 +179,21 @@ public class JiraApi {
                 .build();
     }
 
+    /*
+     * Replaces placeholders with values from map
+     * */
     private Request getRequest(
             final String accessToken, final Map<String, String> pathParams, final String clientId) {
-        final String url = StrSubstitutor.replace(this.apiEndpoint, pathParams);
+        final HttpUrl url = HttpUrl.parse(this.apiEndpoint);
+        // workaround to encode path segments
+        final List<String> segments = url.pathSegments();
+        final HttpUrl.Builder builder = url.newBuilder();
+        for (int i = 0; i < segments.size(); i++) {
+            builder.setPathSegment(i, StrSubstitutor.replace(segments.get(i), pathParams));
+        }
+
         return new Request.Builder()
-                .url(url)
+                .url(builder.build())
                 .addHeader("Authorization", "Bearer " + accessToken)
                 .tag(String.class, clientId)
                 .get()
