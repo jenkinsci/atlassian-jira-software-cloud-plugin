@@ -109,7 +109,7 @@ public class JiraCheckGatingStatusStepTest {
         // given
         final WorkflowRun mockWorkflowRun = mock(WorkflowRun.class);
         final TaskListener mockTaskListener = mock(TaskListener.class);
-        when(mockTaskListener.getLogger()).thenReturn(mock(PrintStream.class));
+        final Executor executor = mock(Executor.class);
 
         final Map<String, Object> r = new HashMap<>();
         r.put("site", SITE);
@@ -136,6 +136,8 @@ public class JiraCheckGatingStatusStepTest {
         final JiraGatingStatusResponse gateStatusResponse =
                 JiraGatingStatusResponse.success(apiResponse);
         when(mockRetriever.getGatingStatus(any())).thenReturn(gateStatusResponse);
+        when(mockTaskListener.getLogger()).thenReturn(mock(PrintStream.class));
+        when(mockWorkflowRun.getExecutor()).thenReturn(executor);
 
         // when
         final Boolean response = start.run();
@@ -149,7 +151,7 @@ public class JiraCheckGatingStatusStepTest {
         // given
         final WorkflowRun mockWorkflowRun = mock(WorkflowRun.class);
         final TaskListener mockTaskListener = mock(TaskListener.class);
-        when(mockTaskListener.getLogger()).thenReturn(mock(PrintStream.class));
+        final Executor executor = mock(Executor.class);
 
         final Map<String, Object> r = new HashMap<>();
         r.put("site", SITE);
@@ -161,6 +163,8 @@ public class JiraCheckGatingStatusStepTest {
         when(ctx.get(Node.class)).thenReturn(jenkinsRule.getInstance());
         when(ctx.get(WorkflowRun.class)).thenReturn(mockWorkflowRun);
         when(ctx.get(TaskListener.class)).thenReturn(mockTaskListener);
+        when(mockTaskListener.getLogger()).thenReturn(mock(PrintStream.class));
+        when(mockWorkflowRun.getExecutor()).thenReturn(executor);
 
         final JiraCheckGatingStatusStep.CheckGatingStatusExecution start =
                 (JiraCheckGatingStatusStep.CheckGatingStatusExecution) step.start(ctx);

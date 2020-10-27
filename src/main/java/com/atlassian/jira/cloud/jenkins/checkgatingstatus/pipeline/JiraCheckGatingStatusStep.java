@@ -11,7 +11,6 @@ import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
 import com.google.common.collect.ImmutableSet;
 import hudson.AbortException;
 import hudson.Extension;
-import hudson.model.Executor;
 import hudson.model.Result;
 import hudson.model.TaskListener;
 import hudson.util.ListBoxModel;
@@ -28,6 +27,7 @@ import org.kohsuke.stapler.DataBoundSetter;
 import javax.inject.Inject;
 import java.io.Serializable;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import static java.util.Objects.requireNonNull;
@@ -68,7 +68,8 @@ public class JiraCheckGatingStatusStep extends Step implements Serializable {
     @Extension
     public static class DescriptorImpl extends StepDescriptor {
 
-        @Inject private transient JiraCloudPluginConfig globalConfig;
+        @Inject
+        private transient JiraCloudPluginConfig globalConfig;
 
         @Override
         public Set<Class<?>> getRequiredContext() {
@@ -114,14 +115,13 @@ public class JiraCheckGatingStatusStep extends Step implements Serializable {
          * This execution returns
          *
          * @return {@code true}, if deployment has been approved {@code false}, if gating status is
-         *     unknown or not approved/rejected yet
+         * unknown or not approved/rejected yet
          * @throws AbortException if deployment has been rejected, or client has reached limits
          */
         @Override
         protected Boolean run() throws Exception {
             final TaskListener taskListener = requireNonNull(getContext().get(TaskListener.class));
             final WorkflowRun run = requireNonNull(getContext().get(WorkflowRun.class));
-            final Executor executor = requireNonNull(run.getExecutor());
 
             final GatingStatusRequest gatingStatusRequest =
                     new GatingStatusRequest(step.getSite(), step.getEnvironmentId(), run);
@@ -142,7 +142,8 @@ public class JiraCheckGatingStatusStep extends Step implements Serializable {
                     return true;
                 case EXPIRED:
                 case PREVENTED:
-                    executor.interrupt(Result.ABORTED, new DeploymentAborted());
+                    Optional.ofNullable(run.getExecutor())
+                            .ifPresent(executor -> executor.interrupt(Result.ABORTED, new DeploymentAborted()));
                     return false;
                 case AWAITING:
                     return false;
