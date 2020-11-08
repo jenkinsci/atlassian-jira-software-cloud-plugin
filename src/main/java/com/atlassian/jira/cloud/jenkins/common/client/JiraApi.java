@@ -4,18 +4,22 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import io.github.resilience4j.ratelimiter.RequestNotPermitted;
+import okhttp3.HttpUrl;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
+import org.apache.commons.lang.text.StrSubstitutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import java.io.IOException;
 import java.io.NotSerializableException;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /** Common HTTP client to talk to Jira Build and Deployment APIs in Jira */
@@ -82,6 +86,48 @@ public class JiraApi {
         }
     }
 
+    /**
+     * Submits an update to the Atlassian Builds or Deployments API and returns the response
+     *
+     * @param <ResponseEntity> Response entity, which can be either BuildApiResponse or
+     *     DeploymentApiResponse
+     * @param accessToken Access token generated from Atlassian API
+     * @param pathParams Params to be injected to the url
+     * @return Response from the API
+     */
+    public <ResponseEntity> PostUpdateResult<ResponseEntity> getResult(
+            final String accessToken,
+            final Map<String, String> pathParams,
+            final String clientId,
+            final Class<ResponseEntity> responseClass) {
+        try {
+            final Request request = getRequest(accessToken, pathParams, clientId);
+            final Response response = httpClient.newCall(request).execute();
+
+            checkForErrorResponse(response);
+
+            final ResponseEntity responseEntity = handleResponseBody(response, responseClass);
+            return new PostUpdateResult<>(responseEntity);
+        } catch (NotSerializableException e) {
+            return handleError(String.format("Invalid JSON payload: %s", e.getMessage()));
+        } catch (JsonProcessingException e) {
+            return handleError(
+                    String.format("Unable to create the request payload: %s", e.getMessage()));
+        } catch (IOException e) {
+            return handleError(
+                    String.format(
+                            "Server exception when submitting update to Jira: %s", e.getMessage()));
+        } catch (ApiUpdateFailedException e) {
+            return handleError(e.getMessage());
+        } catch (RequestNotPermitted e) {
+            return handleError("Your OAuth client reached Jira's limits " + e.getMessage());
+        } catch (Exception e) {
+            return handleError(
+                    String.format(
+                            "Unexpected error when submitting update to Jira: %s", e.getMessage()));
+        }
+    }
+
     private void checkForErrorResponse(final Response response) throws IOException {
         if (!response.isSuccessful()) {
             final String message =
@@ -120,13 +166,37 @@ public class JiraApi {
     }
 
     private Request getRequest(
-            final String cloudId, final String accessToken, final String requestPayload, final String clientId) {
+            final String cloudId,
+            final String accessToken,
+            final String requestPayload,
+            final String clientId) {
         RequestBody body = RequestBody.create(JSON, requestPayload);
         return new Request.Builder()
                 .url(String.format(this.apiEndpoint, cloudId))
                 .addHeader("Authorization", "Bearer " + accessToken)
                 .tag(String.class, clientId)
                 .post(body)
+                .build();
+    }
+
+    /*
+     * Replaces placeholders with values from map
+     * */
+    private Request getRequest(
+            final String accessToken, final Map<String, String> pathParams, final String clientId) {
+        final HttpUrl url = HttpUrl.parse(this.apiEndpoint);
+        // workaround to encode path segments
+        final List<String> segments = url.pathSegments();
+        final HttpUrl.Builder builder = url.newBuilder();
+        for (int i = 0; i < segments.size(); i++) {
+            builder.setPathSegment(i, StrSubstitutor.replace(segments.get(i), pathParams));
+        }
+
+        return new Request.Builder()
+                .url(builder.build())
+                .addHeader("Authorization", "Bearer " + accessToken)
+                .tag(String.class, clientId)
+                .get()
                 .build();
     }
 

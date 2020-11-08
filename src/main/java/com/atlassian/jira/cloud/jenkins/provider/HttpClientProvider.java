@@ -15,14 +15,21 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.time.Duration;
+import java.util.function.Predicate;
 
-/** OkHttpClient with appropriate default timeouts */
+/**
+ * OkHttpClient with appropriate default timeouts
+ */
 public class HttpClientProvider {
 
     private static final String USER_AGENT = "atlassian-jira-software-cloud-plugin";
 
     private static final Logger log = LoggerFactory.getLogger(HttpClientProvider.class);
     private final OkHttpClient httpClient;
+
+    private final Predicate<Response> serverInternalPredicate = response -> response.code() >= 500;
+    private final Predicate<Response> notFoudPredicate = response ->
+            response.code() == 404 && response.request().url().toString().endsWith("gating-status");
 
     public HttpClientProvider() {
         final RateLimiterRegistry rateLimiterRegistry = Config.RATE_LIMITER_REGISTRY;
@@ -33,6 +40,7 @@ public class HttpClientProvider {
                         .writeTimeout(Duration.ofMillis(5000))
                         .addInterceptor(userAgentInterceptor())
                         .addInterceptor(retryInterceptor())
+                        .addInterceptor(gateRetryInterceptor())
                         .addInterceptor(rateLimiterInterceptor(rateLimiterRegistry))
                         .build();
     }
@@ -65,11 +73,21 @@ public class HttpClientProvider {
         };
     }
 
+    private Interceptor gateRetryInterceptor() {
+        return chain -> {
+            Request request = chain.request();
+            Response response = chain.proceed(request);
+            response = performRetry(chain, request, response, notFoudPredicate);
+
+            return response;
+        };
+    }
+
     private Interceptor retryInterceptor() {
         return chain -> {
             Request request = chain.request();
             Response response = chain.proceed(request);
-            response = performRetry(chain, request, response);
+            response = performRetry(chain, request, response, serverInternalPredicate);
 
             return response;
         };
@@ -85,13 +103,16 @@ public class HttpClientProvider {
     }
 
     private Response performRetry(
-            final Chain chain, final Request request, final Response originalResponse)
+            final Chain chain,
+            final Request request,
+            final Response originalResponse,
+            final Predicate<Response> retryPredicate)
             throws IOException {
         Response response = originalResponse;
         final int MAX_RETRIES = 3;
         int currentAttempt = 1;
 
-        while (response.code() >= 500 && currentAttempt <= MAX_RETRIES) {
+        while (retryPredicate.test(response) && currentAttempt <= MAX_RETRIES) {
             log.warn(
                     String.format(
                             "Received %d for request to %s. Retry attempt %d of %d.",
@@ -101,7 +122,7 @@ public class HttpClientProvider {
                             MAX_RETRIES));
             response.close();
             try {
-                Thread.sleep(2000); // delay between each retry
+                Thread.sleep(5000); // delay between each retry
             } catch (InterruptedException e) {
                 log.error("Retry delay interrupted: " + e.getMessage());
                 Thread.currentThread().interrupt();

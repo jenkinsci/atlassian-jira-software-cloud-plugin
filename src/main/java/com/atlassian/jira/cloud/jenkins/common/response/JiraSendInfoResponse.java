@@ -10,6 +10,7 @@ public abstract class JiraSendInfoResponse implements Serializable {
     public enum Status {
         SUCCESS_BUILD_ACCEPTED,
         SUCCESS_DEPLOYMENT_ACCEPTED,
+        SUCCESS_GATE_CHECK,
         FAILURE_BUILD_REJECTED,
         FAILURE_DEPLOYMENT_REJECTED,
         FAILURE_UNKNOWN_ISSUE_KEYS,
@@ -22,10 +23,11 @@ public abstract class JiraSendInfoResponse implements Serializable {
         FAILURE_BUILDS_API_RESPONSE,
         FAILURE_DEPLOYMENTS_API_RESPONSE,
         FAILURE_UNEXPECTED_RESPONSE,
-        SKIPPED_ISSUE_KEYS_NOT_FOUND,
         FAILURE_ENVIRONMENT_INVALID,
         FAILURE_STATE_INVALID,
-        SKIPPED_ISSUE_KEYS_NOT_FOUND_AND_SERVICE_IDS_ARE_EMPTY
+        FAILURE_GATE_CHECK,
+        SKIPPED_ISSUE_KEYS_NOT_FOUND,
+        SKIPPED_ISSUE_KEYS_NOT_FOUND_AND_SERVICE_IDS_ARE_EMPTY,
     }
 
     private final Status status;

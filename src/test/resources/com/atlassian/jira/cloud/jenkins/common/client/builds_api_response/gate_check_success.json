@@ -1,0 +1,14 @@
+{
+  "gatingStatus": "awaiting",
+  "updatedTimestamp": "2020-08-16T16:08:13.814+00:00",
+  "details": [
+    {
+      "type": "issue",
+      "issueKey": "CT-40",
+      "issueLink": "https://site.atlassian.net/servicedesk/customer/portal/4/CT-40"
+    }
+  ],
+  "pipelineId": "e9c906a7-451f-4fa6-ae1a-c389e2e2d87c",
+  "environmentId": "8ec94d72-a4fc-4ac0-b31d-c5a595f373ba",
+  "deploymentSequenceNumber": 100
+}

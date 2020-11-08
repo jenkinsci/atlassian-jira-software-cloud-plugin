@@ -13,7 +13,6 @@ public interface Config {
 
     RateLimiterConfig DEFAULT_RATE_LIMITER_CONFIG =
             RateLimiterConfig.custom()
-                    .limitRefreshPeriod(Duration.ofSeconds(1))
                     .limitRefreshPeriod(Duration.ofMinutes(5))
                     .limitForPeriod(5000)
                     .build();

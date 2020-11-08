@@ -4,7 +4,11 @@ import com.atlassian.jira.cloud.jenkins.BaseMockServerTest;
 import com.atlassian.jira.cloud.jenkins.BuildsApiTestGenerator;
 import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.BuildApiResponse;
 import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.Builds;
+import com.atlassian.jira.cloud.jenkins.checkgatingstatus.client.model.DetailKeyResponse;
+import com.atlassian.jira.cloud.jenkins.checkgatingstatus.client.model.GatingStatusResponse;
+import com.atlassian.jira.cloud.jenkins.checkgatingstatus.client.model.GatingStatus;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableMap;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import org.junit.Before;
@@ -13,6 +17,7 @@ import org.mockito.ArgumentCaptor;
 
 import javax.inject.Inject;
 import java.io.IOException;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -178,6 +183,51 @@ public class BuildsApiTest extends BaseMockServerTest {
         verify(mockHttpClient).newCall(requestCaptor.capture());
         final Request request = requestCaptor.getValue();
         assertThat(request.tag(String.class)).isEqualTo(CLIENT_ID);
+    }
 
+    @Test
+    public void testGetRequestPathSegmentsEncoded() {
+        // setup
+        final OkHttpClient mockHttpClient = mock(OkHttpClient.class);
+        final JiraApi jiraApi = new JiraApi(mockHttpClient, objectMapper, JIRA_SITE_URL + "/${segment1}/segment2/${segment3}");
+        final ArgumentCaptor<Request> requestCaptor = ArgumentCaptor.forClass(Request.class);
+        final Map<String, String> params = ImmutableMap.<String, String>builder()
+                .put("segment1", "a/b?")
+                .put("segment3", "{a b}")
+                .build();
+
+        // execute
+        final PostUpdateResult<GatingStatusResponse> result =
+                jiraApi.getResult(
+                        ACCESS_TOKEN,
+                        params,
+                        CLIENT_ID,
+                        GatingStatusResponse.class);
+
+        // verify
+        verify(mockHttpClient).newCall(requestCaptor.capture());
+        final Request request = requestCaptor.getValue();
+        assertThat(request.url().toString()).isEqualTo(JIRA_SITE_URL + "/a%2Fb%3F/segment2/%7Ba%20b%7D");
+    }
+
+    @Test
+    public void testGetUpdate() throws IOException {
+        BuildsApiTestGenerator.successfulGateResponse(this);
+
+        final PostUpdateResult<GatingStatusResponse> result =
+                buildsApi.getResult(
+                        ACCESS_TOKEN, mock(Map.class), CLIENT_ID, GatingStatusResponse.class);
+
+        // verify
+        assertThat(result.getResponseEntity().isPresent()).isTrue();
+        final GatingStatusResponse response = result.getResponseEntity().get();
+        assertThat(response.getStatus()).isEqualTo(GatingStatus.AWAITING);
+        assertThat(response.getDetailKeyResponse()).isNotEmpty();
+        assertThat(response.getDetailKeyResponse()).hasSize(1);
+        final DetailKeyResponse detailKeyResponse = response.getDetailKeyResponse().get(0);
+        assertThat(detailKeyResponse.getIssueKey()).isEqualTo("CT-40");
+        assertThat(detailKeyResponse.getType()).isEqualTo("issue");
+        assertThat(detailKeyResponse.getIssueLink())
+                .isEqualTo("https://site.atlassian.net/servicedesk/customer/portal/4/CT-40");
     }
 }

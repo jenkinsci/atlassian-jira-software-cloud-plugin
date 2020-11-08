@@ -57,7 +57,7 @@ public class HttpClientProviderTest extends BaseMockServerTest {
     }
 
     @Test
-    public void testNoRetryFor4XX() throws IOException {
+    public void testNoRetryForGeneral4XX() throws IOException {
         // setup
         HttpClientProviderTestGenerator.failWith4XXOnInitialAttempt(this);
         final Request request = getRequest();
@@ -115,6 +115,34 @@ public class HttpClientProviderTest extends BaseMockServerTest {
     }
 
     @Test
+    public void testFailForGate404AfterThreeRetries() throws IOException {
+        // setup
+        HttpClientProviderTestGenerator.failWith404ForAllAttempts(this);
+        final Request request = getGateRequest();
+
+        // execute
+        final Response response = httpClient.newCall(request).execute();
+
+        // verify
+        assertThat(response.code()).isEqualTo(404);
+        assertThat(server.getRequestCount()).isEqualTo(4); // 1 actual request + 3 retries
+    }
+
+    @Test
+    public void testRetryOnceFor404AndSucceed() throws IOException {
+        // setup
+        HttpClientProviderTestGenerator.failWith404AndThenSucceed2XX(this);
+        final Request request = getGateRequest();
+
+        // execute
+        final Response response = httpClient.newCall(request).execute();
+
+        // verify
+        assertThat(response.code()).isEqualTo(200);
+        assertThat(server.getRequestCount()).isEqualTo(2); // 1 actual request + 1 retry
+    }
+
+    @Test
     public void testClientRichLimits() {
         // setup
         final int numberOfAttempts = LIMIT_FOR_PERIOD + 1;
@@ -156,5 +184,9 @@ public class HttpClientProviderTest extends BaseMockServerTest {
 
     private Request getRequest() {
         return new Request.Builder().url(server.url("/test")).build();
+    }
+
+    private Request getGateRequest() {
+        return new Request.Builder().url(server.url("/gating-status")).build();
     }
 }

@@ -3,6 +3,8 @@ package com.atlassian.jira.cloud.jenkins.common.factory;
 import com.atlassian.jira.cloud.jenkins.auth.AccessTokenRetriever;
 import com.atlassian.jira.cloud.jenkins.buildinfo.service.JiraBuildInfoSender;
 import com.atlassian.jira.cloud.jenkins.buildinfo.service.JiraBuildInfoSenderImpl;
+import com.atlassian.jira.cloud.jenkins.checkgatingstatus.service.JiraGatingStatusRetriever;
+import com.atlassian.jira.cloud.jenkins.checkgatingstatus.service.JiraGatingStatusRetrieverImpl;
 import com.atlassian.jira.cloud.jenkins.common.client.JiraApi;
 import com.atlassian.jira.cloud.jenkins.common.config.JiraSiteConfigRetriever;
 import com.atlassian.jira.cloud.jenkins.common.config.JiraSiteConfigRetrieverImpl;
@@ -28,6 +30,7 @@ public final class JiraSenderFactory {
 
     private JiraBuildInfoSender jiraBuildInfoSender;
     private JiraDeploymentInfoSender jiraDeploymentInfoSender;
+    private JiraGatingStatusRetriever jiraGatingStatusRetriever;
 
     private JiraSenderFactory() {
         final ObjectMapperProvider objectMapperProvider = new ObjectMapperProvider();
@@ -53,6 +56,18 @@ public final class JiraSenderFactory {
                         objectMapper,
                         ATLASSIAN_API_URL + "/jira/deployments/0.1/cloud/%s/bulk");
 
+        final JiraApi gateApi =
+                new JiraApi(
+                        httpClient,
+                        objectMapper,
+                        ATLASSIAN_API_URL
+                                + "/jira/deployments/0.1"
+                                + "/cloud/${cloudId}"
+                                + "/pipelines/${pipelineId}"
+                                + "/environments/${environmentId}"
+                                + "/deployments/${deploymentId}"
+                                + "/gating-status");
+
         this.jiraBuildInfoSender =
                 new JiraBuildInfoSenderImpl(
                         siteConfigRetriever,
@@ -72,6 +87,14 @@ public final class JiraSenderFactory {
                         deploymentsApi,
                         changeLogIssueKeyExtractor,
                         new RunWrapperProviderImpl());
+
+        this.jiraGatingStatusRetriever =
+                new JiraGatingStatusRetrieverImpl(
+                        siteConfigRetriever,
+                        secretRetriever,
+                        cloudIdResolver,
+                        accessTokenRetriever,
+                        gateApi);
     }
 
     public static synchronized JiraSenderFactory getInstance() {
@@ -93,5 +116,9 @@ public final class JiraSenderFactory {
 
     public JiraDeploymentInfoSender getJiraDeploymentInfoSender() {
         return jiraDeploymentInfoSender;
+    }
+
+    public JiraGatingStatusRetriever getJiraGateStateRetriever() {
+        return jiraGatingStatusRetriever;
     }
 }
