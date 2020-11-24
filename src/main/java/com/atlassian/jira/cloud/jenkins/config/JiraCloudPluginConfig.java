@@ -28,6 +28,7 @@ public class JiraCloudPluginConfig extends GlobalConfiguration {
     private List<JiraCloudSiteConfig> sites = new ArrayList<>();
 
     public JiraCloudPluginConfig() {
+        getConfigFile().getXStream().alias("atl-jsw-site-configuration", JiraCloudSiteConfig.class);
         load();
     }
 
