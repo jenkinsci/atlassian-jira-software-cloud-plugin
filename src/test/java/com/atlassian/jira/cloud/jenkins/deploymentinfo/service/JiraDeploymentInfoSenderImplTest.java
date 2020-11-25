@@ -46,6 +46,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -196,6 +197,7 @@ public class JiraDeploymentInfoSenderImplTest {
                 classUnderTest.sendDeploymentInfo(createRequest(ImmutableSet.of("TEST-123")));
 
         // then
+        verifyZeroInteractions(issueKeyExtractor);
         assertThat(response.getStatus())
                 .isEqualTo(JiraSendInfoResponse.Status.SUCCESS_DEPLOYMENT_ACCEPTED);
         final String message = response.getMessage();
