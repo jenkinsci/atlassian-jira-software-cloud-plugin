@@ -42,6 +42,7 @@ public class JiraSendDeploymentInfoStep extends Step implements Serializable {
     private String state;
     private List<String> serviceIds = new ArrayList<>();
     private Boolean enableGating = Boolean.FALSE;
+    private List<String> issueKeys = new ArrayList<>();
 
     @DataBoundConstructor
     public JiraSendDeploymentInfoStep(
@@ -116,9 +117,18 @@ public class JiraSendDeploymentInfoStep extends Step implements Serializable {
         return enableGating;
     }
 
+    public List<String> getIssueKeys() {
+        return issueKeys;
+    }
+
     @DataBoundSetter
     public void setEnableGating(final Boolean enableGating) {
         this.enableGating = enableGating;
+    }
+
+    @DataBoundSetter
+    public void setIssueKeys(final List<String> issueKeys) {
+        this.issueKeys = issueKeys;
     }
 
     @Extension
@@ -189,6 +199,7 @@ public class JiraSendDeploymentInfoStep extends Step implements Serializable {
             final TaskListener taskListener = getContext().get(TaskListener.class);
             final WorkflowRun workflowRun = getContext().get(WorkflowRun.class);
             final Set<String> serviceIds = ImmutableSet.copyOf(step.getServiceIds());
+            final Set<String> issueKeys = ImmutableSet.copyOf(step.getIssueKeys());
 
             final JiraDeploymentInfoRequest request =
                     new JiraDeploymentInfoRequest(
@@ -199,6 +210,7 @@ public class JiraSendDeploymentInfoStep extends Step implements Serializable {
                             step.getState(),
                             serviceIds,
                             step.getEnableGating(),
+                            issueKeys,
                             workflowRun);
             final JiraSendInfoResponse response =
                     JiraSenderFactory.getInstance()
