@@ -20,7 +20,7 @@
         <filterModified>true</filterModified>
         <mockito.version>2.27.0</mockito.version>
         <jackson.version>2.9.10</jackson.version>
-        <jackson-databind.version>2.9.10.5</jackson-databind.version>
+        <jackson-databind.version>2.9.10.7</jackson-databind.version>
         <okhttp.version>3.14.1</okhttp.version>
         <assertj.version>3.11.1</assertj.version>
         <maven-checkstyle-plugin.version>2.17</maven-checkstyle-plugin.version>
