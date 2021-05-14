@@ -130,7 +130,6 @@ public class JiraBuildInfoSenderImpl implements JiraBuildInfoSender {
                                                 .map(IssueKey::toString)
                                                 .collect(Collectors.toSet()))
                         .orElseGet(() -> issueKeyExtractor.extractIssueKeys(build));
-
         Set<String> CommitIssueKeys = changeLogIssueKeyExtractor.extractIssueKeys(build);
         if (!CommitIssueKeys.isEmpty()) {
             branchIssueKeys.addAll(CommitIssueKeys);
