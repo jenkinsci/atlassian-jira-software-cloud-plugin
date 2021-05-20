@@ -17,6 +17,8 @@ import com.atlassian.jira.cloud.jenkins.util.SecretRetriever;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import hudson.AbortException;
+import hudson.scm.ChangeLogSet;
+
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.jenkinsci.plugins.workflow.support.steps.build.RunWrapper;
 import org.junit.Before;
@@ -218,6 +220,24 @@ public class JiraBuildInfoSenderImplTest {
         assertThat(message).isNotBlank();
     }
 
+    @Test
+    public void testSendBuildInfo_whenIssueKeysInUserCommitTitle() {
+        // given
+        final WorkflowRun workflowRun = changeSetWithOneChangeSetEntry();
+        final JiraBuildInfoRequest jiraBuildInfoRequest =
+                new JiraBuildInfoRequest(SITE, BRANCH_NAME, workflowRun);
+        setupBuildsApiBuildAccepted();
+
+        // when
+        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(jiraBuildInfoRequest);
+
+        verify(issueKeyExtractor, never()).extractIssueKeys(any());
+        assertThat(response.getStatus())
+                .isEqualTo(JiraSendInfoResponse.Status.SUCCESS_BUILD_ACCEPTED);
+        final String message = response.getMessage();
+        assertThat(message).isNotBlank();
+    }
+
     private JiraBuildInfoRequest createRequest() {
         return new JiraBuildInfoRequest(SITE, null, mockWorkflowRun());
     }
@@ -312,5 +332,16 @@ public class JiraBuildInfoSenderImplTest {
 
     private static WorkflowRun mockWorkflowRun() {
         return mock(WorkflowRun.class);
+    }
+
+    private WorkflowRun changeSetWithOneChangeSetEntry() {
+        final ChangeLogSet.Entry entry = mock(ChangeLogSet.Entry.class);
+        when(entry.getMsg()).thenReturn("TEST-125 Commit message");
+        final ChangeLogSet changeLogSet = mock(ChangeLogSet.class);
+        when(changeLogSet.getItems()).thenReturn(new Object[] {entry});
+        final WorkflowRun workflowRun = mock(WorkflowRun.class);
+
+        when(workflowRun.getChangeSets()).thenReturn(ImmutableList.of(changeLogSet));
+        return workflowRun;
     }
 }

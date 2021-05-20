@@ -13,6 +13,7 @@ import com.atlassian.jira.cloud.jenkins.common.response.JiraCommonResponse;
 import com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse;
 import com.atlassian.jira.cloud.jenkins.common.service.IssueKeyExtractor;
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
+import com.atlassian.jira.cloud.jenkins.deploymentinfo.service.ChangeLogIssueKeyExtractor;
 import com.atlassian.jira.cloud.jenkins.tenantinfo.CloudIdResolver;
 import com.atlassian.jira.cloud.jenkins.util.IssueKeyStringExtractor;
 import com.atlassian.jira.cloud.jenkins.util.RunWrapperProvider;
@@ -47,6 +48,7 @@ public class JiraBuildInfoSenderImpl implements JiraBuildInfoSender {
     private final AccessTokenRetriever accessTokenRetriever;
     private final JiraApi buildsApi;
     private final RunWrapperProvider runWrapperProvider;
+    private final IssueKeyExtractor changeLogIssueKeyExtractor = new ChangeLogIssueKeyExtractor();
 
     public JiraBuildInfoSenderImpl(
             final JiraSiteConfigRetriever siteConfigRetriever,
@@ -119,14 +121,20 @@ public class JiraBuildInfoSenderImpl implements JiraBuildInfoSender {
     }
 
     private Set<String> getIssueKeys(final JiraBuildInfoRequest request, final WorkflowRun build) {
-        return Optional.ofNullable(request.getBranch())
-                .map(
-                        branch ->
-                                IssueKeyStringExtractor.extractIssueKeys(branch)
-                                        .stream()
-                                        .map(IssueKey::toString)
-                                        .collect(Collectors.toSet()))
-                .orElseGet(() -> issueKeyExtractor.extractIssueKeys(build));
+        Set<String> branchIssueKeys =
+                Optional.ofNullable(request.getBranch())
+                        .map(
+                                branch ->
+                                        IssueKeyStringExtractor.extractIssueKeys(branch)
+                                                .stream()
+                                                .map(IssueKey::toString)
+                                                .collect(Collectors.toSet()))
+                        .orElseGet(() -> issueKeyExtractor.extractIssueKeys(build));
+        Set<String> CommitIssueKeys = changeLogIssueKeyExtractor.extractIssueKeys(build);
+        if (!CommitIssueKeys.isEmpty()) {
+            branchIssueKeys.addAll(CommitIssueKeys);
+        }
+        return branchIssueKeys;
     }
 
     private Optional<JiraCloudSiteConfig> getSiteConfigFor(@Nullable final String jiraSite) {
