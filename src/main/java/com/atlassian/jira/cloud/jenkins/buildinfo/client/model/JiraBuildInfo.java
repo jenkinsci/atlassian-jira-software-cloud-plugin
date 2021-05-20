@@ -27,6 +27,7 @@ public final class JiraBuildInfo {
     private final String lastUpdated;
     private final Set<String> issueKeys;
     private final List<Reference> references;
+    private final TestInfo testInfo;
 
     @JsonCreator
     public JiraBuildInfo(
@@ -40,7 +41,8 @@ public final class JiraBuildInfo {
             @JsonProperty("state") final String state,
             @JsonProperty("lastUpdated") final String lastUpdated,
             @JsonProperty("issueKeys") final Set<String> issueKeys,
-            @JsonProperty("references") final List<Reference> references) {
+            @JsonProperty("references") final List<Reference> references,
+            @JsonProperty("testInfo") final TestInfo testInfo) {
         this.pipelineId = pipelineId;
         this.buildNumber = buildNumber;
         this.updateSequenceNumber = updateSequenceNumber;
@@ -52,6 +54,7 @@ public final class JiraBuildInfo {
         this.lastUpdated = lastUpdated;
         this.issueKeys = issueKeys;
         this.references = references;
+        this.testInfo = testInfo;
     }
 
     public String getPipelineId() {
@@ -98,6 +101,10 @@ public final class JiraBuildInfo {
         return references;
     }
 
+    public TestInfo getTestInfo() {
+        return testInfo;
+    }
+
     public String getSchemaVersion() {
         return SCHEMA_VERSION;
     }
@@ -118,6 +125,7 @@ public final class JiraBuildInfo {
         private String lastUpdated;
         private Set<String> issueKeys;
         private List<Reference> references;
+        private TestInfo testInfo;
 
         public Builder withPipelineId(final String pipelineId) {
             this.pipelineId = pipelineId;
@@ -174,6 +182,11 @@ public final class JiraBuildInfo {
             return this;
         }
 
+        public Builder withTestInfo(final TestInfo testInfo) {
+            this.testInfo = testInfo;
+            return this;
+        }
+
         public JiraBuildInfo build() {
             return new JiraBuildInfo(
                     pipelineId,
@@ -186,7 +199,8 @@ public final class JiraBuildInfo {
                     state,
                     lastUpdated,
                     issueKeys,
-                    references);
+                    references,
+                    testInfo);
         }
     }
 }
