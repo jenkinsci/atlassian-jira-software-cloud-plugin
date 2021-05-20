@@ -19,6 +19,7 @@ import com.atlassian.jira.cloud.jenkins.util.IssueKeyStringExtractor;
 import com.atlassian.jira.cloud.jenkins.util.RunWrapperProvider;
 import com.atlassian.jira.cloud.jenkins.util.SecretRetriever;
 import hudson.model.Run;
+import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.jenkinsci.plugins.workflow.support.steps.build.RunWrapper;
 import org.slf4j.Logger;
@@ -123,6 +124,7 @@ public class JiraBuildInfoSenderImpl implements JiraBuildInfoSender {
     private Set<String> getIssueKeys(final JiraBuildInfoRequest request, final WorkflowRun build) {
         Set<String> branchIssueKeys =
                 Optional.ofNullable(request.getBranch())
+                        .filter(StringUtils::isNotEmpty)
                         .map(
                                 branch ->
                                         IssueKeyStringExtractor.extractIssueKeys(branch)
@@ -130,9 +132,9 @@ public class JiraBuildInfoSenderImpl implements JiraBuildInfoSender {
                                                 .map(IssueKey::toString)
                                                 .collect(Collectors.toSet()))
                         .orElseGet(() -> issueKeyExtractor.extractIssueKeys(build));
-        Set<String> CommitIssueKeys = changeLogIssueKeyExtractor.extractIssueKeys(build);
-        if (!CommitIssueKeys.isEmpty()) {
-            branchIssueKeys.addAll(CommitIssueKeys);
+        Set<String> commitIssueKeys = changeLogIssueKeyExtractor.extractIssueKeys(build);
+        if (!commitIssueKeys.isEmpty()) {
+            branchIssueKeys.addAll(commitIssueKeys);
         }
         return branchIssueKeys;
     }
