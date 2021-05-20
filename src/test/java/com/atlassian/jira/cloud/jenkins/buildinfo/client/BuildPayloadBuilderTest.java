@@ -27,7 +27,7 @@ public class BuildPayloadBuilderTest extends BaseUnitTest {
         assertThat(buildPayload.getProviderMetadata().getProduct()).isEqualTo("jenkins");
         assertThat(buildInfo.getPipelineId()).isEqualTo(runWrapper.getFullProjectName());
         assertThat(buildInfo.getBuildNumber()).isEqualTo(runWrapper.getNumber());
-        assertThat(buildInfo.getDisplayName()).isEqualTo(runWrapper.getDisplayName());
+        assertThat(buildInfo.getDisplayName()).isEqualTo(runWrapper.getFullProjectName());
         assertThat(buildInfo.getUrl()).isEqualTo(runWrapper.getAbsoluteUrl());
         assertThat(buildInfo.getState()).isEqualTo("successful");
         assertThat(buildInfo.getIssueKeys()).containsExactlyInAnyOrder(ISSUE_KEY);
@@ -46,7 +46,7 @@ public class BuildPayloadBuilderTest extends BaseUnitTest {
         assertThat(buildPayload.getProviderMetadata().getProduct()).isEqualTo("jenkins");
         assertThat(buildInfo.getPipelineId()).isEqualTo(runWrapper.getFullProjectName());
         assertThat(buildInfo.getBuildNumber()).isEqualTo(runWrapper.getNumber());
-        assertThat(buildInfo.getDisplayName()).isEqualTo(runWrapper.getDisplayName());
+        assertThat(buildInfo.getDisplayName()).isEqualTo(runWrapper.getFullProjectName());
         assertThat(buildInfo.getUrl()).isEqualTo(runWrapper.getAbsoluteUrl());
         assertThat(buildInfo.getState()).isEqualTo("failed");
         assertThat(buildInfo.getIssueKeys()).containsExactlyInAnyOrder(ISSUE_KEY);

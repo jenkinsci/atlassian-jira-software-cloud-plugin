@@ -25,7 +25,7 @@ public final class BuildPayloadBuilder {
             return new Builds(JiraBuildInfo.builder()
                     .withPipelineId(buildWrapper.getFullProjectName())
                     .withBuildNumber(buildWrapper.getNumber())
-                    .withDisplayName(buildWrapper.getDisplayName())
+                    .withDisplayName(buildWrapper.getFullProjectName())
                     .withUpdateSequenceNumber(Instant.now().getEpochSecond())
                     .withLabel(buildWrapper.getDisplayName())
                     .withUrl(buildWrapper.getAbsoluteUrl())
