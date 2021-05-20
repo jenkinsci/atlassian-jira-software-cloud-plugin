@@ -193,13 +193,31 @@ public class JiraBuildInfoSenderImplTest {
     @Test
     public void testSendBuildInfo_whenUserProvidedBranch() {
         // given
-        final JiraBuildInfoRequest jiraBuildInfoRequest = new JiraBuildInfoRequest(SITE, BRANCH_NAME, mockWorkflowRun());
+        final JiraBuildInfoRequest jiraBuildInfoRequest =
+                new JiraBuildInfoRequest(SITE, BRANCH_NAME, mockWorkflowRun());
         setupBuildsApiBuildAccepted();
 
         // when
         final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(jiraBuildInfoRequest);
 
         verify(issueKeyExtractor, never()).extractIssueKeys(any());
+        assertThat(response.getStatus())
+                .isEqualTo(JiraSendInfoResponse.Status.SUCCESS_BUILD_ACCEPTED);
+        final String message = response.getMessage();
+        assertThat(message).isNotBlank();
+    }
+
+    @Test
+    public void testSendBuildInfo_whenBranchNameIsEmpty() {
+        // given
+        final JiraBuildInfoRequest jiraBuildInfoRequest =
+                new JiraBuildInfoRequest(SITE, "", mockWorkflowRun());
+        setupBuildsApiBuildAccepted();
+
+        // when
+        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(jiraBuildInfoRequest);
+
+        verify(issueKeyExtractor).extractIssueKeys(any());
         assertThat(response.getStatus())
                 .isEqualTo(JiraSendInfoResponse.Status.SUCCESS_BUILD_ACCEPTED);
         final String message = response.getMessage();
