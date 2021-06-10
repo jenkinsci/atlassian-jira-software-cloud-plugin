@@ -60,7 +60,7 @@ public class FreestyleJiraBuildInfoSenderImplTest {
     @Mock private SecretRetriever secretRetriever;
 
     @Mock private FreestyleIssueKeyExtractor freestyleIssueKeyExtractor;
-    
+
     @Mock private FreestyleChangeLogIssueKeyExtractor freestyleChangeLogIssueKeyExtractor;
 
     @Mock private CloudIdResolver cloudIdResolver;
@@ -71,10 +71,10 @@ public class FreestyleJiraBuildInfoSenderImplTest {
 
     @Mock private RunWrapperProvider runWrapperProvider;
 
-    private FreestyleBuildInfoSender classUnderTest;
+    private JiraBuildInfoSender classUnderTest;
 
     @Mock private FreestyleBranchNameIssueKeyExtractor freestyleBranchNameIssueKeyExtractor;
-    
+
     @Before
     public void setUp() {
         classUnderTest =
@@ -90,6 +90,7 @@ public class FreestyleJiraBuildInfoSenderImplTest {
 
         setupMocks();
     }
+
     @Test
     public void testSendBuildInfo_whenSiteConfigNotFound() {
         // given
@@ -195,6 +196,7 @@ public class FreestyleJiraBuildInfoSenderImplTest {
         final String message = response.getMessage();
         assertThat(message).isNotBlank();
     }
+
     @Test
     public void testSendFreestyleBuildInfo_whenUserProvidedBranch() {
         // given
@@ -211,7 +213,7 @@ public class FreestyleJiraBuildInfoSenderImplTest {
         final String message = response.getMessage();
         assertThat(message).isNotBlank();
     }
-    
+
     @Test
     public void testSendBuildInfoFreestyle_whenBranchNameIsEmpty() {
         // given
@@ -228,7 +230,7 @@ public class FreestyleJiraBuildInfoSenderImplTest {
         final String message = response.getMessage();
         assertThat(message).isNotBlank();
     }
-    
+
     @Test
     public void testFreestyleSendBuildInfo_whenIssueKeysInUserCommitTitle() {
         // given
@@ -246,7 +248,7 @@ public class FreestyleJiraBuildInfoSenderImplTest {
         final String message = response.getMessage();
         assertThat(message).isNotBlank();
     }
-    
+
     @Test
     public void testFreestyleSendBuildInfo_whenUnknownIssueKeys() {
         // given
@@ -261,6 +263,7 @@ public class FreestyleJiraBuildInfoSenderImplTest {
         final String message = response.getMessage();
         assertThat(message).isNotBlank();
     }
+
     private void setupBuildApiUnknownIssueKeys() {
         final BuildApiResponse buildApiResponse =
                 new BuildApiResponse(
@@ -270,7 +273,7 @@ public class FreestyleJiraBuildInfoSenderImplTest {
         when(buildsApi.postUpdate(any(), any(), any(), any(), any()))
                 .thenReturn(new PostUpdateResult<>(buildApiResponse));
     }
-    
+
     private void setupMocks() {
         setupSiteConfigRetriever();
         setupSecretRetriever();
@@ -279,6 +282,7 @@ public class FreestyleJiraBuildInfoSenderImplTest {
         setupAccessTokenRetriever();
         setupRunWrapperProvider();
     }
+
     private void setupSiteConfigRetriever() {
         when(siteConfigRetriever.getJiraSiteConfig(any()))
                 .thenReturn(Optional.of(JIRA_SITE_CONFIG));
@@ -289,7 +293,8 @@ public class FreestyleJiraBuildInfoSenderImplTest {
     }
 
     private void setupIssueKeyExtractor() {
-        when(freestyleIssueKeyExtractor.extractIssueKeys(any())).thenReturn(ImmutableSet.of("TEST-123"));
+        when(freestyleIssueKeyExtractor.extractIssueKeys(any()))
+                .thenReturn(ImmutableSet.of("TEST-123"));
     }
 
     private void setupCloudIdResolver() {
@@ -321,14 +326,15 @@ public class FreestyleJiraBuildInfoSenderImplTest {
         when(buildsApi.postUpdate(any(), any(), any(), any(), any()))
                 .thenReturn(new PostUpdateResult<>("Error"));
     }
-    
+
     private FreestyleBuildInfoRequest createRequest() {
         return new FreestyleBuildInfoRequest(SITE, null, mockAbstractBuild());
     }
+
     private static AbstractBuild<?, ?> mockAbstractBuild() {
         return mock(AbstractBuild.class);
     }
-    
+
     private void setupBuildsApiBuildAccepted() {
         final BuildKeyResponse buildKeyResponse = new BuildKeyResponse(PIPELINE_ID, BUILD_NUMBER);
         final BuildApiResponse buildApiResponse =
@@ -339,7 +345,7 @@ public class FreestyleJiraBuildInfoSenderImplTest {
         when(buildsApi.postUpdate(any(), any(), any(), any(), any()))
                 .thenReturn(new PostUpdateResult<>(buildApiResponse));
     }
-    
+
     private void setupBuildApiBuildRejected() {
         final BuildKeyResponse buildKeyResponse = new BuildKeyResponse(PIPELINE_ID, BUILD_NUMBER);
         final ApiErrorResponse errorResponse = new ApiErrorResponse("Error message");
@@ -354,18 +360,19 @@ public class FreestyleJiraBuildInfoSenderImplTest {
         when(buildsApi.postUpdate(any(), any(), any(), any(), any()))
                 .thenReturn(new PostUpdateResult<>(buildApiResponse));
     }
+
     private AbstractBuild changeSetFreestyle() {
         final ChangeLogSet.Entry entry = mock(ChangeLogSet.Entry.class);
-       //when(entry.getMsg()).thenReturn("TEST-125 Commit message");
+        // when(entry.getMsg()).thenReturn("TEST-125 Commit message");
         final ChangeLogSet changeLogSet = mock(ChangeLogSet.class);
-        //when(changeLogSet.getItems()).thenReturn(new Object[] {entry});
+        // when(changeLogSet.getItems()).thenReturn(new Object[] {entry});
         final AbstractBuild<?, ?> build = mock(AbstractBuild.class);
 
-        //when(build.getChangeSets()).thenReturn(ImmutableList.of(changeLogSet));
+        // when(build.getChangeSets()).thenReturn(ImmutableList.of(changeLogSet));
         return build;
     }
+
     private FreestyleBuildInfoRequest createFreestyleRequest() {
         return new FreestyleBuildInfoRequest(SITE, "TEST-123-branch-name", mockAbstractBuild());
     }
-
 }

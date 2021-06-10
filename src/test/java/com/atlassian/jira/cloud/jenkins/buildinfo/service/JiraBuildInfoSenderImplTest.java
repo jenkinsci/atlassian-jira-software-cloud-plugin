@@ -72,7 +72,7 @@ public class JiraBuildInfoSenderImplTest {
     @Before
     public void setUp() {
         classUnderTest =
-                new JiraBuildInfoSenderImpl(
+                new MultibranchBuildInfoSenderImpl(
                         siteConfigRetriever,
                         secretRetriever,
                         issueKeyExtractor,
@@ -194,7 +194,7 @@ public class JiraBuildInfoSenderImplTest {
     public void testSendBuildInfo_whenUserProvidedBranch() {
         // given
         final JiraBuildInfoRequest jiraBuildInfoRequest =
-                new JiraBuildInfoRequest(SITE, BRANCH_NAME, mockWorkflowRun());
+                new MultibranchBuildInfoRequest(SITE, BRANCH_NAME, mockWorkflowRun());
         setupBuildsApiBuildAccepted();
 
         // when
@@ -211,7 +211,7 @@ public class JiraBuildInfoSenderImplTest {
     public void testSendBuildInfo_whenBranchNameIsEmpty() {
         // given
         final JiraBuildInfoRequest jiraBuildInfoRequest =
-                new JiraBuildInfoRequest(SITE, "", mockWorkflowRun());
+                new MultibranchBuildInfoRequest(SITE, "", mockWorkflowRun());
         setupBuildsApiBuildAccepted();
 
         // when
@@ -243,7 +243,7 @@ public class JiraBuildInfoSenderImplTest {
         // given
         final WorkflowRun workflowRun = changeSetWithOneChangeSetEntry();
         final JiraBuildInfoRequest jiraBuildInfoRequest =
-                new JiraBuildInfoRequest(SITE, BRANCH_NAME, workflowRun);
+                new MultibranchBuildInfoRequest(SITE, BRANCH_NAME, workflowRun);
         setupBuildsApiBuildAccepted();
 
         // when
@@ -257,7 +257,7 @@ public class JiraBuildInfoSenderImplTest {
     }
 
     private JiraBuildInfoRequest createRequest() {
-        return new JiraBuildInfoRequest(SITE, null, mockWorkflowRun());
+        return new MultibranchBuildInfoRequest(SITE, null, mockWorkflowRun());
     }
 
     private void setupMocks() {

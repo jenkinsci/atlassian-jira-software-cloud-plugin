@@ -1,16 +1,12 @@
 package com.atlassian.jira.cloud.jenkins.buildinfo.pipeline;
 
-import com.atlassian.jira.cloud.jenkins.Messages;
-import com.atlassian.jira.cloud.jenkins.buildinfo.service.JiraBuildInfoRequest;
-import com.atlassian.jira.cloud.jenkins.common.factory.JiraSenderFactory;
-import com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse;
-import com.atlassian.jira.cloud.jenkins.config.JiraCloudPluginConfig;
-import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
-import com.google.common.collect.ImmutableSet;
-import hudson.Extension;
-import hudson.model.Run;
-import hudson.model.TaskListener;
-import hudson.util.ListBoxModel;
+import java.io.Serializable;
+import java.util.List;
+import java.util.Set;
+
+import javax.annotation.Nullable;
+import javax.inject.Inject;
+
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.jenkinsci.plugins.workflow.steps.Step;
 import org.jenkinsci.plugins.workflow.steps.StepContext;
@@ -20,11 +16,19 @@ import org.jenkinsci.plugins.workflow.steps.SynchronousNonBlockingStepExecution;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 
-import javax.annotation.Nullable;
-import javax.inject.Inject;
-import java.io.Serializable;
-import java.util.List;
-import java.util.Set;
+import com.atlassian.jira.cloud.jenkins.Messages;
+import com.atlassian.jira.cloud.jenkins.buildinfo.service.JiraBuildInfoRequest;
+import com.atlassian.jira.cloud.jenkins.buildinfo.service.MultibranchBuildInfoRequest;
+import com.atlassian.jira.cloud.jenkins.common.factory.JiraSenderFactory;
+import com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse;
+import com.atlassian.jira.cloud.jenkins.config.JiraCloudPluginConfig;
+import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
+import com.google.common.collect.ImmutableSet;
+
+import hudson.Extension;
+import hudson.model.Run;
+import hudson.model.TaskListener;
+import hudson.util.ListBoxModel;
 
 /**
  * Implementation of the "jiraSendBuildInfo" step that can be used in Jenkinsfile to send build
@@ -116,7 +120,7 @@ public class JiraSendBuildInfoStep extends Step implements Serializable {
             final WorkflowRun workflowRun = getContext().get(WorkflowRun.class);
 
             final JiraBuildInfoRequest request =
-                    new JiraBuildInfoRequest(step.getSite(), step.getBranch(), workflowRun);
+                    new MultibranchBuildInfoRequest(step.getSite(), step.getBranch(), workflowRun);
 
             final JiraSendInfoResponse response =
                     JiraSenderFactory.getInstance().getJiraBuildInfoSender().sendBuildInfo(request);

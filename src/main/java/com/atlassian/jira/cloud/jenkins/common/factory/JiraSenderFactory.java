@@ -5,6 +5,7 @@ import com.atlassian.jira.cloud.jenkins.buildinfo.service.FreestyleBuildInfoSend
 import com.atlassian.jira.cloud.jenkins.buildinfo.service.FreestyleJiraBuildInfoSenderImpl;
 import com.atlassian.jira.cloud.jenkins.buildinfo.service.JiraBuildInfoSender;
 import com.atlassian.jira.cloud.jenkins.buildinfo.service.JiraBuildInfoSenderImpl;
+import com.atlassian.jira.cloud.jenkins.buildinfo.service.MultibranchBuildInfoSenderImpl;
 import com.atlassian.jira.cloud.jenkins.checkgatingstatus.service.JiraGatingStatusRetriever;
 import com.atlassian.jira.cloud.jenkins.checkgatingstatus.service.JiraGatingStatusRetrieverImpl;
 import com.atlassian.jira.cloud.jenkins.common.client.JiraApi;
@@ -36,7 +37,7 @@ public final class JiraSenderFactory {
     private JiraBuildInfoSender jiraBuildInfoSender;
     private JiraDeploymentInfoSender jiraDeploymentInfoSender;
     private JiraGatingStatusRetriever jiraGatingStatusRetriever;
-    private FreestyleBuildInfoSender freestyleBuildInfoSender;
+    private JiraBuildInfoSender freestyleBuildInfoSender;
 
     private JiraSenderFactory() {
         final ObjectMapperProvider objectMapperProvider = new ObjectMapperProvider();
@@ -80,7 +81,7 @@ public final class JiraSenderFactory {
                                 + "/gating-status");
 
         this.jiraBuildInfoSender =
-                new JiraBuildInfoSenderImpl(
+                new MultibranchBuildInfoSenderImpl(
                         siteConfigRetriever,
                         secretRetriever,
                         branchNameIssueKeyExtractor,
@@ -135,7 +136,7 @@ public final class JiraSenderFactory {
         return jiraBuildInfoSender;
     }
 
-    public FreestyleBuildInfoSender getFreestyleBuildInfoSender() {
+    public JiraBuildInfoSender getFreestyleBuildInfoSender() {
         return freestyleBuildInfoSender;
     }
 
