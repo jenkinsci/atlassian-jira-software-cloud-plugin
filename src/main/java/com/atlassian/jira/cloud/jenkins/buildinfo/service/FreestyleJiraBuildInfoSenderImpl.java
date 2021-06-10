@@ -25,6 +25,7 @@ import com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse;
 import com.atlassian.jira.cloud.jenkins.common.service.FreestyleIssueKeyExtractor;
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
 import com.atlassian.jira.cloud.jenkins.tenantinfo.CloudIdResolver;
+import com.atlassian.jira.cloud.jenkins.util.Constants;
 import com.atlassian.jira.cloud.jenkins.util.IssueKeyStringExtractor;
 import com.atlassian.jira.cloud.jenkins.util.RunWrapperProvider;
 import com.atlassian.jira.cloud.jenkins.util.SecretRetriever;
@@ -37,9 +38,6 @@ import hudson.model.AbstractBuild;
  */
 public class FreestyleJiraBuildInfoSenderImpl implements FreestyleBuildInfoSender{
 
-
-
-    private static final String HTTPS_PROTOCOL = "https://";
 
     private final JiraSiteConfigRetriever siteConfigRetriever;
     private final SecretRetriever secretRetriever;
@@ -155,7 +153,7 @@ public class FreestyleJiraBuildInfoSenderImpl implements FreestyleBuildInfoSende
     }
 
     private Optional<String> getCloudIdFor(final String jiraSite) {
-        final String jiraSiteUrl = HTTPS_PROTOCOL + jiraSite;
+        final String jiraSiteUrl = Constants.HTTPS_PROTOCOL + jiraSite;
         return cloudIdResolver.getCloudId(jiraSiteUrl);
     }
 
