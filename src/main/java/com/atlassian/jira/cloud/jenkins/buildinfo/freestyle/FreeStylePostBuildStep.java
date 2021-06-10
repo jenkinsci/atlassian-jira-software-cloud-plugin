@@ -16,6 +16,7 @@ import com.atlassian.jira.cloud.jenkins.buildinfo.service.FreestyleBuildInfoRequ
 import com.atlassian.jira.cloud.jenkins.common.factory.JiraSenderFactory;
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudPluginConfig;
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
+import com.atlassian.jira.cloud.jenkins.util.Constants;
 
 import hudson.Extension;
 import hudson.FilePath;
@@ -93,7 +94,7 @@ public class FreeStylePostBuildStep extends Recorder implements Serializable, Si
 
         @Override
         public String getDisplayName() {
-            return "Send build information to Jira";
+            return Constants.SEND_BUILD_INFORMATION_TO_JIRA;
         }
 
         @Override

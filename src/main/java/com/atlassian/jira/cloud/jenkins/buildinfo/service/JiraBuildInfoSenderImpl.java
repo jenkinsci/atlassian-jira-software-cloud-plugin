@@ -15,6 +15,7 @@ import com.atlassian.jira.cloud.jenkins.common.service.IssueKeyExtractor;
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.service.ChangeLogIssueKeyExtractor;
 import com.atlassian.jira.cloud.jenkins.tenantinfo.CloudIdResolver;
+import com.atlassian.jira.cloud.jenkins.util.Constants;
 import com.atlassian.jira.cloud.jenkins.util.IssueKeyStringExtractor;
 import com.atlassian.jira.cloud.jenkins.util.RunWrapperProvider;
 import com.atlassian.jira.cloud.jenkins.util.SecretRetriever;
@@ -39,8 +40,6 @@ import static java.util.Objects.requireNonNull;
 public class JiraBuildInfoSenderImpl implements JiraBuildInfoSender {
 
     private static final Logger log = LoggerFactory.getLogger(JiraBuildInfoSenderImpl.class);
-
-    private static final String HTTPS_PROTOCOL = "https://";
 
     private final JiraSiteConfigRetriever siteConfigRetriever;
     private final SecretRetriever secretRetriever;
@@ -144,7 +143,7 @@ public class JiraBuildInfoSenderImpl implements JiraBuildInfoSender {
     }
 
     private Optional<String> getCloudIdFor(final String jiraSite) {
-        final String jiraSiteUrl = HTTPS_PROTOCOL + jiraSite;
+        final String jiraSiteUrl = Constants.HTTPS_PROTOCOL + jiraSite;
         return cloudIdResolver.getCloudId(jiraSiteUrl);
     }
 
