@@ -106,8 +106,8 @@ public class JiraSendDeploymentInfoStepTest {
 
         final Map<String, Object> r = new HashMap<>();
         r.put("site", SITE);
-        r.put("environment", ENVIRONMENT_NAME);
-        r.put("environmentType", ENVIRONMENT_TYPE);
+        // r.put("environment", ENVIRONMENT_NAME);
+        // r.put("environmentType", ENVIRONMENT_TYPE);
         final JiraSendDeploymentInfoStep step =
                 (JiraSendDeploymentInfoStep) descriptor.newInstance(r);
 
