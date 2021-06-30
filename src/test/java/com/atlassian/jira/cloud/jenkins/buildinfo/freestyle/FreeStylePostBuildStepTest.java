@@ -20,7 +20,6 @@ import org.jvnet.hudson.test.BuildWatcher;
 import org.jvnet.hudson.test.JenkinsRule;
 
 import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.BuildApiResponse;
-import com.atlassian.jira.cloud.jenkins.buildinfo.service.FreestyleBuildInfoSender;
 import com.atlassian.jira.cloud.jenkins.buildinfo.service.FreestyleJiraBuildInfoSenderImpl;
 import com.atlassian.jira.cloud.jenkins.buildinfo.service.JiraBuildInfoResponse;
 import com.atlassian.jira.cloud.jenkins.buildinfo.service.JiraBuildInfoSender;

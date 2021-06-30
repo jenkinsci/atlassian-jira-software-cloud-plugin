@@ -1,7 +1,6 @@
 package com.atlassian.jira.cloud.jenkins.common.factory;
 
 import com.atlassian.jira.cloud.jenkins.auth.AccessTokenRetriever;
-import com.atlassian.jira.cloud.jenkins.buildinfo.service.FreestyleBuildInfoSender;
 import com.atlassian.jira.cloud.jenkins.buildinfo.service.FreestyleJiraBuildInfoSenderImpl;
 import com.atlassian.jira.cloud.jenkins.buildinfo.service.JiraBuildInfoSender;
 import com.atlassian.jira.cloud.jenkins.buildinfo.service.JiraBuildInfoSenderImpl;

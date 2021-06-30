@@ -44,14 +44,12 @@ public abstract class JiraBuildInfoSenderImpl implements JiraBuildInfoSender {
     public JiraBuildInfoSenderImpl(
             final JiraSiteConfigRetriever siteConfigRetriever,
             final SecretRetriever secretRetriever,
-            // final IssueKeyExtractor issueKeyExtractor,
             final CloudIdResolver cloudIdResolver,
             final AccessTokenRetriever accessTokenRetriever,
             final JiraApi buildsApi,
             final RunWrapperProvider runWrapperProvider) {
         this.siteConfigRetriever = requireNonNull(siteConfigRetriever);
         this.secretRetriever = requireNonNull(secretRetriever);
-        // this.issueKeyExtractor = requireNonNull(issueKeyExtractor);
         this.cloudIdResolver = requireNonNull(cloudIdResolver);
         this.accessTokenRetriever = requireNonNull(accessTokenRetriever);
         this.buildsApi = requireNonNull(buildsApi);
@@ -61,7 +59,6 @@ public abstract class JiraBuildInfoSenderImpl implements JiraBuildInfoSender {
     @Override
     public JiraSendInfoResponse sendBuildInfo(final JiraBuildInfoRequest request) {
         final String jiraSite = request.getSite();
-        // final WorkflowRun build = request.getBuild();
 
         final Optional<JiraCloudSiteConfig> maybeSiteConfig = getSiteConfigFor(jiraSite);
 
@@ -111,23 +108,7 @@ public abstract class JiraBuildInfoSenderImpl implements JiraBuildInfoSender {
         }
     }
 
-    protected abstract Set<String> getIssueKeys(final JiraBuildInfoRequest request); /*{
-        Set<String> branchIssueKeys =
-                Optional.ofNullable(request.getBranch())
-                        .filter(StringUtils::isNotEmpty)
-                        .map(
-                                branch ->
-                                        IssueKeyStringExtractor.extractIssueKeys(branch)
-                                                .stream()
-                                                .map(IssueKey::toString)
-                                                .collect(Collectors.toSet()))
-                        .orElseGet(() -> issueKeyExtractor.extractIssueKeys(build));
-        Set<String> commitIssueKeys = changeLogIssueKeyExtractor.extractIssueKeys(build);
-        if (!commitIssueKeys.isEmpty()) {
-            branchIssueKeys.addAll(commitIssueKeys);
-        }
-        return branchIssueKeys;
-    }*/
+    protected abstract Set<String> getIssueKeys(final JiraBuildInfoRequest request);
 
     private Optional<JiraCloudSiteConfig> getSiteConfigFor(@Nullable final String jiraSite) {
         return siteConfigRetriever.getJiraSiteConfig(jiraSite);
@@ -149,11 +130,7 @@ public abstract class JiraBuildInfoSenderImpl implements JiraBuildInfoSender {
     }
 
     protected abstract Builds createJiraBuildInfo(
-            final JiraBuildInfoRequest request, final Set<String> issueKeys); /*{
-        final RunWrapper buildWrapper = runWrapperProvider.getWrapper(build);
-
-        return BuildPayloadBuilder.getBuildPayload(buildWrapper, issueKeys);
-    }*/
+            final JiraBuildInfoRequest request, final Set<String> issueKeys);
 
     private PostUpdateResult<BuildApiResponse> sendBuildInfo(
             final String cloudId,
