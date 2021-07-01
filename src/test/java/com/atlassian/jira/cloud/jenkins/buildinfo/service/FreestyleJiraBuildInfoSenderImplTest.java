@@ -1,36 +1,5 @@
 package com.atlassian.jira.cloud.jenkins.buildinfo.service;
 
-import com.atlassian.jira.cloud.jenkins.auth.AccessTokenRetriever;
-import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.BuildApiResponse;
-import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.BuildKeyResponse;
-import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.RejectedBuildResponse;
-import com.atlassian.jira.cloud.jenkins.common.client.JiraApi;
-import com.atlassian.jira.cloud.jenkins.common.client.PostUpdateResult;
-import com.atlassian.jira.cloud.jenkins.common.config.JiraSiteConfigRetriever;
-import com.atlassian.jira.cloud.jenkins.common.model.ApiErrorResponse;
-import com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse;
-import com.atlassian.jira.cloud.jenkins.common.service.IssueKeyExtractor;
-import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
-import com.atlassian.jira.cloud.jenkins.tenantinfo.CloudIdResolver;
-import com.atlassian.jira.cloud.jenkins.util.RunWrapperProvider;
-import com.atlassian.jira.cloud.jenkins.util.SecretRetriever;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-import hudson.AbortException;
-import hudson.scm.ChangeLogSet;
-
-import org.jenkinsci.plugins.workflow.job.WorkflowRun;
-import org.jenkinsci.plugins.workflow.support.steps.build.RunWrapper;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.Collections;
-import java.util.Optional;
-import java.util.UUID;
-
 import static com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse.Status.FAILURE_SECRET_NOT_FOUND;
 import static com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse.Status.FAILURE_SITE_CONFIG_NOT_FOUND;
 import static com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse.Status.FAILURE_SITE_NOT_FOUND;
@@ -42,9 +11,42 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
-public class JiraBuildInfoSenderImplTest {
+import java.util.Collections;
+import java.util.Optional;
+import java.util.UUID;
 
+import org.jenkinsci.plugins.workflow.support.steps.build.RunWrapper;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
+
+import com.atlassian.jira.cloud.jenkins.auth.AccessTokenRetriever;
+import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.BuildApiResponse;
+import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.BuildKeyResponse;
+import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.RejectedBuildResponse;
+import com.atlassian.jira.cloud.jenkins.common.client.JiraApi;
+import com.atlassian.jira.cloud.jenkins.common.client.PostUpdateResult;
+import com.atlassian.jira.cloud.jenkins.common.config.JiraSiteConfigRetriever;
+import com.atlassian.jira.cloud.jenkins.common.model.ApiErrorResponse;
+import com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse;
+import com.atlassian.jira.cloud.jenkins.common.service.FreestyleIssueKeyExtractor;
+import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
+import com.atlassian.jira.cloud.jenkins.deploymentinfo.service.FreestyleChangeLogIssueKeyExtractor;
+import com.atlassian.jira.cloud.jenkins.tenantinfo.CloudIdResolver;
+import com.atlassian.jira.cloud.jenkins.util.FreestyleBranchNameIssueKeyExtractor;
+import com.atlassian.jira.cloud.jenkins.util.RunWrapperProvider;
+import com.atlassian.jira.cloud.jenkins.util.SecretRetriever;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+
+import hudson.AbortException;
+import hudson.model.AbstractBuild;
+import hudson.scm.ChangeLogSet;
+
+@RunWith(MockitoJUnitRunner.class)
+public class FreestyleJiraBuildInfoSenderImplTest {
     private static final String SITE = "example.atlassian.com";
     private static final String BRANCH_NAME = "TEST-123-branch-name";
     private static final String CLOUD_ID = UUID.randomUUID().toString();
@@ -57,7 +59,9 @@ public class JiraBuildInfoSenderImplTest {
 
     @Mock private SecretRetriever secretRetriever;
 
-    @Mock private IssueKeyExtractor issueKeyExtractor;
+    @Mock private FreestyleIssueKeyExtractor freestyleIssueKeyExtractor;
+
+    @Mock private FreestyleChangeLogIssueKeyExtractor freestyleChangeLogIssueKeyExtractor;
 
     @Mock private CloudIdResolver cloudIdResolver;
 
@@ -69,17 +73,20 @@ public class JiraBuildInfoSenderImplTest {
 
     private JiraBuildInfoSender classUnderTest;
 
+    @Mock private FreestyleBranchNameIssueKeyExtractor freestyleBranchNameIssueKeyExtractor;
+
     @Before
     public void setUp() {
         classUnderTest =
-                new MultibranchBuildInfoSenderImpl(
+                new FreestyleJiraBuildInfoSenderImpl(
                         siteConfigRetriever,
                         secretRetriever,
-                        issueKeyExtractor,
+                        freestyleIssueKeyExtractor,
                         cloudIdResolver,
                         accessTokenRetriever,
                         buildsApi,
-                        runWrapperProvider);
+                        runWrapperProvider,
+                        freestyleChangeLogIssueKeyExtractor);
 
         setupMocks();
     }
@@ -111,7 +118,7 @@ public class JiraBuildInfoSenderImplTest {
     @Test
     public void testSendBuildInfo_whenIssueKeysNotFound() {
         // given
-        when(issueKeyExtractor.extractIssueKeys(any())).thenReturn(Collections.emptySet());
+        when(freestyleIssueKeyExtractor.extractIssueKeys(any())).thenReturn(Collections.emptySet());
 
         // when
         final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(createRequest());
@@ -191,16 +198,16 @@ public class JiraBuildInfoSenderImplTest {
     }
 
     @Test
-    public void testSendBuildInfo_whenUserProvidedBranch() {
+    public void testSendFreestyleBuildInfo_whenUserProvidedBranch() {
         // given
-        final JiraBuildInfoRequest jiraBuildInfoRequest =
-                new MultibranchBuildInfoRequest(SITE, BRANCH_NAME, mockWorkflowRun());
+        final FreestyleBuildInfoRequest jiraBuildInfoRequest =
+                new FreestyleBuildInfoRequest(SITE, BRANCH_NAME, mockAbstractBuild());
         setupBuildsApiBuildAccepted();
 
         // when
         final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(jiraBuildInfoRequest);
 
-        verify(issueKeyExtractor, never()).extractIssueKeys(any());
+        verify(freestyleIssueKeyExtractor, never()).extractIssueKeys(any());
         assertThat(response.getStatus())
                 .isEqualTo(JiraSendInfoResponse.Status.SUCCESS_BUILD_ACCEPTED);
         final String message = response.getMessage();
@@ -208,16 +215,16 @@ public class JiraBuildInfoSenderImplTest {
     }
 
     @Test
-    public void testSendBuildInfo_whenBranchNameIsEmpty() {
+    public void testSendBuildInfoFreestyle_whenBranchNameIsEmpty() {
         // given
-        final JiraBuildInfoRequest jiraBuildInfoRequest =
-                new MultibranchBuildInfoRequest(SITE, "", mockWorkflowRun());
+        final FreestyleBuildInfoRequest jiraBuildInfoRequest =
+                new FreestyleBuildInfoRequest(SITE, "", mockAbstractBuild());
         setupBuildsApiBuildAccepted();
 
         // when
         final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(jiraBuildInfoRequest);
 
-        verify(issueKeyExtractor).extractIssueKeys(any());
+        // verify(freestyleIssueKeyExtractor).extractIssueKeys(any());
         assertThat(response.getStatus())
                 .isEqualTo(JiraSendInfoResponse.Status.SUCCESS_BUILD_ACCEPTED);
         final String message = response.getMessage();
@@ -225,12 +232,31 @@ public class JiraBuildInfoSenderImplTest {
     }
 
     @Test
-    public void testSendBuildInfo_whenUnknownIssueKeys() {
+    public void testFreestyleSendBuildInfo_whenIssueKeysInUserCommitTitle() {
+        // given
+        final AbstractBuild build = changeSetFreestyle();
+        final FreestyleBuildInfoRequest jiraBuildInfoRequest =
+                new FreestyleBuildInfoRequest(SITE, BRANCH_NAME, build);
+        setupBuildsApiBuildAccepted();
+
+        // when
+        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(jiraBuildInfoRequest);
+
+        verify(freestyleIssueKeyExtractor, never()).extractIssueKeys(any());
+        assertThat(response.getStatus())
+                .isEqualTo(JiraSendInfoResponse.Status.SUCCESS_BUILD_ACCEPTED);
+        final String message = response.getMessage();
+        assertThat(message).isNotBlank();
+    }
+
+    @Test
+    public void testFreestyleSendBuildInfo_whenUnknownIssueKeys() {
         // given
         setupBuildApiUnknownIssueKeys();
 
         // when
-        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(createRequest());
+        final JiraSendInfoResponse response =
+                classUnderTest.sendBuildInfo(createFreestyleRequest());
 
         assertThat(response.getStatus())
                 .isEqualTo(JiraSendInfoResponse.Status.FAILURE_UNKNOWN_ISSUE_KEYS);
@@ -238,26 +264,14 @@ public class JiraBuildInfoSenderImplTest {
         assertThat(message).isNotBlank();
     }
 
-    @Test
-    public void testSendBuildInfo_whenIssueKeysInUserCommitTitle() {
-        // given
-        final WorkflowRun workflowRun = changeSetWithOneChangeSetEntry();
-        final JiraBuildInfoRequest jiraBuildInfoRequest =
-                new MultibranchBuildInfoRequest(SITE, BRANCH_NAME, workflowRun);
-        setupBuildsApiBuildAccepted();
-
-        // when
-        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(jiraBuildInfoRequest);
-
-        verify(issueKeyExtractor, never()).extractIssueKeys(any());
-        assertThat(response.getStatus())
-                .isEqualTo(JiraSendInfoResponse.Status.SUCCESS_BUILD_ACCEPTED);
-        final String message = response.getMessage();
-        assertThat(message).isNotBlank();
-    }
-
-    private JiraBuildInfoRequest createRequest() {
-        return new MultibranchBuildInfoRequest(SITE, null, mockWorkflowRun());
+    private void setupBuildApiUnknownIssueKeys() {
+        final BuildApiResponse buildApiResponse =
+                new BuildApiResponse(
+                        Collections.emptyList(),
+                        Collections.emptyList(),
+                        ImmutableList.of("TEST-123"));
+        when(buildsApi.postUpdate(any(), any(), any(), any(), any()))
+                .thenReturn(new PostUpdateResult<>(buildApiResponse));
     }
 
     private void setupMocks() {
@@ -279,7 +293,8 @@ public class JiraBuildInfoSenderImplTest {
     }
 
     private void setupIssueKeyExtractor() {
-        when(issueKeyExtractor.extractIssueKeys(any())).thenReturn(ImmutableSet.of("TEST-123"));
+        when(freestyleIssueKeyExtractor.extractIssueKeys(any()))
+                .thenReturn(ImmutableSet.of("TEST-123"));
     }
 
     private void setupCloudIdResolver() {
@@ -312,6 +327,14 @@ public class JiraBuildInfoSenderImplTest {
                 .thenReturn(new PostUpdateResult<>("Error"));
     }
 
+    private FreestyleBuildInfoRequest createRequest() {
+        return new FreestyleBuildInfoRequest(SITE, null, mockAbstractBuild());
+    }
+
+    private static AbstractBuild<?, ?> mockAbstractBuild() {
+        return mock(AbstractBuild.class);
+    }
+
     private void setupBuildsApiBuildAccepted() {
         final BuildKeyResponse buildKeyResponse = new BuildKeyResponse(PIPELINE_ID, BUILD_NUMBER);
         final BuildApiResponse buildApiResponse =
@@ -338,28 +361,18 @@ public class JiraBuildInfoSenderImplTest {
                 .thenReturn(new PostUpdateResult<>(buildApiResponse));
     }
 
-    private void setupBuildApiUnknownIssueKeys() {
-        final BuildApiResponse buildApiResponse =
-                new BuildApiResponse(
-                        Collections.emptyList(),
-                        Collections.emptyList(),
-                        ImmutableList.of("TEST-123"));
-        when(buildsApi.postUpdate(any(), any(), any(), any(), any()))
-                .thenReturn(new PostUpdateResult<>(buildApiResponse));
-    }
-
-    private static WorkflowRun mockWorkflowRun() {
-        return mock(WorkflowRun.class);
-    }
-
-    private WorkflowRun changeSetWithOneChangeSetEntry() {
+    private AbstractBuild changeSetFreestyle() {
         final ChangeLogSet.Entry entry = mock(ChangeLogSet.Entry.class);
-        when(entry.getMsg()).thenReturn("TEST-125 Commit message");
+        // when(entry.getMsg()).thenReturn("TEST-125 Commit message");
         final ChangeLogSet changeLogSet = mock(ChangeLogSet.class);
-        when(changeLogSet.getItems()).thenReturn(new Object[] {entry});
-        final WorkflowRun workflowRun = mock(WorkflowRun.class);
+        // when(changeLogSet.getItems()).thenReturn(new Object[] {entry});
+        final AbstractBuild<?, ?> build = mock(AbstractBuild.class);
 
-        when(workflowRun.getChangeSets()).thenReturn(ImmutableList.of(changeLogSet));
-        return workflowRun;
+        // when(build.getChangeSets()).thenReturn(ImmutableList.of(changeLogSet));
+        return build;
+    }
+
+    private FreestyleBuildInfoRequest createFreestyleRequest() {
+        return new FreestyleBuildInfoRequest(SITE, "TEST-123-branch-name", mockAbstractBuild());
     }
 }
