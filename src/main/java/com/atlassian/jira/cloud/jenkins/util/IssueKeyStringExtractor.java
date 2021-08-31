@@ -42,7 +42,7 @@ public final class IssueKeyStringExtractor {
             return Collections.emptySet();
         }
 
-        final Matcher match = PROJECT_KEY_PATTERN.matcher(text);
+        final Matcher match = PROJECT_KEY_PATTERN.matcher(text.toUpperCase());
 
         while (match.find()) {
             for (int i = 1; i <= match.groupCount(); i++) {

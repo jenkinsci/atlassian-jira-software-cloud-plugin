@@ -21,6 +21,16 @@ public class IssueKeyStringExtractorTest {
     }
 
     @Test
+    public void testLowerCaseIssueKey() {
+        final String input = "Test-123-add-an-awesome-feature";
+
+        final Set<IssueKey> issuesKeys = IssueKeyStringExtractor.extractIssueKeys(input);
+
+        assertThat(issuesKeys).hasSize(1);
+        assertThat(issuesKeys).extracting(IssueKey::toString).containsExactlyInAnyOrder("TEST-123");
+    }
+
+    @Test
     public void testMultipleIssueKeys() {
         final String input = "TEST-123 TEST-789 Add two awesome features";
 
@@ -57,7 +67,8 @@ public class IssueKeyStringExtractorTest {
     public void testMaxIssueKeysLimit() {
         final String commitWithLongMessage = getLongMessage();
 
-        final Set<IssueKey> issuesKeys = IssueKeyStringExtractor.extractIssueKeys(commitWithLongMessage);
+        final Set<IssueKey> issuesKeys =
+                IssueKeyStringExtractor.extractIssueKeys(commitWithLongMessage);
 
         assertThat(issuesKeys).hasSize(100); // instead of 110
     }
@@ -65,7 +76,8 @@ public class IssueKeyStringExtractorTest {
     private String getLongMessage() {
         return IntStream.range(1, 110)
                 .mapToObj(seq -> "TEST-" + seq)
-                .reduce("Commit message",
+                .reduce(
+                        "Commit message",
                         (accumulator, element) -> accumulator + " TEST-" + element);
     }
 }
