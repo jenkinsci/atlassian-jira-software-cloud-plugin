@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.Set;
+import java.util.HashSet;
 import java.util.stream.Collectors;
 
 /**
@@ -28,7 +29,7 @@ public class BranchNameIssueKeyExtractor implements IssueKeyExtractor {
 
         if (scmAction == null) {
             logger.debug("SCMRevisionAction is null");
-            return Collections.emptySet();
+            return new HashSet<String>();
         }
 
         final SCMRevision revision = scmAction.getRevision();
