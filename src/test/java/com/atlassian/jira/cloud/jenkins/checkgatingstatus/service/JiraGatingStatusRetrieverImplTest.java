@@ -103,7 +103,7 @@ public class JiraGatingStatusRetrieverImplTest {
     @Test
     public void testGetGateState_whenAccessTokenFailure() {
         // given
-        when(accessTokenRetriever.getAccessToken(any())).thenReturn(Optional.empty());
+        when(accessTokenRetriever.getAccessToken(any(), any())).thenReturn(Optional.empty());
 
         // when
         final JiraGatingStatusResponse response = classUnderTest.getGatingStatus(createRequest());
@@ -163,7 +163,8 @@ public class JiraGatingStatusRetrieverImplTest {
     }
 
     private void setupAccessTokenRetriever() {
-        when(accessTokenRetriever.getAccessToken(any())).thenReturn(Optional.of("access-token"));
+        when(accessTokenRetriever.getAccessToken(any(), any()))
+                .thenReturn(Optional.of("access-token"));
     }
 
     private void setupRun() {

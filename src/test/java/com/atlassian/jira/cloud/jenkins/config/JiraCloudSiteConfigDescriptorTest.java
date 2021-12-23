@@ -109,7 +109,7 @@ public class JiraCloudSiteConfigDescriptorTest {
         // given
         setupCredentials(CREDENTIALS_ID, "secret");
         setupCloudIdResolver();
-        when(accessTokenRetriever.getAccessToken(any())).thenReturn(Optional.empty());
+        when(accessTokenRetriever.getAccessToken(any(), any())).thenReturn(Optional.empty());
 
         // when
         final FormValidation result =
@@ -155,7 +155,8 @@ public class JiraCloudSiteConfigDescriptorTest {
     }
 
     private void setupAccessTokenRetriever() {
-        when(accessTokenRetriever.getAccessToken(any())).thenReturn(Optional.of("access_token"));
+        when(accessTokenRetriever.getAccessToken(any(), any()))
+                .thenReturn(Optional.of("access_token"));
     }
 
     private void setupCloudIdResolver() {

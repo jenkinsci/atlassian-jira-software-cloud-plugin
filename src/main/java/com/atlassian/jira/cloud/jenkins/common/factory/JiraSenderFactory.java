@@ -3,7 +3,6 @@ package com.atlassian.jira.cloud.jenkins.common.factory;
 import com.atlassian.jira.cloud.jenkins.auth.AccessTokenRetriever;
 import com.atlassian.jira.cloud.jenkins.buildinfo.service.FreestyleJiraBuildInfoSenderImpl;
 import com.atlassian.jira.cloud.jenkins.buildinfo.service.JiraBuildInfoSender;
-import com.atlassian.jira.cloud.jenkins.buildinfo.service.JiraBuildInfoSenderImpl;
 import com.atlassian.jira.cloud.jenkins.buildinfo.service.MultibranchBuildInfoSenderImpl;
 import com.atlassian.jira.cloud.jenkins.checkgatingstatus.service.JiraGatingStatusRetriever;
 import com.atlassian.jira.cloud.jenkins.checkgatingstatus.service.JiraGatingStatusRetrieverImpl;
@@ -27,7 +26,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import okhttp3.OkHttpClient;
 
-import static com.atlassian.jira.cloud.jenkins.Config.ATLASSIAN_API_URL;
+import static com.atlassian.jira.cloud.jenkins.Config.ATLASSIAN_API_URL_PROD;
 
 public final class JiraSenderFactory {
 
@@ -60,18 +59,18 @@ public final class JiraSenderFactory {
                 new JiraApi(
                         httpClient,
                         objectMapper,
-                        ATLASSIAN_API_URL + "/jira/builds/0.1/cloud/%s/bulk");
+                        "https://api-private.stg.atlassian.com/jira/builds/0.1/cloud/%s/bulk");
         final JiraApi deploymentsApi =
                 new JiraApi(
                         httpClient,
                         objectMapper,
-                        ATLASSIAN_API_URL + "/jira/deployments/0.1/cloud/%s/bulk");
+                        "https://api-private.stg.atlassian.com/jira/deployments/0.1/cloud/%s/bulk");
 
         final JiraApi gateApi =
                 new JiraApi(
                         httpClient,
                         objectMapper,
-                        ATLASSIAN_API_URL
+                        "https://api-private.stg.atlassian.com"
                                 + "/jira/deployments/0.1"
                                 + "/cloud/${cloudId}"
                                 + "/pipelines/${pipelineId}"

@@ -149,7 +149,7 @@ public class JiraDeploymentInfoSenderImplTest {
     @Test
     public void testSendDeploymentInfo_whenAccessTokenFailure() {
         // given
-        when(accessTokenRetriever.getAccessToken(any())).thenReturn(Optional.empty());
+        when(accessTokenRetriever.getAccessToken(any(), any())).thenReturn(Optional.empty());
 
         // when
         final JiraSendInfoResponse response = classUnderTest.sendDeploymentInfo(createRequest());
@@ -405,7 +405,8 @@ public class JiraDeploymentInfoSenderImplTest {
     }
 
     private void setupAccessTokenRetriever() {
-        when(accessTokenRetriever.getAccessToken(any())).thenReturn(Optional.of("access-token"));
+        when(accessTokenRetriever.getAccessToken(any(), any()))
+                .thenReturn(Optional.of("access-token"));
     }
 
     private void setupChangeLogExtractor() {

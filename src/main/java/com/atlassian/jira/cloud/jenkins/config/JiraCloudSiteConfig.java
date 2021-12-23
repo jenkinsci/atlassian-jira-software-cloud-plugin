@@ -26,7 +26,7 @@ import org.kohsuke.stapler.interceptor.RequirePOST;
 import javax.inject.Inject;
 import java.util.Optional;
 
-import static com.atlassian.jira.cloud.jenkins.Config.ATLASSIAN_API_URL;
+import static com.atlassian.jira.cloud.jenkins.Config.ATLASSIAN_API_URL_PROD;
 import static java.util.Objects.requireNonNull;
 
 /**
@@ -118,7 +118,7 @@ public class JiraCloudSiteConfig extends AbstractDescribableImpl<JiraCloudSiteCo
                             ACL.SYSTEM,
                             instance,
                             StringCredentials.class,
-                            URIRequirementBuilder.fromUri(ATLASSIAN_API_URL).build(),
+                            URIRequirementBuilder.fromUri(ATLASSIAN_API_URL_PROD).build(),
                             CredentialsMatchers.always());
         }
 
@@ -144,7 +144,8 @@ public class JiraCloudSiteConfig extends AbstractDescribableImpl<JiraCloudSiteCo
             }
 
             final AppCredential appCredential = new AppCredential(clientId, maybeSecret.get());
-            final Optional<String> accessToken = accessTokenRetriever.getAccessToken(appCredential);
+            final Optional<String> accessToken =
+                    accessTokenRetriever.getAccessToken(appCredential, site);
 
             if (!accessToken.isPresent()) {
                 return FormValidation.error("Failed to validate site credentials");

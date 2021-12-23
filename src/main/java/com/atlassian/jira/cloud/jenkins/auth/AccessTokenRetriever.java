@@ -17,7 +17,8 @@ import javax.inject.Inject;
 import java.io.IOException;
 import java.util.Optional;
 
-import static com.atlassian.jira.cloud.jenkins.Config.ATLASSIAN_API_URL;
+import static com.atlassian.jira.cloud.jenkins.Config.ATLASSIAN_API_URL_PROD;
+import static com.atlassian.jira.cloud.jenkins.Config.ATLASSIAN_API_URL_STG;
 
 public class AccessTokenRetriever {
 
@@ -26,14 +27,16 @@ public class AccessTokenRetriever {
     private final OkHttpClient httpClient;
     private final ObjectMapper objectMapper;
     private String accessTokenEndpoint;
-    private static final String ACCESS_TOKEN_ENDPOINT = ATLASSIAN_API_URL + "/oauth/token";
+    private static final String ACCESS_TOKEN_ENDPOINT_PROD =
+            ATLASSIAN_API_URL_PROD + "/oauth/token";
+    private static final String ACCESS_TOKEN_ENDPOINT_STG = ATLASSIAN_API_URL_STG + "/oauth/token";
     private static final String GRANT_TYPE = "client_credentials";
 
     @Inject
     public AccessTokenRetriever(final OkHttpClient httpClient, final ObjectMapper objectMapper) {
         this.httpClient = httpClient;
         this.objectMapper = objectMapper;
-        this.accessTokenEndpoint = ACCESS_TOKEN_ENDPOINT;
+        this.accessTokenEndpoint = ACCESS_TOKEN_ENDPOINT_PROD;
     }
 
     /**
@@ -42,15 +45,28 @@ public class AccessTokenRetriever {
      * @param appCredential Contains Client ID and Secret
      * @return Access token
      */
-    public Optional<String> getAccessToken(final AppCredential appCredential) {
+    public Optional<String> getAccessToken(
+            final AppCredential appCredential, final String jiraSite) {
         RequestBody formBody =
                 new FormBody.Builder()
+                        .add("audience", "api.stg.atlassian.com")
                         .add("client_id", appCredential.getClientId())
                         .add("client_secret", appCredential.getClientSecret())
                         .add("grant_type", GRANT_TYPE)
                         .build();
-        Request request = new Request.Builder().url(accessTokenEndpoint).post(formBody).build();
-
+        final String url =
+                jiraSite.contains("jira-dev.com")
+                        ? ACCESS_TOKEN_ENDPOINT_STG
+                        : ACCESS_TOKEN_ENDPOINT_PROD;
+        Request request =
+                new Request.Builder()
+                        .url(
+                                jiraSite.contains("jira-dev.com")
+                                        ? ACCESS_TOKEN_ENDPOINT_STG
+                                        : ACCESS_TOKEN_ENDPOINT_PROD)
+                        .post(formBody)
+                        .build();
+        log.warn(url);
         try (Response response = httpClient.newCall(request).execute()) {
             if (!response.isSuccessful()) {
                 log.warn(

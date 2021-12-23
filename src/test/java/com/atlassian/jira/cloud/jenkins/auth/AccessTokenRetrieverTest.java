@@ -33,7 +33,8 @@ public class AccessTokenRetrieverTest extends BaseMockServerTest {
     public void testAccessTokenIsRetrievedSuccessfully() {
         server.enqueue(AccessTokenRetrieverTestGenerator.successfulResponse());
         Optional<String> accessToken =
-                accessTokenRetriever.getAccessToken(new AppCredential(CLIENT_ID, CLIENT_SECRET));
+                accessTokenRetriever.getAccessToken(
+                        new AppCredential(CLIENT_ID, CLIENT_SECRET), "");
         assertThat(accessToken.orElse("")).isEqualTo("successful_access_token");
     }
 
@@ -41,7 +42,8 @@ public class AccessTokenRetrieverTest extends BaseMockServerTest {
     public void testAccessTokenClientError() {
         server.enqueue(AccessTokenRetrieverTestGenerator.notFound());
         Optional<String> accessToken =
-                accessTokenRetriever.getAccessToken(new AppCredential(CLIENT_ID, CLIENT_SECRET));
+                accessTokenRetriever.getAccessToken(
+                        new AppCredential(CLIENT_ID, CLIENT_SECRET), "");
         assertThat(accessToken.isPresent()).isFalse();
     }
 
@@ -49,7 +51,8 @@ public class AccessTokenRetrieverTest extends BaseMockServerTest {
     public void testAccessTokenServerError() {
         server.enqueue(AccessTokenRetrieverTestGenerator.serverError());
         Optional<String> accessToken =
-                accessTokenRetriever.getAccessToken(new AppCredential(CLIENT_ID, CLIENT_SECRET));
+                accessTokenRetriever.getAccessToken(
+                        new AppCredential(CLIENT_ID, CLIENT_SECRET), "");
         assertThat(accessToken.isPresent()).isFalse();
     }
 
@@ -57,7 +60,8 @@ public class AccessTokenRetrieverTest extends BaseMockServerTest {
     public void testAccessTokenNotAJsonResponse() {
         server.enqueue(AccessTokenRetrieverTestGenerator.invalidResponseBody());
         Optional<String> accessToken =
-                accessTokenRetriever.getAccessToken(new AppCredential(CLIENT_ID, CLIENT_SECRET));
+                accessTokenRetriever.getAccessToken(
+                        new AppCredential(CLIENT_ID, CLIENT_SECRET), "");
         assertThat(accessToken.isPresent()).isFalse();
     }
 
@@ -65,7 +69,8 @@ public class AccessTokenRetrieverTest extends BaseMockServerTest {
     public void testNoAccessToken() {
         server.enqueue(AccessTokenRetrieverTestGenerator.accessTokenAbsent());
         Optional<String> accessToken =
-                accessTokenRetriever.getAccessToken(new AppCredential(CLIENT_ID, CLIENT_SECRET));
+                accessTokenRetriever.getAccessToken(
+                        new AppCredential(CLIENT_ID, CLIENT_SECRET), "");
         assertThat(accessToken.isPresent()).isFalse();
     }
 }

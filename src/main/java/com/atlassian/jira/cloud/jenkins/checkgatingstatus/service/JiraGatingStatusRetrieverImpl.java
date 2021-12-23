@@ -75,7 +75,7 @@ public class JiraGatingStatusRetrieverImpl implements JiraGatingStatusRetriever 
         final AppCredential appCredential =
                 new AppCredential(siteConfig.getClientId(), maybeSecret.get());
         final Optional<String> maybeAccessToken =
-                accessTokenRetriever.getAccessToken(appCredential);
+                accessTokenRetriever.getAccessToken(appCredential, siteConfig.getSite());
 
         if (!maybeAccessToken.isPresent()) {
             return JiraGatingStatusResponse.of(

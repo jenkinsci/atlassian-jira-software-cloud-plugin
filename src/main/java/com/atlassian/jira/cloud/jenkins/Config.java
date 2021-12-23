@@ -8,7 +8,8 @@ import java.time.Duration;
 
 public interface Config {
 
-    String ATLASSIAN_API_URL = "https://api.atlassian.com";
+    String ATLASSIAN_API_URL_PROD = "https://api.atlassian.com";
+    String ATLASSIAN_API_URL_STG = "https://auth.stg.atlassian.com";
     String ATLASSIAN_RATE_LIMITER_CONFIG = "atl";
 
     RateLimiterConfig DEFAULT_RATE_LIMITER_CONFIG =

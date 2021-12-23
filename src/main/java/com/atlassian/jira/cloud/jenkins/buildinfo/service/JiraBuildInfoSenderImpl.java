@@ -122,7 +122,7 @@ public abstract class JiraBuildInfoSenderImpl implements JiraBuildInfoSender {
     private Optional<String> getAccessTokenFor(
             final JiraCloudSiteConfig siteConfig, final String secret) {
         final AppCredential appCredential = new AppCredential(siteConfig.getClientId(), secret);
-        return accessTokenRetriever.getAccessToken(appCredential);
+        return accessTokenRetriever.getAccessToken(appCredential, siteConfig.getSite());
     }
 
     private Optional<String> getSecretFor(final String credentialsId) {
