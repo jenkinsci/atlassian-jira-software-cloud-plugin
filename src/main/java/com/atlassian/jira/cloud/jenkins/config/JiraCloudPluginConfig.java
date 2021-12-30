@@ -89,6 +89,10 @@ public class JiraCloudPluginConfig extends GlobalConfiguration {
                 .findFirst();
     }
 
+    public static List<JiraCloudSiteConfig> getAllSites() {
+        return JiraCloudPluginConfig.get().getSites();
+    }
+
     private static Optional<JiraCloudSiteConfig> defaultFromConfig() {
         final List<JiraCloudSiteConfig> allSites = JiraCloudPluginConfig.get().getSites();
         if (allSites.isEmpty()) {

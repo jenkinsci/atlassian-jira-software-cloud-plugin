@@ -78,7 +78,7 @@ public abstract class JiraBuildInfoSenderImpl implements JiraBuildInfoSender {
         final Set<String> issueKeys = getIssueKeys(request);
 
         if (issueKeys.isEmpty()) {
-            return JiraBuildInfoResponse.skippedIssueKeysNotFound();
+            return JiraBuildInfoResponse.skippedIssueKeysNotFound(jiraSite);
         }
 
         final Optional<String> maybeCloudId = getCloudIdFor(resolvedSiteConfig);
@@ -155,7 +155,7 @@ public abstract class JiraBuildInfoSenderImpl implements JiraBuildInfoSender {
             return JiraBuildInfoResponse.failureUnknownIssueKeys(jiraSite, response);
         }
 
-        return JiraBuildInfoResponse.failureUnexpectedResponse();
+        return JiraBuildInfoResponse.failureUnexpectedResponse(jiraSite);
     }
 
     private JiraBuildInfoResponse handleBuildApiError(

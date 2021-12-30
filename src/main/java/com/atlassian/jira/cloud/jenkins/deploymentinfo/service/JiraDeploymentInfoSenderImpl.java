@@ -111,7 +111,7 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
         errorMessages = StateValidator.validate(deploymentState);
 
         if (!errorMessages.isEmpty()) {
-            return JiraDeploymentInfoResponse.failureStateInvalid(errorMessages);
+            return JiraDeploymentInfoResponse.failureStateInvalid(jiraSite, errorMessages);
         }
 
         final Set<String> issueKeys;
@@ -217,7 +217,7 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
             return JiraDeploymentInfoResponse.failureDeploymentRejected(jiraSite, response);
         }
 
-        return JiraDeploymentInfoResponse.failureUnexpectedResponse();
+        return JiraDeploymentInfoResponse.failureUnexpectedResponse(jiraSite);
     }
 
     private JiraDeploymentInfoResponse handleDeploymentApiError(

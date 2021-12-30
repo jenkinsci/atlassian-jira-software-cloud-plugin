@@ -8,8 +8,9 @@ import java.util.List;
 
 public class JiraDeploymentInfoResponse extends JiraSendInfoResponse {
 
-    public JiraDeploymentInfoResponse(final Status status, final String message) {
-        super(status, message);
+    public JiraDeploymentInfoResponse(
+            final String jiraSite, final Status status, final String message) {
+        super(jiraSite, status, message);
     }
 
     public static JiraSendInfoResponse failureEnvironmentInvalid(
@@ -17,7 +18,8 @@ public class JiraDeploymentInfoResponse extends JiraSendInfoResponse {
         final String message =
                 Messages.JiraDeploymentInfoResponse_FAILURE_ENVIRONMENT_INVALID(
                         String.join(" ", errorMessages));
-        return new JiraDeploymentInfoResponse(Status.FAILURE_ENVIRONMENT_INVALID, message);
+        return new JiraDeploymentInfoResponse(
+                jiraSite, Status.FAILURE_ENVIRONMENT_INVALID, message);
     }
 
     public static JiraSendInfoResponse skippedIssueKeysNotFoundAndServiceIdsAreEmpty(
@@ -27,7 +29,7 @@ public class JiraDeploymentInfoResponse extends JiraSendInfoResponse {
                         .JiraDeploymentInfoResponse_SKIPPED_ISSUE_KEYS_NOT_FOUND_AND_SERVICE_IDS_NOT_PROVIDED(
                                 jiraSite);
         return new JiraDeploymentInfoResponse(
-                Status.SKIPPED_ISSUE_KEYS_NOT_FOUND_AND_SERVICE_IDS_ARE_EMPTY, message);
+                jiraSite, Status.SKIPPED_ISSUE_KEYS_NOT_FOUND_AND_SERVICE_IDS_ARE_EMPTY, message);
     }
 
     public static JiraDeploymentInfoResponse successDeploymentAccepted(
@@ -36,7 +38,8 @@ public class JiraDeploymentInfoResponse extends JiraSendInfoResponse {
         final String message =
                 Messages.JiraDeploymentInfoResponse_SUCCESS_DEPLOYMENT_ACCEPTED(
                         jiraSite, response.getAcceptedDeployments());
-        return new JiraDeploymentInfoResponse(Status.SUCCESS_DEPLOYMENT_ACCEPTED, message);
+        return new JiraDeploymentInfoResponse(
+                jiraSite, Status.SUCCESS_DEPLOYMENT_ACCEPTED, message);
     }
 
     public static JiraDeploymentInfoResponse failureDeploymentRejected(
@@ -45,7 +48,8 @@ public class JiraDeploymentInfoResponse extends JiraSendInfoResponse {
         final String message =
                 Messages.JiraDeploymentInfoResponse_FAILURE_DEPLOYMENT_REJECTED(
                         jiraSite, response.getRejectedDeployments());
-        return new JiraDeploymentInfoResponse(Status.FAILURE_DEPLOYMENT_REJECTED, message);
+        return new JiraDeploymentInfoResponse(
+                jiraSite, Status.FAILURE_DEPLOYMENT_REJECTED, message);
     }
 
     public static JiraDeploymentInfoResponse failureUnknownAssociations(
@@ -54,12 +58,14 @@ public class JiraDeploymentInfoResponse extends JiraSendInfoResponse {
         final String message =
                 Messages.JiraDeploymentInfoResponse_FAILURE_UNKNOWN_ASSOCIATIONS(
                         jiraSite, response.getUnknownAssociations());
-        return new JiraDeploymentInfoResponse(Status.FAILURE_UNKNOWN_ASSOCIATIONS, message);
+        return new JiraDeploymentInfoResponse(
+                jiraSite, Status.FAILURE_UNKNOWN_ASSOCIATIONS, message);
     }
 
-    public static JiraDeploymentInfoResponse failureUnexpectedResponse() {
+    public static JiraDeploymentInfoResponse failureUnexpectedResponse(final String jiraSite) {
         final String message = Messages.JiraDeploymentInfoResponse_FAILURE_UNEXPECTED_RESPONSE();
-        return new JiraDeploymentInfoResponse(Status.FAILURE_UNEXPECTED_RESPONSE, message);
+        return new JiraDeploymentInfoResponse(
+                jiraSite, Status.FAILURE_UNEXPECTED_RESPONSE, message);
     }
 
     public static JiraDeploymentInfoResponse failureDeploymentsApiResponse(
@@ -67,13 +73,15 @@ public class JiraDeploymentInfoResponse extends JiraSendInfoResponse {
         final String message =
                 Messages.JiraDeploymentInfoResponse_FAILURE_DEPLOYMENTS_API_RESPONSE(
                         jiraSite, errorMessage);
-        return new JiraDeploymentInfoResponse(Status.FAILURE_DEPLOYMENTS_API_RESPONSE, message);
+        return new JiraDeploymentInfoResponse(
+                jiraSite, Status.FAILURE_DEPLOYMENTS_API_RESPONSE, message);
     }
 
-    public static JiraSendInfoResponse failureStateInvalid(final List<String> errorMessages) {
+    public static JiraSendInfoResponse failureStateInvalid(
+            final String jiraSite, final List<String> errorMessages) {
         final String message =
                 Messages.JiraDeploymentInfoResponse_FAILURE_STATE_INVALID(
                         String.join(" ", errorMessages));
-        return new JiraDeploymentInfoResponse(Status.FAILURE_STATE_INVALID, message);
+        return new JiraDeploymentInfoResponse(jiraSite, Status.FAILURE_STATE_INVALID, message);
     }
 }

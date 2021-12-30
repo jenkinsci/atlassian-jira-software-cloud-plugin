@@ -30,12 +30,18 @@ public abstract class JiraSendInfoResponse implements Serializable {
         SKIPPED_ISSUE_KEYS_NOT_FOUND_AND_SERVICE_IDS_ARE_EMPTY,
     }
 
+    private final String jiraSite;
     private final Status status;
     private final String message;
 
-    public JiraSendInfoResponse(final Status status, final String message) {
+    public JiraSendInfoResponse(final String jiraSite, final Status status, final String message) {
+        this.jiraSite = jiraSite;
         this.status = status;
         this.message = message;
+    }
+
+    public String getJiraSite() {
+        return jiraSite;
     }
 
     public Status getStatus() {
@@ -55,11 +61,13 @@ public abstract class JiraSendInfoResponse implements Serializable {
             return false;
         }
         final JiraSendInfoResponse that = (JiraSendInfoResponse) o;
-        return status == that.status && Objects.equals(message, that.message);
+        return status == that.status
+                && Objects.equals(message, that.message)
+                && Objects.equals(jiraSite, that.jiraSite);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(status, message);
+        return Objects.hash(status, message, jiraSite);
     }
 }
