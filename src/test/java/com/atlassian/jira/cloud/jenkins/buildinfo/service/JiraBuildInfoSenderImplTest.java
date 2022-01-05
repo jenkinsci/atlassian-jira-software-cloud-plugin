@@ -27,9 +27,10 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 import static com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse.Status.FAILURE_SECRET_NOT_FOUND;
 import static com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse.Status.FAILURE_SITE_CONFIG_NOT_FOUND;
@@ -37,8 +38,10 @@ import static com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoRespo
 import static com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse.Status.SKIPPED_ISSUE_KEYS_NOT_FOUND;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -46,12 +49,17 @@ import static org.mockito.Mockito.when;
 public class JiraBuildInfoSenderImplTest {
 
     private static final String SITE = "example.atlassian.com";
+    private static final String SITE2 = "example2.atlassian.com";
     private static final String BRANCH_NAME = "TEST-123-branch-name";
-    private static final String CLOUD_ID = UUID.randomUUID().toString();
-    public static final String PIPELINE_ID = UUID.randomUUID().toString();
+    private static final String CLOUD_ID = "my-cloud-id";
+    private static final String CLOUD_ID2 = "my-cloud-id-2";
+    public static final String PIPELINE_ID = "my-pipeline-id";
     public static final int BUILD_NUMBER = 1;
     private static final JiraCloudSiteConfig JIRA_SITE_CONFIG =
             new JiraCloudSiteConfig(SITE, "clientId", "credsId");
+
+    private static final JiraCloudSiteConfig JIRA_SITE_CONFIG2 =
+            new JiraCloudSiteConfig(SITE2, "clientId2", "credsId2");
 
     @Mock private JiraSiteConfigRetriever siteConfigRetriever;
 
@@ -90,7 +98,7 @@ public class JiraBuildInfoSenderImplTest {
         when(siteConfigRetriever.getJiraSiteConfig(any())).thenReturn(Optional.empty());
 
         // when
-        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(createRequest());
+        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(createOneJiraRequest()).get(0);
 
         // then
         assertThat(response.getStatus()).isEqualTo(FAILURE_SITE_CONFIG_NOT_FOUND);
@@ -102,7 +110,7 @@ public class JiraBuildInfoSenderImplTest {
         when(secretRetriever.getSecretFor(any())).thenReturn(Optional.empty());
 
         // when
-        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(createRequest());
+        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(createOneJiraRequest()).get(0);
 
         // then
         assertThat(response.getStatus()).isEqualTo(FAILURE_SECRET_NOT_FOUND);
@@ -114,7 +122,7 @@ public class JiraBuildInfoSenderImplTest {
         when(issueKeyExtractor.extractIssueKeys(any())).thenReturn(Collections.emptySet());
 
         // when
-        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(createRequest());
+        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(createOneJiraRequest()).get(0);
 
         // then
         assertThat(response.getStatus()).isEqualTo(SKIPPED_ISSUE_KEYS_NOT_FOUND);
@@ -128,7 +136,7 @@ public class JiraBuildInfoSenderImplTest {
         when(cloudIdResolver.getCloudId(any())).thenReturn(Optional.empty());
 
         // when
-        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(createRequest());
+        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(createOneJiraRequest()).get(0);
 
         // then
         assertThat(response.getStatus()).isEqualTo(FAILURE_SITE_NOT_FOUND);
@@ -140,7 +148,7 @@ public class JiraBuildInfoSenderImplTest {
         when(accessTokenRetriever.getAccessToken(any())).thenReturn(Optional.empty());
 
         // when
-        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(createRequest());
+        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(createOneJiraRequest()).get(0);
 
         // then
         assertThat(response.getStatus())
@@ -153,7 +161,7 @@ public class JiraBuildInfoSenderImplTest {
         setupBuildsApiFailure();
 
         // when
-        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(createRequest());
+        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(createOneJiraRequest()).get(0);
 
         // then
         assertThat(response.getStatus())
@@ -166,7 +174,7 @@ public class JiraBuildInfoSenderImplTest {
         setupBuildsApiBuildAccepted();
 
         // when
-        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(createRequest());
+        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(createOneJiraRequest()).get(0);
 
         // then
         assertThat(response.getStatus())
@@ -181,7 +189,7 @@ public class JiraBuildInfoSenderImplTest {
         setupBuildApiBuildRejected();
 
         // when
-        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(createRequest());
+        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(createOneJiraRequest()).get(0);
 
         // then
         assertThat(response.getStatus())
@@ -198,7 +206,8 @@ public class JiraBuildInfoSenderImplTest {
         setupBuildsApiBuildAccepted();
 
         // when
-        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(jiraBuildInfoRequest);
+        final JiraSendInfoResponse response =
+                classUnderTest.sendBuildInfo(jiraBuildInfoRequest).get(0);
 
         verify(issueKeyExtractor, never()).extractIssueKeys(any());
         assertThat(response.getStatus())
@@ -215,7 +224,8 @@ public class JiraBuildInfoSenderImplTest {
         setupBuildsApiBuildAccepted();
 
         // when
-        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(jiraBuildInfoRequest);
+        final JiraSendInfoResponse response =
+                classUnderTest.sendBuildInfo(jiraBuildInfoRequest).get(0);
 
         verify(issueKeyExtractor).extractIssueKeys(any());
         assertThat(response.getStatus())
@@ -230,7 +240,7 @@ public class JiraBuildInfoSenderImplTest {
         setupBuildApiUnknownIssueKeys();
 
         // when
-        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(createRequest());
+        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(createOneJiraRequest()).get(0);
 
         assertThat(response.getStatus())
                 .isEqualTo(JiraSendInfoResponse.Status.FAILURE_UNKNOWN_ISSUE_KEYS);
@@ -247,7 +257,8 @@ public class JiraBuildInfoSenderImplTest {
         setupBuildsApiBuildAccepted();
 
         // when
-        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(jiraBuildInfoRequest);
+        final JiraSendInfoResponse response =
+                classUnderTest.sendBuildInfo(jiraBuildInfoRequest).get(0);
 
         verify(issueKeyExtractor, never()).extractIssueKeys(any());
         assertThat(response.getStatus())
@@ -256,8 +267,34 @@ public class JiraBuildInfoSenderImplTest {
         assertThat(message).isNotBlank();
     }
 
-    private JiraBuildInfoRequest createRequest() {
+    @Test
+    public void testSendBuildInfo_whenNoJiraSpecified_sendsBuildsToAllJiras() {
+        // given
+        when(siteConfigRetriever.getAllJiraSites()).thenReturn(Arrays.asList(SITE, SITE2));
+        setupBuildsApiBuildAccepted();
+
+        // when
+        final List<JiraSendInfoResponse> responses = classUnderTest.sendBuildInfo(createAllJirasRequest());
+
+        // then
+        assertThat(responses).hasSize(2);
+        for (int idx = 0; idx < responses.size(); idx ++) {
+            final JiraSendInfoResponse response = responses.get(idx);
+            assertThat(response.getStatus())
+                    .isEqualTo(JiraSendInfoResponse.Status.SUCCESS_BUILD_ACCEPTED);
+            final String message = response.getMessage();
+            assertThat(message).isNotBlank();
+        }
+        verify(buildsApi, times(1)).postUpdate(eq(CLOUD_ID), any(), any(), any(), any());
+        verify(buildsApi, times(1)).postUpdate(eq(CLOUD_ID2), any(), any(), any(), any());
+    }
+
+    private JiraBuildInfoRequest createOneJiraRequest() {
         return new MultibranchBuildInfoRequest(SITE, null, mockWorkflowRun());
+    }
+
+    private JiraBuildInfoRequest createAllJirasRequest() {
+        return new MultibranchBuildInfoRequest(null, null, mockWorkflowRun());
     }
 
     private void setupMocks() {
@@ -270,8 +307,10 @@ public class JiraBuildInfoSenderImplTest {
     }
 
     private void setupSiteConfigRetriever() {
-        when(siteConfigRetriever.getJiraSiteConfig(any()))
+        when(siteConfigRetriever.getJiraSiteConfig(eq(SITE)))
                 .thenReturn(Optional.of(JIRA_SITE_CONFIG));
+        when(siteConfigRetriever.getJiraSiteConfig(eq(SITE2)))
+                .thenReturn(Optional.of(JIRA_SITE_CONFIG2));
     }
 
     private void setupSecretRetriever() {
@@ -283,7 +322,8 @@ public class JiraBuildInfoSenderImplTest {
     }
 
     private void setupCloudIdResolver() {
-        when(cloudIdResolver.getCloudId(any())).thenReturn(Optional.of(CLOUD_ID));
+        when(cloudIdResolver.getCloudId(eq("https://" + SITE))).thenReturn(Optional.of(CLOUD_ID));
+        when(cloudIdResolver.getCloudId(eq("https://" + SITE2))).thenReturn(Optional.of(CLOUD_ID2));
     }
 
     private void setupAccessTokenRetriever() {

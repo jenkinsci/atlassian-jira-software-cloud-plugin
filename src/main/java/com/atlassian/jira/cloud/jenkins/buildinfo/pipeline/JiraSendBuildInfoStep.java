@@ -94,6 +94,7 @@ public class JiraSendBuildInfoStep extends Step implements Serializable {
         @SuppressWarnings("unused")
         public ListBoxModel doFillSiteItems() {
             ListBoxModel items = new ListBoxModel();
+            items.add("All", null);
             final List<JiraCloudSiteConfig> siteList = globalConfig.getSites();
             for (JiraCloudSiteConfig siteConfig : siteList) {
                 items.add(siteConfig.getSite(), siteConfig.getSite());
@@ -104,7 +105,7 @@ public class JiraSendBuildInfoStep extends Step implements Serializable {
     }
 
     public static class JiraSendBuildInfoStepExecution
-            extends SynchronousNonBlockingStepExecution<JiraSendInfoResponse> {
+            extends SynchronousNonBlockingStepExecution<List<JiraSendInfoResponse>> {
 
         private final JiraSendBuildInfoStep step;
 
@@ -115,19 +116,19 @@ public class JiraSendBuildInfoStep extends Step implements Serializable {
         }
 
         @Override
-        protected JiraSendInfoResponse run() throws Exception {
+        protected List<JiraSendInfoResponse> run() throws Exception {
             final TaskListener taskListener = getContext().get(TaskListener.class);
             final WorkflowRun workflowRun = getContext().get(WorkflowRun.class);
 
             final JiraBuildInfoRequest request =
                     new MultibranchBuildInfoRequest(step.getSite(), step.getBranch(), workflowRun);
 
-            final JiraSendInfoResponse response =
+            final List<JiraSendInfoResponse> allResponses =
                     JiraSenderFactory.getInstance().getJiraBuildInfoSender().sendBuildInfo(request);
 
-            logResult(taskListener, response);
+            allResponses.forEach(response -> logResult(taskListener, response));
 
-            return response;
+            return allResponses;
         }
 
         private void logResult(
@@ -135,7 +136,9 @@ public class JiraSendBuildInfoStep extends Step implements Serializable {
             taskListener
                     .getLogger()
                     .println(
-                            "jiraSendBuildInfo: "
+                            "jiraSendBuildInfo("
+                                    + response.getJiraSite()
+                                    + "): "
                                     + response.getStatus()
                                     + ": "
                                     + response.getMessage());

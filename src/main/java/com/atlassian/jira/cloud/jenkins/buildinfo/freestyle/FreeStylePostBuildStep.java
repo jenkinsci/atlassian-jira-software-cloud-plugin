@@ -84,7 +84,7 @@ public class FreeStylePostBuildStep extends Recorder implements Serializable, Si
             @Nonnull final Launcher launcher,
             @Nonnull final TaskListener taskListener)
             throws InterruptedException, IOException {
-        //perform method from SimpleBuildStep interface
+        // perform method from SimpleBuildStep interface
     }
 
     @Extension
@@ -112,6 +112,7 @@ public class FreeStylePostBuildStep extends Recorder implements Serializable, Si
         public ListBoxModel doFillSiteItems() {
             ListBoxModel items = new ListBoxModel();
             final List<JiraCloudSiteConfig> siteList = globalConfig.getSites();
+            items.add("All", null);
             for (JiraCloudSiteConfig siteConfig : siteList) {
                 items.add(siteConfig.getSite(), siteConfig.getSite());
             }
