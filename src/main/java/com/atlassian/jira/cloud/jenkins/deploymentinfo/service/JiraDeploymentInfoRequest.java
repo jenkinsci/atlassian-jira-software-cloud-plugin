@@ -9,7 +9,7 @@ import static java.util.Objects.requireNonNull;
 
 public class JiraDeploymentInfoRequest {
 
-    private final String site;
+    private final String site; // NULL means "send to all connected sites"
     private final String environmentId;
     private final String environmentName;
     private final String environmentType;

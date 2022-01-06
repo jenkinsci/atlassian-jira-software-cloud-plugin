@@ -70,28 +70,30 @@ public abstract class JiraBuildInfoSenderImpl implements JiraBuildInfoSender {
                 responses.add(
                         maybeSiteConfig
                                 .map(siteConfig -> sendBuildInfoToJiraSite(siteConfig, request))
-                                .orElse(JiraCommonResponse.failureSiteConfigNotFound(jiraSite))
-                );
+                                .orElse(JiraCommonResponse.failureSiteConfigNotFound(jiraSite)));
             }
         } else {
-            final Optional<JiraCloudSiteConfig> maybeSiteConfig = getSiteConfigFor(request.getSite());
+            final Optional<JiraCloudSiteConfig> maybeSiteConfig =
+                    getSiteConfigFor(request.getSite());
             responses.add(
                     maybeSiteConfig
                             .map(siteConfig -> sendBuildInfoToJiraSite(siteConfig, request))
-                            .orElse(JiraCommonResponse.failureSiteConfigNotFound(request.getSite()))
-            );
+                            .orElse(
+                                    JiraCommonResponse.failureSiteConfigNotFound(
+                                            request.getSite())));
         }
         return responses;
     }
 
     /**
-     * Sends build data to the Jira site.
+     * Sends build data to a Jira site.
      *
      * @param siteConfig - Jira to send data to
      * @param request - JiraBuildInfoRequest::site is ignored and jiraSite is used instead
      */
     public JiraSendInfoResponse sendBuildInfoToJiraSite(
-            @Nonnull final JiraCloudSiteConfig siteConfig, @Nonnull final JiraBuildInfoRequest request) {
+            @Nonnull final JiraCloudSiteConfig siteConfig,
+            @Nonnull final JiraBuildInfoRequest request) {
 
         final String resolvedSiteConfig = siteConfig.getSite();
 

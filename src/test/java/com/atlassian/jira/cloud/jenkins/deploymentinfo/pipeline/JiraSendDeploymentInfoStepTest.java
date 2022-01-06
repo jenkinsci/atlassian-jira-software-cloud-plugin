@@ -80,7 +80,8 @@ public class JiraSendDeploymentInfoStepTest {
                         Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
         final JiraDeploymentInfoResponse deploymentAccepted =
                 JiraDeploymentInfoResponse.successDeploymentAccepted(SITE, response);
-        when(mockSender.sendDeploymentInfo(any())).thenReturn(deploymentAccepted);
+        when(mockSender.sendDeploymentInfo(any()))
+                .thenReturn(Collections.singletonList(deploymentAccepted));
     }
 
     @Test
@@ -120,7 +121,7 @@ public class JiraSendDeploymentInfoStepTest {
                 (JiraSendDeploymentInfoStep.JiraSendDeploymentInfoStepExecution) step.start(ctx);
 
         // when
-        final JiraSendInfoResponse response = start.run();
+        final JiraSendInfoResponse response = start.run().get(0);
 
         // then
         assertThat(response.getStatus()).isEqualTo(SUCCESS_DEPLOYMENT_ACCEPTED);

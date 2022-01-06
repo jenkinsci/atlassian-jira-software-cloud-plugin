@@ -78,7 +78,7 @@ public class JiraCloudPluginConfig extends GlobalConfiguration {
         final Optional<String> userProvidedSite = Optional.ofNullable(site);
         return userProvidedSite
                 .map(JiraCloudPluginConfig::filterFromConfig)
-                .orElse(defaultFromConfig());
+                .orElseGet(JiraCloudPluginConfig::defaultFromConfig);
     }
 
     public static Optional<JiraCloudSiteConfig> filterFromConfig(final String site) {
