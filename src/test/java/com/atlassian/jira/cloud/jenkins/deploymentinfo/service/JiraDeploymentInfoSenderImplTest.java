@@ -210,7 +210,7 @@ public class JiraDeploymentInfoSenderImplTest {
         // when
         final JiraSendInfoResponse response =
                 classUnderTest
-                        .sendDeploymentInfo(createRequestWithGating(SITE, ImmutableSet.of("TEST-123"), null))
+                        .sendDeploymentInfo(createRequestWithGating(SITE, ImmutableSet.of("TEST-123"), false))
                         .get(0);
 
         // then
@@ -349,13 +349,10 @@ public class JiraDeploymentInfoSenderImplTest {
 
         // when
         final List<JiraSendInfoResponse> responses =
-                classUnderTest.sendDeploymentInfo(createAllJirasRequest(null));
-        responses.addAll(
-                classUnderTest.sendDeploymentInfo(createAllJirasRequest(false))
-        );
+                classUnderTest.sendDeploymentInfo(createAllJirasRequest(false));
 
         // then
-        assertThat(responses).hasSize(4);
+        assertThat(responses).hasSize(2);
         for (int idx = 0; idx < responses.size(); idx++) {
             final JiraSendInfoResponse response = responses.get(idx);
             assertThat(response.getStatus())
@@ -363,8 +360,8 @@ public class JiraDeploymentInfoSenderImplTest {
             final String message = response.getMessage();
             assertThat(message).isNotBlank();
         }
-        verify(deploymentsApi, times(2)).postUpdate(eq(CLOUD_ID), any(), any(), any(), any());
-        verify(deploymentsApi, times(2)).postUpdate(eq(CLOUD_ID2), any(), any(), any(), any());
+        verify(deploymentsApi, times(1)).postUpdate(eq(CLOUD_ID), any(), any(), any(), any());
+        verify(deploymentsApi, times(1)).postUpdate(eq(CLOUD_ID2), any(), any(), any(), any());
     }
 
     @Test
@@ -397,15 +394,15 @@ public class JiraDeploymentInfoSenderImplTest {
     }
 
     private JiraDeploymentInfoRequest createRequest() {
-        return createRequestWithGating(SITE, Collections.emptySet(), null);
+        return createRequestWithGating(SITE, Collections.emptySet(), false);
     }
 
-    private JiraDeploymentInfoRequest createAllJirasRequest(@Nullable final Boolean enableGating) {
+    private JiraDeploymentInfoRequest createAllJirasRequest(final boolean enableGating) {
         return createRequestWithGating(null, Collections.emptySet(), enableGating);
     }
 
     private JiraDeploymentInfoRequest createRequestWithGating(
-            @Nullable final String site, final Set<String> issueKeys, @Nullable final Boolean enableGating) {
+            @Nullable final String site, final Set<String> issueKeys, final boolean enableGating) {
         return new JiraDeploymentInfoRequest(
                 site,
                 ENVIRONMENT_ID,

@@ -25,6 +25,7 @@ import javax.inject.Inject;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -210,7 +211,7 @@ public class JiraSendDeploymentInfoStep extends Step implements Serializable {
                             step.getEnvironmentType(),
                             step.getState(),
                             serviceIds,
-                            step.getEnableGating(),
+                            Optional.ofNullable(step.getEnableGating()).orElse(false),
                             issueKeys,
                             workflowRun);
             final List<JiraSendInfoResponse> responses =

@@ -84,7 +84,7 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
         final List<JiraSendInfoResponse> responses = new LinkedList<>();
         if (request.getSite() == null) {
             List<String> jiraSites = siteConfigRetriever.getAllJiraSites();
-            if (jiraSites.size() >= 2 && Optional.ofNullable(request.getEnableGating()).orElse(false)) {
+            if (jiraSites.size() >= 2 && request.getEnableGating()) {
                 responses.add(JiraDeploymentInfoResponse.failureGatingManyJiras());
             } else {
                 for (final String jiraSite : jiraSites) {
@@ -122,7 +122,7 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
             final JiraDeploymentInfoRequest request) {
         final WorkflowRun deployment = request.getDeployment();
         final Set<String> serviceIds = request.getServiceIds();
-        final Boolean enableGating = request.getEnableGating();
+        final boolean enableGating = request.getEnableGating();
         final Set<String> requestIssueKeys = request.getIssueKeys();
 
         final String resolvedSiteConfig = siteConfig.getSite();

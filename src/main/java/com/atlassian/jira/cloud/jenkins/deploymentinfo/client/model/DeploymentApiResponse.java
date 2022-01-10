@@ -3,7 +3,9 @@ package com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * When a deployment is submitted via the API, the response includes the list of accepted
@@ -23,9 +25,9 @@ public class DeploymentApiResponse {
             @JsonProperty("rejectedDeployments")
                     final List<RejectedDeploymentResponse> rejectedDeployments,
             @JsonProperty("unknownAssociations") final List<Association> unknownAssociations) {
-        this.acceptedDeployments = acceptedDeployments;
-        this.rejectedDeployments = rejectedDeployments;
-        this.unknownAssociations = unknownAssociations;
+        this.acceptedDeployments = Optional.ofNullable(acceptedDeployments).orElse(Collections.emptyList());
+        this.rejectedDeployments = Optional.ofNullable(rejectedDeployments).orElse(Collections.emptyList());
+        this.unknownAssociations = Optional.ofNullable(unknownAssociations).orElse(Collections.emptyList());
     }
 
     public List<DeploymentKeyResponse> getAcceptedDeployments() {
