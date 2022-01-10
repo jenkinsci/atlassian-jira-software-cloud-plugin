@@ -88,14 +88,18 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
                 responses.add(JiraDeploymentInfoResponse.failureGatingManyJiras());
             } else {
                 for (final String jiraSite : jiraSites) {
-                    final Optional<JiraCloudSiteConfig> maybeSiteConfig = getSiteConfigFor(jiraSite);
+                    final Optional<JiraCloudSiteConfig> maybeSiteConfig =
+                            getSiteConfigFor(jiraSite);
 
                     responses.add(
                             maybeSiteConfig
                                     .map(
                                             siteConfig ->
-                                                    sendDeploymentInfoToJiraSite(siteConfig, request))
-                                    .orElse(JiraCommonResponse.failureSiteConfigNotFound(jiraSite)));
+                                                    sendDeploymentInfoToJiraSite(
+                                                            siteConfig, request))
+                                    .orElse(
+                                            JiraCommonResponse.failureSiteConfigNotFound(
+                                                    jiraSite)));
                 }
             }
         } else {

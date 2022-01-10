@@ -25,9 +25,12 @@ public class DeploymentApiResponse {
             @JsonProperty("rejectedDeployments")
                     final List<RejectedDeploymentResponse> rejectedDeployments,
             @JsonProperty("unknownAssociations") final List<Association> unknownAssociations) {
-        this.acceptedDeployments = Optional.ofNullable(acceptedDeployments).orElse(Collections.emptyList());
-        this.rejectedDeployments = Optional.ofNullable(rejectedDeployments).orElse(Collections.emptyList());
-        this.unknownAssociations = Optional.ofNullable(unknownAssociations).orElse(Collections.emptyList());
+        this.acceptedDeployments =
+                Optional.ofNullable(acceptedDeployments).orElse(Collections.emptyList());
+        this.rejectedDeployments =
+                Optional.ofNullable(rejectedDeployments).orElse(Collections.emptyList());
+        this.unknownAssociations =
+                Optional.ofNullable(unknownAssociations).orElse(Collections.emptyList());
     }
 
     public List<DeploymentKeyResponse> getAcceptedDeployments() {

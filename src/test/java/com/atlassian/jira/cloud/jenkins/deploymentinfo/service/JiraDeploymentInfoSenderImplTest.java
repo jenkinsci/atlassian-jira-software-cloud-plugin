@@ -210,7 +210,8 @@ public class JiraDeploymentInfoSenderImplTest {
         // when
         final JiraSendInfoResponse response =
                 classUnderTest
-                        .sendDeploymentInfo(createRequestWithGating(SITE, ImmutableSet.of("TEST-123"), false))
+                        .sendDeploymentInfo(
+                                createRequestWithGating(SITE, ImmutableSet.of("TEST-123"), false))
                         .get(0);
 
         // then
@@ -375,7 +376,8 @@ public class JiraDeploymentInfoSenderImplTest {
 
         // then
         assertThat(responses).hasSize(1);
-        assertThat(responses.get(0).getStatus()).isEqualTo(JiraSendInfoResponse.Status.FAILURE_DEPLOYMENT_GATING_MANY_JIRAS);
+        assertThat(responses.get(0).getStatus())
+                .isEqualTo(JiraSendInfoResponse.Status.FAILURE_DEPLOYMENT_GATING_MANY_JIRAS);
         verify(deploymentsApi, times(0)).postUpdate(any(), any(), any(), any(), any());
     }
 

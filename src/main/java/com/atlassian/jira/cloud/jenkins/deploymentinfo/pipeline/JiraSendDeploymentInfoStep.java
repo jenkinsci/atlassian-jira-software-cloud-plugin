@@ -228,7 +228,9 @@ public class JiraSendDeploymentInfoStep extends Step implements Serializable {
             taskListener
                     .getLogger()
                     .println(
-                            "jiraSendDeploymentInfo(" + response.getJiraSite() + "): "
+                            "jiraSendDeploymentInfo("
+                                    + response.getJiraSite()
+                                    + "): "
                                     + response.getStatus()
                                     + ": "
                                     + response.getMessage());
