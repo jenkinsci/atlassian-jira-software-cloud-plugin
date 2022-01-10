@@ -84,15 +84,19 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
         final List<JiraSendInfoResponse> responses = new LinkedList<>();
         if (request.getSite() == null) {
             List<String> jiraSites = siteConfigRetriever.getAllJiraSites();
-            for (final String jiraSite : jiraSites) {
-                final Optional<JiraCloudSiteConfig> maybeSiteConfig = getSiteConfigFor(jiraSite);
+            if (jiraSites.size() >= 2 && Optional.ofNullable(request.getEnableGating()).orElse(false)) {
+                responses.add(JiraDeploymentInfoResponse.failureGatingManyJiras());
+            } else {
+                for (final String jiraSite : jiraSites) {
+                    final Optional<JiraCloudSiteConfig> maybeSiteConfig = getSiteConfigFor(jiraSite);
 
-                responses.add(
-                        maybeSiteConfig
-                                .map(
-                                        siteConfig ->
-                                                sendDeploymentInfoToJiraSite(siteConfig, request))
-                                .orElse(JiraCommonResponse.failureSiteConfigNotFound(jiraSite)));
+                    responses.add(
+                            maybeSiteConfig
+                                    .map(
+                                            siteConfig ->
+                                                    sendDeploymentInfoToJiraSite(siteConfig, request))
+                                    .orElse(JiraCommonResponse.failureSiteConfigNotFound(jiraSite)));
+                }
             }
         } else {
             final Optional<JiraCloudSiteConfig> maybeSiteConfig =
@@ -301,9 +305,9 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
         return associations;
     }
 
-    private List<Command> buildCommands(final Boolean enableGating) {
+    private List<Command> buildCommands(@Nullable final Boolean enableGating) {
         final ImmutableList.Builder<Command> commandsBuilder = ImmutableList.builder();
-        if (enableGating) {
+        if (enableGating != null && enableGating) {
             commandsBuilder.add(new Command("initiate_deployment_gating"));
         }
         return commandsBuilder.build();

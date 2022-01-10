@@ -70,6 +70,7 @@ public class JiraDeploymentInfoRequest {
         return serviceIds;
     }
 
+    @Nullable
     public Boolean getEnableGating() {
         return enableGating;
     }

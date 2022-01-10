@@ -77,6 +77,12 @@ public class JiraDeploymentInfoResponse extends JiraSendInfoResponse {
                 jiraSite, Status.FAILURE_DEPLOYMENTS_API_RESPONSE, message);
     }
 
+    public static JiraDeploymentInfoResponse failureGatingManyJiras() {
+        final String message =
+                Messages.JiraDeploymentInfoResponse_FAILURE_GATING_MANY_JIRAS();
+        return new JiraDeploymentInfoResponse("", Status.FAILURE_DEPLOYMENT_GATING_MANY_JIRAS, message);
+    }
+
     public static JiraSendInfoResponse failureStateInvalid(
             final String jiraSite, final List<String> errorMessages) {
         final String message =

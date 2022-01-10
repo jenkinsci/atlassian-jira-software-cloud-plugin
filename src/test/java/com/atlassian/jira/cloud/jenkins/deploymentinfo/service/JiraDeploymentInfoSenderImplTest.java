@@ -210,7 +210,7 @@ public class JiraDeploymentInfoSenderImplTest {
         // when
         final JiraSendInfoResponse response =
                 classUnderTest
-                        .sendDeploymentInfo(createRequest(SITE, ImmutableSet.of("TEST-123")))
+                        .sendDeploymentInfo(createRequestWithGating(SITE, ImmutableSet.of("TEST-123"), null))
                         .get(0);
 
         // then
@@ -349,10 +349,13 @@ public class JiraDeploymentInfoSenderImplTest {
 
         // when
         final List<JiraSendInfoResponse> responses =
-                classUnderTest.sendDeploymentInfo(createAllJirasRequest());
+                classUnderTest.sendDeploymentInfo(createAllJirasRequest(null));
+        responses.addAll(
+                classUnderTest.sendDeploymentInfo(createAllJirasRequest(false))
+        );
 
         // then
-        assertThat(responses).hasSize(2);
+        assertThat(responses).hasSize(4);
         for (int idx = 0; idx < responses.size(); idx++) {
             final JiraSendInfoResponse response = responses.get(idx);
             assertThat(response.getStatus())
@@ -360,8 +363,23 @@ public class JiraDeploymentInfoSenderImplTest {
             final String message = response.getMessage();
             assertThat(message).isNotBlank();
         }
-        verify(deploymentsApi, times(1)).postUpdate(eq(CLOUD_ID), any(), any(), any(), any());
-        verify(deploymentsApi, times(1)).postUpdate(eq(CLOUD_ID2), any(), any(), any(), any());
+        verify(deploymentsApi, times(2)).postUpdate(eq(CLOUD_ID), any(), any(), any(), any());
+        verify(deploymentsApi, times(2)).postUpdate(eq(CLOUD_ID2), any(), any(), any(), any());
+    }
+
+    @Test
+    public void testSendDeploymentInfo_withMultipleJiras_withoutSite_withEnabledGating_fails() {
+        // given
+        when(siteConfigRetriever.getAllJiraSites()).thenReturn(Arrays.asList(SITE, SITE2));
+
+        // when
+        final List<JiraSendInfoResponse> responses =
+                classUnderTest.sendDeploymentInfo(createAllJirasRequest(true));
+
+        // then
+        assertThat(responses).hasSize(1);
+        assertThat(responses.get(0).getStatus()).isEqualTo(JiraSendInfoResponse.Status.FAILURE_DEPLOYMENT_GATING_MANY_JIRAS);
+        verify(deploymentsApi, times(0)).postUpdate(any(), any(), any(), any(), any());
     }
 
     @Test
@@ -379,15 +397,15 @@ public class JiraDeploymentInfoSenderImplTest {
     }
 
     private JiraDeploymentInfoRequest createRequest() {
-        return createRequest(SITE, Collections.emptySet());
+        return createRequestWithGating(SITE, Collections.emptySet(), null);
     }
 
-    private JiraDeploymentInfoRequest createAllJirasRequest() {
-        return createRequest(null, Collections.emptySet());
+    private JiraDeploymentInfoRequest createAllJirasRequest(@Nullable final Boolean enableGating) {
+        return createRequestWithGating(null, Collections.emptySet(), enableGating);
     }
 
-    private JiraDeploymentInfoRequest createRequest(
-            @Nullable final String site, final Set<String> issueKeys) {
+    private JiraDeploymentInfoRequest createRequestWithGating(
+            @Nullable final String site, final Set<String> issueKeys, @Nullable final Boolean enableGating) {
         return new JiraDeploymentInfoRequest(
                 site,
                 ENVIRONMENT_ID,
@@ -395,7 +413,7 @@ public class JiraDeploymentInfoSenderImplTest {
                 ENVIRONMENT_TYPE,
                 null,
                 Collections.emptySet(),
-                Boolean.FALSE,
+                enableGating,
                 issueKeys,
                 mockWorkflowRun());
     }
