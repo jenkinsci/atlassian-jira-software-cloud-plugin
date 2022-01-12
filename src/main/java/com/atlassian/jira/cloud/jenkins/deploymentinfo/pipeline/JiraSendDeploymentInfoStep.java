@@ -25,6 +25,7 @@ import javax.inject.Inject;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -155,6 +156,7 @@ public class JiraSendDeploymentInfoStep extends Step implements Serializable {
         public ListBoxModel doFillSiteItems() {
             ListBoxModel items = new ListBoxModel();
             final List<JiraCloudSiteConfig> siteList = globalConfig.getSites();
+            items.add("All", null);
             for (JiraCloudSiteConfig siteConfig : siteList) {
                 items.add(siteConfig.getSite(), siteConfig.getSite());
             }
@@ -184,7 +186,7 @@ public class JiraSendDeploymentInfoStep extends Step implements Serializable {
     }
 
     public static class JiraSendDeploymentInfoStepExecution
-            extends SynchronousNonBlockingStepExecution<JiraSendInfoResponse> {
+            extends SynchronousNonBlockingStepExecution<List<JiraSendInfoResponse>> {
 
         private final JiraSendDeploymentInfoStep step;
 
@@ -195,7 +197,7 @@ public class JiraSendDeploymentInfoStep extends Step implements Serializable {
         }
 
         @Override
-        protected JiraSendInfoResponse run() throws Exception {
+        protected List<JiraSendInfoResponse> run() throws Exception {
             final TaskListener taskListener = getContext().get(TaskListener.class);
             final WorkflowRun workflowRun = getContext().get(WorkflowRun.class);
             final Set<String> serviceIds = ImmutableSet.copyOf(step.getServiceIds());
@@ -209,17 +211,16 @@ public class JiraSendDeploymentInfoStep extends Step implements Serializable {
                             step.getEnvironmentType(),
                             step.getState(),
                             serviceIds,
-                            step.getEnableGating(),
+                            Optional.ofNullable(step.getEnableGating()).orElse(false),
                             issueKeys,
                             workflowRun);
-            final JiraSendInfoResponse response =
+            final List<JiraSendInfoResponse> responses =
                     JiraSenderFactory.getInstance()
                             .getJiraDeploymentInfoSender()
                             .sendDeploymentInfo(request);
 
-            logResult(taskListener, response);
-
-            return response;
+            responses.forEach(response -> logResult(taskListener, response));
+            return responses;
         }
 
         private void logResult(
@@ -227,7 +228,9 @@ public class JiraSendDeploymentInfoStep extends Step implements Serializable {
             taskListener
                     .getLogger()
                     .println(
-                            "jiraSendDeploymentInfo: "
+                            "jiraSendDeploymentInfo("
+                                    + response.getJiraSite()
+                                    + "): "
                                     + response.getStatus()
                                     + ": "
                                     + response.getMessage());

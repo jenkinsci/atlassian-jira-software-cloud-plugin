@@ -28,8 +28,10 @@ import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.jenkinsci.plugins.workflow.support.steps.build.RunWrapper;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -78,22 +80,57 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
     }
 
     @Override
-    public JiraSendInfoResponse sendDeploymentInfo(final JiraDeploymentInfoRequest request) {
-        final String jiraSite = request.getSite();
+    public List<JiraSendInfoResponse> sendDeploymentInfo(final JiraDeploymentInfoRequest request) {
+        final List<JiraSendInfoResponse> responses = new LinkedList<>();
+        if (request.getSite() == null) {
+            List<String> jiraSites = siteConfigRetriever.getAllJiraSites();
+            if (jiraSites.size() >= 2 && request.getEnableGating()) {
+                responses.add(JiraDeploymentInfoResponse.failureGatingManyJiras());
+            } else {
+                for (final String jiraSite : jiraSites) {
+                    final Optional<JiraCloudSiteConfig> maybeSiteConfig =
+                            getSiteConfigFor(jiraSite);
+
+                    responses.add(
+                            maybeSiteConfig
+                                    .map(
+                                            siteConfig ->
+                                                    sendDeploymentInfoToJiraSite(
+                                                            siteConfig, request))
+                                    .orElse(
+                                            JiraCommonResponse.failureSiteConfigNotFound(
+                                                    jiraSite)));
+                }
+            }
+        } else {
+            final Optional<JiraCloudSiteConfig> maybeSiteConfig =
+                    getSiteConfigFor(request.getSite());
+            responses.add(
+                    maybeSiteConfig
+                            .map(siteConfig -> sendDeploymentInfoToJiraSite(siteConfig, request))
+                            .orElse(
+                                    JiraCommonResponse.failureSiteConfigNotFound(
+                                            request.getSite())));
+        }
+        return responses;
+    }
+
+    /**
+     * Sends deployment data to a Jira site.
+     *
+     * @param siteConfig - Jira to send data to
+     * @param request - JiraBuildInfoRequest::site is ignored and jiraSite is used instead
+     */
+    private JiraSendInfoResponse sendDeploymentInfoToJiraSite(
+            @Nonnull final JiraCloudSiteConfig siteConfig,
+            final JiraDeploymentInfoRequest request) {
         final WorkflowRun deployment = request.getDeployment();
         final Set<String> serviceIds = request.getServiceIds();
-        final Boolean enableGating = request.getEnableGating();
+        final boolean enableGating = request.getEnableGating();
         final Set<String> requestIssueKeys = request.getIssueKeys();
 
-        final Optional<JiraCloudSiteConfig> maybeSiteConfig = getSiteConfigFor(jiraSite);
+        final String resolvedSiteConfig = siteConfig.getSite();
 
-        if (!maybeSiteConfig.isPresent()) {
-            return JiraCommonResponse.failureSiteConfigNotFound(jiraSite);
-        }
-
-        final String resolvedSiteConfig = maybeSiteConfig.get().getSite();
-
-        final JiraCloudSiteConfig siteConfig = maybeSiteConfig.get();
         final Optional<String> maybeSecret = getSecretFor(siteConfig.getCredentialsId());
 
         if (!maybeSecret.isPresent()) {
@@ -104,14 +141,16 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
         List<String> errorMessages = EnvironmentValidator.validate(environment);
 
         if (!errorMessages.isEmpty()) {
-            return JiraDeploymentInfoResponse.failureEnvironmentInvalid(jiraSite, errorMessages);
+            return JiraDeploymentInfoResponse.failureEnvironmentInvalid(
+                    resolvedSiteConfig, errorMessages);
         }
 
         final String deploymentState = getDeploymentState(deployment, request.getState());
         errorMessages = StateValidator.validate(deploymentState);
 
         if (!errorMessages.isEmpty()) {
-            return JiraDeploymentInfoResponse.failureStateInvalid(errorMessages);
+            return JiraDeploymentInfoResponse.failureStateInvalid(
+                    resolvedSiteConfig, errorMessages);
         }
 
         final Set<String> issueKeys;
@@ -217,7 +256,7 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
             return JiraDeploymentInfoResponse.failureDeploymentRejected(jiraSite, response);
         }
 
-        return JiraDeploymentInfoResponse.failureUnexpectedResponse();
+        return JiraDeploymentInfoResponse.failureUnexpectedResponse(jiraSite);
     }
 
     private JiraDeploymentInfoResponse handleDeploymentApiError(
@@ -270,9 +309,9 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
         return associations;
     }
 
-    private List<Command> buildCommands(final Boolean enableGating) {
+    private List<Command> buildCommands(@Nullable final Boolean enableGating) {
         final ImmutableList.Builder<Command> commandsBuilder = ImmutableList.builder();
-        if (enableGating) {
+        if (enableGating != null && enableGating) {
             commandsBuilder.add(new Command("initiate_deployment_gating"));
         }
         return commandsBuilder.build();

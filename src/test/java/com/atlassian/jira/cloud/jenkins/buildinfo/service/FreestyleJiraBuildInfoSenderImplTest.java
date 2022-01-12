@@ -97,7 +97,7 @@ public class FreestyleJiraBuildInfoSenderImplTest {
         when(siteConfigRetriever.getJiraSiteConfig(any())).thenReturn(Optional.empty());
 
         // when
-        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(createRequest());
+        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(createRequest()).get(0);
 
         // then
         assertThat(response.getStatus()).isEqualTo(FAILURE_SITE_CONFIG_NOT_FOUND);
@@ -109,7 +109,7 @@ public class FreestyleJiraBuildInfoSenderImplTest {
         when(secretRetriever.getSecretFor(any())).thenReturn(Optional.empty());
 
         // when
-        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(createRequest());
+        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(createRequest()).get(0);
 
         // then
         assertThat(response.getStatus()).isEqualTo(FAILURE_SECRET_NOT_FOUND);
@@ -121,7 +121,7 @@ public class FreestyleJiraBuildInfoSenderImplTest {
         when(freestyleIssueKeyExtractor.extractIssueKeys(any())).thenReturn(Collections.emptySet());
 
         // when
-        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(createRequest());
+        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(createRequest()).get(0);
 
         // then
         assertThat(response.getStatus()).isEqualTo(SKIPPED_ISSUE_KEYS_NOT_FOUND);
@@ -135,7 +135,7 @@ public class FreestyleJiraBuildInfoSenderImplTest {
         when(cloudIdResolver.getCloudId(any())).thenReturn(Optional.empty());
 
         // when
-        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(createRequest());
+        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(createRequest()).get(0);
 
         // then
         assertThat(response.getStatus()).isEqualTo(FAILURE_SITE_NOT_FOUND);
@@ -147,7 +147,7 @@ public class FreestyleJiraBuildInfoSenderImplTest {
         when(accessTokenRetriever.getAccessToken(any())).thenReturn(Optional.empty());
 
         // when
-        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(createRequest());
+        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(createRequest()).get(0);
 
         // then
         assertThat(response.getStatus())
@@ -160,7 +160,7 @@ public class FreestyleJiraBuildInfoSenderImplTest {
         setupBuildsApiFailure();
 
         // when
-        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(createRequest());
+        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(createRequest()).get(0);
 
         // then
         assertThat(response.getStatus())
@@ -173,7 +173,7 @@ public class FreestyleJiraBuildInfoSenderImplTest {
         setupBuildsApiBuildAccepted();
 
         // when
-        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(createRequest());
+        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(createRequest()).get(0);
 
         // then
         assertThat(response.getStatus())
@@ -188,7 +188,7 @@ public class FreestyleJiraBuildInfoSenderImplTest {
         setupBuildApiBuildRejected();
 
         // when
-        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(createRequest());
+        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(createRequest()).get(0);
 
         // then
         assertThat(response.getStatus())
@@ -205,7 +205,8 @@ public class FreestyleJiraBuildInfoSenderImplTest {
         setupBuildsApiBuildAccepted();
 
         // when
-        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(jiraBuildInfoRequest);
+        final JiraSendInfoResponse response =
+                classUnderTest.sendBuildInfo(jiraBuildInfoRequest).get(0);
 
         verify(freestyleIssueKeyExtractor, never()).extractIssueKeys(any());
         assertThat(response.getStatus())
@@ -222,7 +223,8 @@ public class FreestyleJiraBuildInfoSenderImplTest {
         setupBuildsApiBuildAccepted();
 
         // when
-        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(jiraBuildInfoRequest);
+        final JiraSendInfoResponse response =
+                classUnderTest.sendBuildInfo(jiraBuildInfoRequest).get(0);
 
         // verify(freestyleIssueKeyExtractor).extractIssueKeys(any());
         assertThat(response.getStatus())
@@ -240,7 +242,8 @@ public class FreestyleJiraBuildInfoSenderImplTest {
         setupBuildsApiBuildAccepted();
 
         // when
-        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(jiraBuildInfoRequest);
+        final JiraSendInfoResponse response =
+                classUnderTest.sendBuildInfo(jiraBuildInfoRequest).get(0);
 
         verify(freestyleIssueKeyExtractor, never()).extractIssueKeys(any());
         assertThat(response.getStatus())
@@ -256,7 +259,7 @@ public class FreestyleJiraBuildInfoSenderImplTest {
 
         // when
         final JiraSendInfoResponse response =
-                classUnderTest.sendBuildInfo(createFreestyleRequest());
+                classUnderTest.sendBuildInfo(createFreestyleRequest()).get(0);
 
         assertThat(response.getStatus())
                 .isEqualTo(JiraSendInfoResponse.Status.FAILURE_UNKNOWN_ISSUE_KEYS);

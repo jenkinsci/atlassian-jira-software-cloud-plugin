@@ -2,9 +2,10 @@ package com.atlassian.jira.cloud.jenkins.buildinfo.service;
 
 import javax.annotation.Nullable;
 
-public class JiraBuildInfoRequest {
+public abstract class JiraBuildInfoRequest {
 
-    private final String site;
+    private final String site; // NULL means "send to all connected sites"
+
     private final String branch;
     // private final WorkflowRun build;
 

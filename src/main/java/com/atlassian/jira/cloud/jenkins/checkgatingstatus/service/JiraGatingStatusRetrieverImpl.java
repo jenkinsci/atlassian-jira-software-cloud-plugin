@@ -98,10 +98,11 @@ public class JiraGatingStatusRetrieverImpl implements JiraGatingStatusRetriever 
                         GatingStatusResponse.class);
 
         if (result.getResponseEntity().isPresent()) {
-            return JiraGatingStatusResponse.success(result.getResponseEntity().get());
+            return JiraGatingStatusResponse.success(
+                    request.getSite(), result.getResponseEntity().get());
         } else {
             final String errorMessage = result.getErrorMessage().orElse("");
-            return JiraGatingStatusResponse.failure(errorMessage);
+            return JiraGatingStatusResponse.failure(request.getSite(), errorMessage);
         }
     }
 }

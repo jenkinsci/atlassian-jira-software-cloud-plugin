@@ -134,7 +134,7 @@ public class JiraCheckGatingStatusStepTest {
                         ENVIRONMENT_ID,
                         DEPLOYMENT_NUMBER);
         final JiraGatingStatusResponse gateStatusResponse =
-                JiraGatingStatusResponse.success(apiResponse);
+                JiraGatingStatusResponse.success(SITE, apiResponse);
         when(mockRetriever.getGatingStatus(any())).thenReturn(gateStatusResponse);
         when(mockTaskListener.getLogger()).thenReturn(mock(PrintStream.class));
         when(mockWorkflowRun.getExecutor()).thenReturn(executor);
@@ -178,7 +178,7 @@ public class JiraCheckGatingStatusStepTest {
                         ENVIRONMENT_ID,
                         DEPLOYMENT_NUMBER);
         final JiraGatingStatusResponse gateStatusResponse =
-                JiraGatingStatusResponse.success(apiResponse);
+                JiraGatingStatusResponse.success(SITE, apiResponse);
         when(mockRetriever.getGatingStatus(any())).thenReturn(gateStatusResponse);
 
         // when
@@ -222,7 +222,7 @@ public class JiraCheckGatingStatusStepTest {
                         ENVIRONMENT_ID,
                         DEPLOYMENT_NUMBER);
         final JiraGatingStatusResponse gateStatusResponse =
-                JiraGatingStatusResponse.success(apiResponse);
+                JiraGatingStatusResponse.success(SITE, apiResponse);
         when(mockRetriever.getGatingStatus(any())).thenReturn(gateStatusResponse);
 
         // when

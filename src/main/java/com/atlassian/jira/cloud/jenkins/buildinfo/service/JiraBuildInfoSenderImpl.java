@@ -2,9 +2,12 @@ package com.atlassian.jira.cloud.jenkins.buildinfo.service;
 
 import static java.util.Objects.requireNonNull;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import org.slf4j.Logger;
@@ -57,18 +60,43 @@ public abstract class JiraBuildInfoSenderImpl implements JiraBuildInfoSender {
     }
 
     @Override
-    public JiraSendInfoResponse sendBuildInfo(final JiraBuildInfoRequest request) {
-        final String jiraSite = request.getSite();
+    public List<JiraSendInfoResponse> sendBuildInfo(final JiraBuildInfoRequest request) {
+        final List<JiraSendInfoResponse> responses = new LinkedList<>();
+        if (request.getSite() == null) {
+            List<String> jiraSites = siteConfigRetriever.getAllJiraSites();
+            for (final String jiraSite : jiraSites) {
+                final Optional<JiraCloudSiteConfig> maybeSiteConfig = getSiteConfigFor(jiraSite);
 
-        final Optional<JiraCloudSiteConfig> maybeSiteConfig = getSiteConfigFor(jiraSite);
-
-        if (!maybeSiteConfig.isPresent()) {
-            return JiraCommonResponse.failureSiteConfigNotFound(jiraSite);
+                responses.add(
+                        maybeSiteConfig
+                                .map(siteConfig -> sendBuildInfoToJiraSite(siteConfig, request))
+                                .orElse(JiraCommonResponse.failureSiteConfigNotFound(jiraSite)));
+            }
+        } else {
+            final Optional<JiraCloudSiteConfig> maybeSiteConfig =
+                    getSiteConfigFor(request.getSite());
+            responses.add(
+                    maybeSiteConfig
+                            .map(siteConfig -> sendBuildInfoToJiraSite(siteConfig, request))
+                            .orElse(
+                                    JiraCommonResponse.failureSiteConfigNotFound(
+                                            request.getSite())));
         }
+        return responses;
+    }
 
-        final String resolvedSiteConfig = maybeSiteConfig.get().getSite();
+    /**
+     * Sends build data to a Jira site.
+     *
+     * @param siteConfig - Jira to send data to
+     * @param request - JiraBuildInfoRequest::site is ignored and jiraSite is used instead
+     */
+    public JiraSendInfoResponse sendBuildInfoToJiraSite(
+            @Nonnull final JiraCloudSiteConfig siteConfig,
+            @Nonnull final JiraBuildInfoRequest request) {
 
-        final JiraCloudSiteConfig siteConfig = maybeSiteConfig.get();
+        final String resolvedSiteConfig = siteConfig.getSite();
+
         final Optional<String> maybeSecret = getSecretFor(siteConfig.getCredentialsId());
 
         if (!maybeSecret.isPresent()) {
@@ -78,7 +106,7 @@ public abstract class JiraBuildInfoSenderImpl implements JiraBuildInfoSender {
         final Set<String> issueKeys = getIssueKeys(request);
 
         if (issueKeys.isEmpty()) {
-            return JiraBuildInfoResponse.skippedIssueKeysNotFound();
+            return JiraBuildInfoResponse.skippedIssueKeysNotFound(siteConfig.getSite());
         }
 
         final Optional<String> maybeCloudId = getCloudIdFor(resolvedSiteConfig);
@@ -155,7 +183,7 @@ public abstract class JiraBuildInfoSenderImpl implements JiraBuildInfoSender {
             return JiraBuildInfoResponse.failureUnknownIssueKeys(jiraSite, response);
         }
 
-        return JiraBuildInfoResponse.failureUnexpectedResponse();
+        return JiraBuildInfoResponse.failureUnexpectedResponse(jiraSite);
     }
 
     private JiraBuildInfoResponse handleBuildApiError(
