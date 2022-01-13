@@ -1,6 +1,6 @@
-  
+# Jenkins Plugin for Jira Cloud  
 
-# Introduction
+## Introduction
 
 Atlassian has built and open-sourced a new Jenkins plugin that is
 intended to be used specifically for integrating Jenkins with [Jira
@@ -34,7 +34,7 @@ in Atlassian documentation.
 
 ------------------------------------------------------------------------
 
-# What is the value?
+## What is the value?
 
 This plugin gives your team visibility and insight of your CI/CD pipelines, 
 specifically around builds and deployments related to Jira issues. 
@@ -102,11 +102,11 @@ epics, versions, components, labels, and much more.
 
 ------------------------------------------------------------------------
 
-# How to get started
+## How to get started
 
-## In Jira Software Cloud site
+### In Jira Software Cloud site
 
-### Create OAuth credentials in Jira for Jenkins
+Create OAuth credentials in Jira for Jenkins:
 
 1.  Navigate to**Jira home \> Jira settings \> Apps**.
 
@@ -131,9 +131,9 @@ epics, versions, components, labels, and much more.
         - Builds
 
 
-## In Jenkins
+### In Jenkins
 
-### Install the Jenkins plugin
+Install the Jenkins plugin:
 
 1.  Login to your Jenkins server and navigate to the Plugin Manager.
 
@@ -141,7 +141,7 @@ epics, versions, components, labels, and much more.
     Cloud"* as the plugin name. Install it.
     1.  NOTE: The plugin sources [could be found here](https://github.com/jenkinsci/atlassian-jira-software-cloud-plugin).
 
-### Set up Jira credentials
+Set up Jira credentials: 
 
 1.  In Jenkins, go to **Manage Jenkins \> Configure System** screen
     and scroll to *Jira Software Cloud integration* section.
@@ -168,12 +168,12 @@ epics, versions, components, labels, and much more.
 4.  Click **Test connection** to make sure the provided credentials are 
     correct.
 
-# How to use the integration
+## How to use the integration
 
 To make the integration work, the following changes should be applied to your 
 `Jenkinsfile`: 
     
-## Sending build information
+### Sending build information
 
 Below is an example of the simplest ‘build’ step from *Jenkinsfile*. At the 
 end of the execution of the stage, the build information is sent to all 
@@ -226,7 +226,7 @@ pipeline {
 ```
   
 
-## Sending deployment information
+### Sending deployment information
 
 This is an example of a pipeline with two deployments to different 
 environments. Arbitrary "**environmentId**", "**environmentName**", and 
@@ -273,7 +273,7 @@ pipeline {
  }
 ```
 
-## Example of complete Jenkinsfile
+### Example of complete Jenkinsfile
 
 ``` syntaxhighlighter-pre
 pipeline {
@@ -319,17 +319,17 @@ pipeline {
  }
 ```
 
-# Link Jira Service Desk Cloud with Jenkins
+### Creating change requests in Jira Service Management
 
-To automatically create change requests in Jira Service Desk from Jenkins, 
+To automatically create change requests in Jira Service Management from Jenkins, 
 you first need to enable Change management in your Information Technology
 Service Management (ITSM) project.
 
-To connect Jenkins to your Jira Service Desk Cloud project:
+To connect Jenkins to your Jira Service Management Cloud project:
 
 1. First, complete the Jira Cloud and Jenkins set-up steps listed above
 
-2. In your Jira Service Desk ITSM project, navigate to 
+2. In your Jira Service Management ITSM project, navigate to 
    **Project settings > Change management**
 
 3. Select **Connect Pipeline > Jenkins**, then copy the Service ID at the 
@@ -342,7 +342,7 @@ To connect Jenkins to your Jira Service Desk Cloud project:
    Build with Parameters field
 
 When you run the pipeline, it will automatically create a change request 
-in Jira Service Desk.
+in Jira Service Management.
 
 For more information about deployment tracking and deployment gating please 
 refer to Atlassian documentation:
