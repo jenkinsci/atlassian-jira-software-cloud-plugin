@@ -21,11 +21,18 @@ import java.util.Optional;
 @Extension
 public class JiraCloudPluginConfig extends GlobalConfiguration {
 
+    public static final String FIELD_NAME_AUTO_BUILDS = "autoBuilds";
+    public static final String FIELD_NAME_SITES = "sites";
+    public static final String FIELD_NAME_AUTO_BUILDS_REGEX = "autoBuildsRegex";
+
     private static final Logger log = LoggerFactory.getLogger(JiraCloudPluginConfig.class);
 
     private static final String ATL_JSW_GLOBAL_CONFIGURATION_ID = "atl-jsw-global-configuration";
 
     private List<JiraCloudSiteConfig> sites = new ArrayList<>();
+
+    private Boolean autoBuildsEnabled;
+    private String autoBuildsRegex;
 
     public JiraCloudPluginConfig() {
         getConfigFile().getXStream().alias("atl-jsw-site-configuration", JiraCloudSiteConfig.class);
@@ -40,11 +47,18 @@ public class JiraCloudPluginConfig extends GlobalConfiguration {
     @Override
     public boolean configure(final StaplerRequest req, final JSONObject json) throws FormException {
         try {
-            // workaround to remove the last site from the list
-            if (json != null && json.isEmpty()) {
-                setSites(Collections.emptyList());
+            setSites(Collections.emptyList());
+            if (json.containsKey(FIELD_NAME_SITES)) {
+                this.sites =
+                        req.bindJSONToList(
+                                JiraCloudSiteConfig.class, json.getJSONArray(FIELD_NAME_SITES));
             }
-            req.bindJSON(this, json);
+            this.autoBuildsEnabled = json.containsKey(FIELD_NAME_AUTO_BUILDS);
+            if (this.autoBuildsEnabled) {
+                this.autoBuildsRegex =
+                        json.getJSONObject(FIELD_NAME_AUTO_BUILDS)
+                                .getString(FIELD_NAME_AUTO_BUILDS_REGEX);
+            }
         } catch (Exception e) {
             log.debug("Submitting form to JSW Plugin failed: ({})", e.getMessage(), e);
             if (log.isTraceEnabled()) {
@@ -104,5 +118,13 @@ public class JiraCloudPluginConfig extends GlobalConfiguration {
         } else {
             return Optional.of(allSites.get(0));
         }
+    }
+
+    public Boolean getAutoBuildsEnabled() {
+        return autoBuildsEnabled;
+    }
+
+    public String getAutoBuildsRegex() {
+        return autoBuildsRegex;
     }
 }
