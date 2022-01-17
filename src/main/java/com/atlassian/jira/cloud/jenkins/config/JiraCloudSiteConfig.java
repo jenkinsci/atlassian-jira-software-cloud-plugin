@@ -24,6 +24,7 @@ import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.interceptor.RequirePOST;
 
 import javax.inject.Inject;
+import java.util.Objects;
 import java.util.Optional;
 
 import static com.atlassian.jira.cloud.jenkins.Config.ATLASSIAN_API_URL;
@@ -59,6 +60,19 @@ public class JiraCloudSiteConfig extends AbstractDescribableImpl<JiraCloudSiteCo
 
     public String getCredentialsId() {
         return credentialsId;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        JiraCloudSiteConfig that = (JiraCloudSiteConfig) o;
+        return Objects.equals(site, that.site) && Objects.equals(clientId, that.clientId) && Objects.equals(credentialsId, that.credentialsId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(site, clientId, credentialsId);
     }
 
     @Extension

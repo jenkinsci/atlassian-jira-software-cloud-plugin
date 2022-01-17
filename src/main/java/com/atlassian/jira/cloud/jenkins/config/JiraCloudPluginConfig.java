@@ -39,6 +39,12 @@ public class JiraCloudPluginConfig extends GlobalConfiguration {
         load();
     }
 
+    // Only for testing
+    JiraCloudPluginConfig(final String testName) {
+        getConfigFile().getXStream().alias(testName, JiraCloudSiteConfig.class);
+        load();
+    }
+
     @Nullable
     public static JiraCloudPluginConfig get() {
         return GlobalConfiguration.all().get(JiraCloudPluginConfig.class);
