@@ -30,34 +30,37 @@ public final class BuildPayloadBuilder {
 
         try {
 
-            TestInfo testInfo = Optional.ofNullable(buildWrapper.getRawBuild())
-                    .map(r -> r.getAction(TestResultAction.class))
-                    .map(a -> {
-                        TestInfo info = new TestInfo();
-                        info.setTotalNumber(a.getTotalCount());
-                        info.setNumberPassed(
-                                a.getTotalCount()
-                                        - a.getFailCount()
-                                        - a.getSkipCount());
-                        info.setNumberFailed(a.getFailCount());
-                        info.setNumberSkipped(a.getSkipCount());
+            TestInfo testInfo =
+                    Optional.ofNullable(buildWrapper.getRawBuild())
+                            .map(r -> r.getAction(TestResultAction.class))
+                            .map(
+                                    a -> {
+                                        TestInfo info = new TestInfo();
+                                        info.setTotalNumber(a.getTotalCount());
+                                        info.setNumberPassed(
+                                                a.getTotalCount()
+                                                        - a.getFailCount()
+                                                        - a.getSkipCount());
+                                        info.setNumberFailed(a.getFailCount());
+                                        info.setNumberSkipped(a.getSkipCount());
 
-                        return info;
-                    })
-                    .orElse(null);
+                                        return info;
+                                    })
+                            .orElse(null);
 
-            return new Builds(JiraBuildInfo.builder()
-                    .withPipelineId(buildWrapper.getFullProjectName())
-                    .withBuildNumber(buildWrapper.getNumber())
-                    .withDisplayName(buildWrapper.getFullProjectName())
-                    .withUpdateSequenceNumber(Instant.now().getEpochSecond())
-                    .withLabel(buildWrapper.getDisplayName())
-                    .withUrl(buildWrapper.getAbsoluteUrl())
-                    .withState(JenkinsToJiraStatus.getStatus(buildWrapper.getCurrentResult()))
-                    .withLastUpdated(Instant.now().toString())
-                    .withIssueKeys(issueKeys)
-                    .withTestInfo(testInfo)
-                    .build());
+            return new Builds(
+                    JiraBuildInfo.builder()
+                            .withPipelineId(buildWrapper.getFullProjectName())
+                            .withBuildNumber(buildWrapper.getNumber())
+                            .withDisplayName(buildWrapper.getFullProjectName())
+                            .withUpdateSequenceNumber(Instant.now().getEpochSecond())
+                            .withLabel(buildWrapper.getDisplayName())
+                            .withUrl(buildWrapper.getAbsoluteUrl())
+                            .withState(JenkinsToJiraStatus.getStatus(buildWrapper.getResult()))
+                            .withLastUpdated(Instant.now().toString())
+                            .withIssueKeys(issueKeys)
+                            .withTestInfo(testInfo)
+                            .build());
         } catch (final AbortException e) {
             throw new RuntimeException(e);
         }

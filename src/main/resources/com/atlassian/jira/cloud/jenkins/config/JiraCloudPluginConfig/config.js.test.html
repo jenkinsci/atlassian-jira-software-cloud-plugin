@@ -105,6 +105,17 @@ function assertTrue(bool) {
 }
 
 {
+    console.warn("Empty regex");
+    setTestRegex("")
+    const testObj = new AtlassianRegexTester("textRegexInput", "errorDiv", "successDiv");
+
+    assertTrue(!testObj.test("TheQuestion", []));
+    assertTrue(isErrorVisible());
+    assertTrue(!isSuccessVisible());
+    assertTrue(getErrorMessage() === 'Empty RegEx, nothing to test');
+}
+
+{
     console.warn("Happy path with groups");
     setTestRegex("^Hello (?<group1>.*) (?<group2>.*)$")
     const testObj = new AtlassianRegexTester("textRegexInput", "errorDiv", "successDiv");

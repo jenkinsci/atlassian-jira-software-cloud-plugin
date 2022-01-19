@@ -67,6 +67,11 @@ AtlassianRegexTester.prototype.test = function(promptMessage, expectedGroupsArra
     }
 
     var regexStr = this._getTextRegex();
+    if (!regexStr || !regexStr.trim()) {
+        this._renderErrorMessage("Empty RegEx, nothing to test");
+        return false;
+    }
+
     var regex = null;
 
     try {

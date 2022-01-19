@@ -126,11 +126,11 @@ public class JiraCloudPluginConfig extends GlobalConfiguration {
         }
     }
 
-    public Boolean getAutoBuildsEnabled() {
-        return autoBuildsEnabled;
+    public boolean getAutoBuildsEnabled() {
+        return Optional.ofNullable(autoBuildsEnabled).orElse(false);
     }
 
     public String getAutoBuildsRegex() {
-        return autoBuildsRegex;
+        return Optional.ofNullable(autoBuildsRegex).orElse("");
     }
 }
