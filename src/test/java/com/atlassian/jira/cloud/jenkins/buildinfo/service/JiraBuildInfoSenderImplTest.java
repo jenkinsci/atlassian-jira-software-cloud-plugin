@@ -98,7 +98,8 @@ public class JiraBuildInfoSenderImplTest {
         when(siteConfigRetriever.getJiraSiteConfig(any())).thenReturn(Optional.empty());
 
         // when
-        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(createOneJiraRequest()).get(0);
+        final JiraSendInfoResponse response =
+                classUnderTest.sendBuildInfo(createOneJiraRequest()).get(0);
 
         // then
         assertThat(response.getStatus()).isEqualTo(FAILURE_SITE_CONFIG_NOT_FOUND);
@@ -110,7 +111,8 @@ public class JiraBuildInfoSenderImplTest {
         when(secretRetriever.getSecretFor(any())).thenReturn(Optional.empty());
 
         // when
-        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(createOneJiraRequest()).get(0);
+        final JiraSendInfoResponse response =
+                classUnderTest.sendBuildInfo(createOneJiraRequest()).get(0);
 
         // then
         assertThat(response.getStatus()).isEqualTo(FAILURE_SECRET_NOT_FOUND);
@@ -122,7 +124,8 @@ public class JiraBuildInfoSenderImplTest {
         when(issueKeyExtractor.extractIssueKeys(any())).thenReturn(Collections.emptySet());
 
         // when
-        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(createOneJiraRequest()).get(0);
+        final JiraSendInfoResponse response =
+                classUnderTest.sendBuildInfo(createOneJiraRequest()).get(0);
 
         // then
         assertThat(response.getStatus()).isEqualTo(SKIPPED_ISSUE_KEYS_NOT_FOUND);
@@ -136,7 +139,8 @@ public class JiraBuildInfoSenderImplTest {
         when(cloudIdResolver.getCloudId(any())).thenReturn(Optional.empty());
 
         // when
-        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(createOneJiraRequest()).get(0);
+        final JiraSendInfoResponse response =
+                classUnderTest.sendBuildInfo(createOneJiraRequest()).get(0);
 
         // then
         assertThat(response.getStatus()).isEqualTo(FAILURE_SITE_NOT_FOUND);
@@ -148,7 +152,8 @@ public class JiraBuildInfoSenderImplTest {
         when(accessTokenRetriever.getAccessToken(any())).thenReturn(Optional.empty());
 
         // when
-        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(createOneJiraRequest()).get(0);
+        final JiraSendInfoResponse response =
+                classUnderTest.sendBuildInfo(createOneJiraRequest()).get(0);
 
         // then
         assertThat(response.getStatus())
@@ -161,7 +166,8 @@ public class JiraBuildInfoSenderImplTest {
         setupBuildsApiFailure();
 
         // when
-        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(createOneJiraRequest()).get(0);
+        final JiraSendInfoResponse response =
+                classUnderTest.sendBuildInfo(createOneJiraRequest()).get(0);
 
         // then
         assertThat(response.getStatus())
@@ -174,7 +180,8 @@ public class JiraBuildInfoSenderImplTest {
         setupBuildsApiBuildAccepted();
 
         // when
-        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(createOneJiraRequest()).get(0);
+        final JiraSendInfoResponse response =
+                classUnderTest.sendBuildInfo(createOneJiraRequest()).get(0);
 
         // then
         assertThat(response.getStatus())
@@ -189,7 +196,8 @@ public class JiraBuildInfoSenderImplTest {
         setupBuildApiBuildRejected();
 
         // when
-        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(createOneJiraRequest()).get(0);
+        final JiraSendInfoResponse response =
+                classUnderTest.sendBuildInfo(createOneJiraRequest()).get(0);
 
         // then
         assertThat(response.getStatus())
@@ -202,7 +210,8 @@ public class JiraBuildInfoSenderImplTest {
     public void testSendBuildInfo_whenUserProvidedBranch() {
         // given
         final JiraBuildInfoRequest jiraBuildInfoRequest =
-                new MultibranchBuildInfoRequest(SITE, BRANCH_NAME, mockWorkflowRun());
+                new MultibranchBuildInfoRequest(
+                        SITE, BRANCH_NAME, mockWorkflowRun(), Optional.empty());
         setupBuildsApiBuildAccepted();
 
         // when
@@ -220,7 +229,7 @@ public class JiraBuildInfoSenderImplTest {
     public void testSendBuildInfo_whenBranchNameIsEmpty() {
         // given
         final JiraBuildInfoRequest jiraBuildInfoRequest =
-                new MultibranchBuildInfoRequest(SITE, "", mockWorkflowRun());
+                new MultibranchBuildInfoRequest(SITE, "", mockWorkflowRun(), Optional.empty());
         setupBuildsApiBuildAccepted();
 
         // when
@@ -240,7 +249,8 @@ public class JiraBuildInfoSenderImplTest {
         setupBuildApiUnknownIssueKeys();
 
         // when
-        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(createOneJiraRequest()).get(0);
+        final JiraSendInfoResponse response =
+                classUnderTest.sendBuildInfo(createOneJiraRequest()).get(0);
 
         assertThat(response.getStatus())
                 .isEqualTo(JiraSendInfoResponse.Status.FAILURE_UNKNOWN_ISSUE_KEYS);
@@ -253,7 +263,7 @@ public class JiraBuildInfoSenderImplTest {
         // given
         final WorkflowRun workflowRun = changeSetWithOneChangeSetEntry();
         final JiraBuildInfoRequest jiraBuildInfoRequest =
-                new MultibranchBuildInfoRequest(SITE, BRANCH_NAME, workflowRun);
+                new MultibranchBuildInfoRequest(SITE, BRANCH_NAME, workflowRun, Optional.empty());
         setupBuildsApiBuildAccepted();
 
         // when
@@ -274,11 +284,12 @@ public class JiraBuildInfoSenderImplTest {
         setupBuildsApiBuildAccepted();
 
         // when
-        final List<JiraSendInfoResponse> responses = classUnderTest.sendBuildInfo(createAllJirasRequest());
+        final List<JiraSendInfoResponse> responses =
+                classUnderTest.sendBuildInfo(createAllJirasRequest());
 
         // then
         assertThat(responses).hasSize(2);
-        for (int idx = 0; idx < responses.size(); idx ++) {
+        for (int idx = 0; idx < responses.size(); idx++) {
             final JiraSendInfoResponse response = responses.get(idx);
             assertThat(response.getStatus())
                     .isEqualTo(JiraSendInfoResponse.Status.SUCCESS_BUILD_ACCEPTED);
@@ -290,11 +301,11 @@ public class JiraBuildInfoSenderImplTest {
     }
 
     private JiraBuildInfoRequest createOneJiraRequest() {
-        return new MultibranchBuildInfoRequest(SITE, null, mockWorkflowRun());
+        return new MultibranchBuildInfoRequest(SITE, null, mockWorkflowRun(), Optional.empty());
     }
 
     private JiraBuildInfoRequest createAllJirasRequest() {
-        return new MultibranchBuildInfoRequest(null, null, mockWorkflowRun());
+        return new MultibranchBuildInfoRequest(null, null, mockWorkflowRun(), Optional.empty());
     }
 
     private void setupMocks() {

@@ -9,6 +9,8 @@ import hudson.tasks.junit.TestResultAction;
 import org.jenkinsci.plugins.workflow.support.steps.build.RunWrapper;
 import org.junit.Test;
 
+import java.util.Optional;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
@@ -21,7 +23,8 @@ public class BuildPayloadBuilderTest extends BaseUnitTest {
         // when
         final RunWrapper runWrapper = mockRunWrapper("SUCCESS");
         final Builds buildPayload =
-                BuildPayloadBuilder.getBuildPayload(runWrapper, ImmutableSet.of(ISSUE_KEY));
+                BuildPayloadBuilder.getBuildPayload(
+                        runWrapper, Optional.empty(), ImmutableSet.of(ISSUE_KEY));
 
         final JiraBuildInfo buildInfo = buildPayload.getBuilds().get(0);
         // then
@@ -45,7 +48,8 @@ public class BuildPayloadBuilderTest extends BaseUnitTest {
         // when
         final RunWrapper runWrapper = mockRunWrapper("FAILURE");
         final Builds buildPayload =
-                BuildPayloadBuilder.getBuildPayload(runWrapper, ImmutableSet.of(ISSUE_KEY));
+                BuildPayloadBuilder.getBuildPayload(
+                        runWrapper, Optional.empty(), ImmutableSet.of(ISSUE_KEY));
 
         final JiraBuildInfo buildInfo = buildPayload.getBuilds().get(0);
 
