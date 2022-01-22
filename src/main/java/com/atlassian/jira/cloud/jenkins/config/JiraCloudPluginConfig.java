@@ -22,8 +22,10 @@ import java.util.Optional;
 public class JiraCloudPluginConfig extends GlobalConfiguration {
 
     public static final String FIELD_NAME_AUTO_BUILDS = "autoBuilds";
+    public static final String FIELD_NAME_AUTO_DEPLOYMENTS = "autoDeployments";
     public static final String FIELD_NAME_SITES = "sites";
     public static final String FIELD_NAME_AUTO_BUILDS_REGEX = "autoBuildsRegex";
+    public static final String FIELD_NAME_AUTO_DEPLOYMENTS_REGEX = "autoDeploymentsRegex";
 
     private static final Logger log = LoggerFactory.getLogger(JiraCloudPluginConfig.class);
 
@@ -33,6 +35,9 @@ public class JiraCloudPluginConfig extends GlobalConfiguration {
 
     private Boolean autoBuildsEnabled;
     private String autoBuildsRegex;
+
+    private Boolean autoDeploymentsEnabled;
+    private String autoDeploymentsRegex;
 
     public JiraCloudPluginConfig() {
         getConfigFile().getXStream().alias("atl-jsw-site-configuration", JiraCloudSiteConfig.class);
@@ -65,6 +70,19 @@ public class JiraCloudPluginConfig extends GlobalConfiguration {
                         json.getJSONObject(FIELD_NAME_AUTO_BUILDS)
                                 .getString(FIELD_NAME_AUTO_BUILDS_REGEX);
             }
+            this.autoDeploymentsEnabled = json.containsKey(FIELD_NAME_AUTO_DEPLOYMENTS);
+            if (this.autoDeploymentsEnabled) {
+                this.autoDeploymentsRegex =
+                        json.getJSONObject(FIELD_NAME_AUTO_DEPLOYMENTS)
+                                .getString(FIELD_NAME_AUTO_DEPLOYMENTS_REGEX);
+                if (this.autoDeploymentsRegex == null
+                        || this.autoDeploymentsRegex.trim().isEmpty()) {
+                    throw new FormException(
+                            "Deployments RegEx must be provided!",
+                            FIELD_NAME_AUTO_DEPLOYMENTS_REGEX);
+                }
+            }
+
         } catch (Exception e) {
             log.debug("Submitting form to JSW Plugin failed: ({})", e.getMessage(), e);
             if (log.isTraceEnabled()) {
@@ -132,5 +150,13 @@ public class JiraCloudPluginConfig extends GlobalConfiguration {
 
     public String getAutoBuildsRegex() {
         return Optional.ofNullable(autoBuildsRegex).orElse("");
+    }
+
+    public boolean getAutoDeploymentsEnabled() {
+        return Optional.ofNullable(autoDeploymentsEnabled).orElse(false);
+    }
+
+    public String getAutoDeploymentsRegex() {
+        return Optional.ofNullable(autoDeploymentsRegex).orElse("");
     }
 }

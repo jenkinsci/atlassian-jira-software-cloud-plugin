@@ -52,8 +52,17 @@ function assertTrue(bool) {
     }
 }
 
+function checkStarted(message) {
+    console.warn("Running test: " + message);
+}
+
+function checkFinished() {
+    console.warn("OK!");
+}
+
 {
-    console.warn("Test browser not supported case");
+    checkStarted("Test browser not supported case");
+
     const testObj = new AtlassianRegexTester("textRegexInput", "errorDiv", "successDiv");
     testObj._isCapturingGroupsSupported = function() { return false; };
 
@@ -61,10 +70,13 @@ function assertTrue(bool) {
     assertTrue(isErrorVisible());
     assertTrue(!isSuccessVisible());
     assertTrue(getErrorMessage().indexOf("Your browser does not support") >= 0);
+
+    checkFinished();
 }
 
 {
-    console.warn("Happy path no groups");
+    checkStarted("Happy path no groups");
+
     setTestRegex("^Hello .*$")
     const testObj = new AtlassianRegexTester("textRegexInput", "errorDiv", "successDiv");
     testObj._getUserInput = function(question) {
@@ -76,10 +88,13 @@ function assertTrue(bool) {
     assertTrue(!isErrorVisible());
     assertTrue(isSuccessVisible());
     assertTrue(getSuccessMessage() === "Matches!");
+
+    checkFinished();
 }
 
 {
-    console.warn("Happy path no groups");
+    checkStarted("Happy path no groups");
+
     setTestRegex("^Hello .*$")
     const testObj = new AtlassianRegexTester("textRegexInput", "errorDiv", "successDiv");
     testObj._getUserInput = function(question) {
@@ -91,10 +106,13 @@ function assertTrue(bool) {
     assertTrue(!isErrorVisible());
     assertTrue(isSuccessVisible());
     assertTrue(getSuccessMessage() === "Matches!");
+
+    checkFinished();
 }
 
 {
-    console.warn("Invalid regex");
+    checkStarted("Invalid regex");
+
     setTestRegex("^Hello (?<")
     const testObj = new AtlassianRegexTester("textRegexInput", "errorDiv", "successDiv");
 
@@ -102,10 +120,13 @@ function assertTrue(bool) {
     assertTrue(isErrorVisible());
     assertTrue(!isSuccessVisible());
     assertTrue(getErrorMessage() === '"^Hello (?&lt;" is not a valid RegEx string. SyntaxError: Invalid regular expression: /^Hello (?&lt;/: Invalid capture group name');
+
+    checkFinished();
 }
 
 {
-    console.warn("Empty regex");
+    checkStarted("Empty regex");
+
     setTestRegex("")
     const testObj = new AtlassianRegexTester("textRegexInput", "errorDiv", "successDiv");
 
@@ -113,10 +134,13 @@ function assertTrue(bool) {
     assertTrue(isErrorVisible());
     assertTrue(!isSuccessVisible());
     assertTrue(getErrorMessage() === 'Empty RegEx, nothing to test');
+
+    checkFinished();
 }
 
 {
-    console.warn("Happy path with groups");
+    checkStarted("Happy path with groups");
+
     setTestRegex("^Hello (?<group1>.*) (?<group2>.*)$")
     const testObj = new AtlassianRegexTester("textRegexInput", "errorDiv", "successDiv");
     testObj._getUserInput = function(question) {
@@ -128,10 +152,13 @@ function assertTrue(bool) {
     assertTrue(!isErrorVisible());
     assertTrue(isSuccessVisible());
     assertTrue(getSuccessMessage() === "Matches: group1=WorldFirst, group2=WorldSecond");
+
+    checkFinished();
 }
 
 {
-    console.warn("Happy path not all groups");
+    checkStarted("Error path not all groups");
+
     setTestRegex("^Hello (?<group1>.*) (?<group2>.*)$")
     const testObj = new AtlassianRegexTester("textRegexInput", "errorDiv", "successDiv");
     testObj._getUserInput = function(question) {
@@ -140,9 +167,33 @@ function assertTrue(bool) {
     }
 
     assertTrue(!testObj.test("TheQuestion", ["group1", "group2"]));
-    assertTrue(!isErrorVisible());
-    assertTrue(isSuccessVisible());
-    assertTrue(getSuccessMessage() === "Matches: group1=WorldFirst, group2=");
+    assertTrue(isErrorVisible());
+    assertTrue(!isSuccessVisible());
+    assertTrue(getErrorMessage() === "Error: the values for the following groups were not found: group2");
+
+    checkFinished();
+}
+
+{
+    checkStarted("setTestRegex")
+
+    atlWatchNotEmpty("textRegexInput", "errorDiv", "<notempty>");
+    setTestRegex("");
+
+    setTimeout(function() {
+        assertTrue(isErrorVisible());
+        console.log(getErrorMessage());
+        assertTrue(getErrorMessage() === "&lt;notempty&gt;");
+
+        setTestRegex("blah");
+
+        setTimeout(function() {
+            assertTrue(!isErrorVisible());
+
+            checkFinished();
+        }, 500);
+    }, 500);
+
 }
 
 console.warn("All checks are passing!")

@@ -58,4 +58,47 @@ f.section(title: "Jira Software Cloud Integration") {
             }
         }
     }
+
+    f.optionalBlock(
+            title: _("Send deployments automatically"),
+            name: instance.FIELD_NAME_AUTO_DEPLOYMENTS,
+            checked: instance.autoDeploymentsEnabled ?: false,
+            help: descriptor.getHelpFile("autoDeployments")
+    ) {
+        f.entry(
+                title: _("Pipeline step regex")
+        ) {
+            f.textbox(
+                    name: instance.FIELD_NAME_AUTO_DEPLOYMENTS_REGEX,
+                    value: instance.autoDeploymentsRegex,
+                    id: "atlDeploymentsRegex",
+            )
+
+            div(id: "atlTestDeploymentRegexError", class: "error", style: "display:none") {
+
+            }
+            div(id: "atlTestDeploymentRegexBlankError", class: "error", style: "display:none") {
+
+            }
+            div(id: "atlTextDeploymentRegexSuccess", class: "ok", style: "display:none") {
+
+            }
+
+            span(
+                    class: "yui-button",
+                    onClick: "return (new AtlassianRegexTester('atlDeploymentsRegex', 'atlTestDeploymentRegexError', 'atlTextDeploymentRegexSuccess'))" +
+                            ".test('Please enter the test name of your pipeline step/stage:', ['env_id', 'env_name']);"
+            ) {
+                button(
+                        onClick: "return false;"
+                ) {
+                    text(_("Test Pipeline step regex"))
+                }
+            }
+
+            raw(
+                    "<script>atlWatchNotEmpty('atlDeploymentsRegex', 'atlTestDeploymentRegexBlankError', 'Pipeline step regex cannot be empty!');</script>"
+            )
+        }
+    }
 }

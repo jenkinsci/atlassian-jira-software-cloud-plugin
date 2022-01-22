@@ -91,17 +91,28 @@ AtlassianRegexTester.prototype.test = function(promptMessage, expectedGroupsArra
         if (expectedGroupsArray.length > 0) {
             try {
                 var parsed = regex.exec(userInput);
+                if (!parsed.groups) {
+                    parsed.groups = {};
+                }
+                var notFoundGroups = [];
                 var message = "Matches: ";
                 var isFirst = true;
-                for (var idx in expectedGroupsArray) {
+                for (var idx = 0; idx < expectedGroupsArray.length; idx ++) {
                     var group = expectedGroupsArray[idx];
                     if (!isFirst) {
                         message += ", ";
                     }
-                    message += group + "=" + parsed.groups[group];
+                    message += (group + "=" + parsed.groups[group]);
+                    if (!parsed.groups[group]) {
+                        notFoundGroups.push(group);
+                    }
                     isFirst = false;
                 }
-                this._renderSuccessMessage(message);
+                if (notFoundGroups.length > 0) {
+                    this._renderErrorMessage("Error: the values for the following groups were not found: " + notFoundGroups.join(", "));
+                } else {
+                    this._renderSuccessMessage(message);
+                }
                 return false;
             } catch (e) {
                 console.warn(e);
@@ -117,4 +128,19 @@ AtlassianRegexTester.prototype.test = function(promptMessage, expectedGroupsArra
     }
     return false;
 };
+
+function atlWatchNotEmpty(inputId, errorDivId, errorMessage) {
+    setInterval(function() {
+        var inputElt = document.getElementById(inputId);
+        if (inputElt) {
+            var errorDiv = document.getElementById(errorDivId);
+            if (!inputElt.value) {
+                errorDiv.innerHTML = AtlassianRegexTester.prototype._escapeHtml(errorMessage);
+                errorDiv.style.display = 'block';
+            } else {
+                errorDiv.style.display = 'none';
+            }
+        }
+    }, 100);
+}
 
