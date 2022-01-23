@@ -32,9 +32,8 @@ public class JenkinsPipelineRunListener extends RunListener<Run> {
                     new SinglePipelineDeploymentsListener(
                             workflowRun,
                             taskListener,
-                            false, // TODO: extract from config
-                            "" // TODO: extract from config
-                            ));
+                            config.getAutoDeploymentsEnabled(),
+                            config.getAutoDeploymentsRegex()));
         } else {
             final String message =
                     "Not a WorkflowRun, automatic builds and deployments won't work.";

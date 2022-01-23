@@ -37,7 +37,7 @@ public class JiraCloudPluginConfig extends GlobalConfiguration {
     private String autoBuildsRegex;
 
     private Boolean autoDeploymentsEnabled;
-    private String autoDeploymentsRegex;
+    private String autoDeploymentsRegex = "^deploy to (?<envName>.*)$";
 
     public JiraCloudPluginConfig() {
         getConfigFile().getXStream().alias("atl-jsw-site-configuration", JiraCloudSiteConfig.class);

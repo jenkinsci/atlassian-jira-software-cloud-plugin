@@ -14,7 +14,11 @@ public final class StateValidator {
         final List<String> errorMessages = new ArrayList<>();
 
         if (StringUtils.isNotBlank(state) && !State.ALLOWED_STATES.contains(state)) {
-            errorMessages.add("The parameter state is not valid. Allowed values are: " + State.ALLOWED_STATES);
+            errorMessages.add(
+                    "The parameter state is not valid. Allowed values are: "
+                            + State.ALLOWED_STATES
+                            + ", provided value was "
+                            + state);
         }
 
         return errorMessages;

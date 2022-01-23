@@ -32,11 +32,11 @@ import java.util.stream.Collectors;
  *
  * <p>Challenges to keep in mind:
  *
- * - order of the events: we shouldn't send IN_PROGRESS event if the
- * final result has already been sent
+ * <p>- order of the events: we shouldn't send IN_PROGRESS event if the final result has already
+ * been sent
  *
- * - uncertainty about issue keys: they appear at some point
- * during the execution of the pipeline and might not be in place at the moment we need them.
+ * <p>- uncertainty about issue keys: they appear at some point during the execution of the pipeline
+ * and might not be in place at the moment we need them.
  */
 public class SinglePipelineBuildsListener implements SinglePipelineListener {
     private final WorkflowRun build;
@@ -149,7 +149,7 @@ public class SinglePipelineBuildsListener implements SinglePipelineListener {
                 sendBuildStatusToJira(Optional.empty());
             }
         } else {
-            if (isOnCompleted && inProgressSent) {
+            if (isOnCompleted) {
                 finalResultSent = true;
                 sendBuildStatusToJira(Optional.empty());
 

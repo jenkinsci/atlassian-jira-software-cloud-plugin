@@ -84,10 +84,12 @@ f.section(title: "Jira Software Cloud Integration") {
 
             }
 
+            // NOTE: in Java underscores in the names of the groups are forbidden! See:
+            // https://stackoverflow.com/questions/21271972/i-cant-use-a-group-name-like-this-abc-def-using-patterns
             span(
                     class: "yui-button",
                     onClick: "return (new AtlassianRegexTester('atlDeploymentsRegex', 'atlTestDeploymentRegexError', 'atlTextDeploymentRegexSuccess'))" +
-                            ".test('Please enter the test name of your pipeline step/stage:', ['env_id', 'env_name']);"
+                            ".test('Please enter the test name of your pipeline step/stage:', ['envName']);"
             ) {
                 button(
                         onClick: "return false;"
