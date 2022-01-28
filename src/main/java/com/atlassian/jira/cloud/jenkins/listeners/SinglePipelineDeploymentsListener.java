@@ -26,14 +26,14 @@ public class SinglePipelineDeploymentsListener implements SinglePipelineListener
 
     public SinglePipelineDeploymentsListener(
             final WorkflowRun run,
-            final TaskListener taskListener,
+            final PrintStream logger,
             final boolean autoDeploymentsEnabled,
             final String autoDeploymentsRegex) {
         this.build = run;
         this.autoDeploymentsEnabled = autoDeploymentsEnabled;
         this.autoDeploymentsRegex = autoDeploymentsRegex;
 
-        this.pipelineLogger = taskListener.getLogger();
+        this.pipelineLogger = logger;
     }
 
     public String getBuildUrl() {

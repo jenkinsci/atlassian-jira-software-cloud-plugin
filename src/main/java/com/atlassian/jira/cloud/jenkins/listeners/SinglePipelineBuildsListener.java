@@ -57,11 +57,11 @@ public class SinglePipelineBuildsListener implements SinglePipelineListener {
 
     public SinglePipelineBuildsListener(
             final WorkflowRun run,
-            final TaskListener taskListener,
+            final PrintStream logger,
             final boolean autoBuildsEnabled,
             final String autoBuildsRegex) {
         this.build = run;
-        this.pipelineLogger = taskListener.getLogger();
+        this.pipelineLogger = logger;
         this.autoBuildsEnabled = autoBuildsEnabled;
         this.autoBuildsRegex = autoBuildsRegex;
         issueKeyExtractors =
@@ -143,7 +143,6 @@ public class SinglePipelineBuildsListener implements SinglePipelineListener {
             if (isOnCompleted) {
                 finalResultSent = true;
                 sendBuildStatusToJira(Optional.empty());
-
             } else if (!inProgressSent) {
                 inProgressSent = true;
                 sendBuildStatusToJira(Optional.empty());

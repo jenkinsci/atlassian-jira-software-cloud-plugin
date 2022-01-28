@@ -26,12 +26,12 @@ public class JenkinsPipelineRunListener extends RunListener<Run> {
             singlePipelineListenerRegistry.registerForBuild(
                     new SinglePipelineBuildsListener(
                             workflowRun,
-                            taskListener,
+                            taskListener.getLogger(),
                             config.getAutoBuildsEnabled(),
                             config.getAutoBuildsRegex()),
                     new SinglePipelineDeploymentsListener(
                             workflowRun,
-                            taskListener,
+                            taskListener.getLogger(),
                             config.getAutoDeploymentsEnabled(),
                             config.getAutoDeploymentsRegex()));
         } else {

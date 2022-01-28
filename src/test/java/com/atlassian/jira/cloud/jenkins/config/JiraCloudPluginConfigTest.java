@@ -19,6 +19,7 @@ import java.util.Collections;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 
 public class JiraCloudPluginConfigTest {
@@ -27,26 +28,32 @@ public class JiraCloudPluginConfigTest {
     private static final String CLIENT_ID = "clientId";
     private static final String CREDENTIALS_ID = "credsId";
 
-    private static final JSONObject SITES_JSON = (JSONObject) JSONSerializer.toJSON("{\n" +
-            "    \"sites\": [\n" +
-            "        {\n" +
-            "            \"site\": \"mysite1.atlassian.net\",\n" +
-            "            \"clientId\": \"myClientId1\",\n" +
-            "            \"credentialsId\": \"myCreds1\"\n" +
-            "        },\n" +
-            "        {\n" +
-            "            \"site\": \"mysite2.atlassian.net\",\n" +
-            "            \"clientId\": \"\", " +
-            "            \"credentialsId\": \"myCreds2\"\n" +
-            "        }\n" +
-            "    ]\n" +
-            "}");
+    private static final JSONObject SITES_JSON =
+            (JSONObject)
+                    JSONSerializer.toJSON(
+                            "{\n"
+                                    + "    \"sites\": [\n"
+                                    + "        {\n"
+                                    + "            \"site\": \"mysite1.atlassian.net\",\n"
+                                    + "            \"clientId\": \"myClientId1\",\n"
+                                    + "            \"credentialsId\": \"myCreds1\"\n"
+                                    + "        },\n"
+                                    + "        {\n"
+                                    + "            \"site\": \"mysite2.atlassian.net\",\n"
+                                    + "            \"clientId\": \"\", "
+                                    + "            \"credentialsId\": \"myCreds2\"\n"
+                                    + "        }\n"
+                                    + "    ]\n"
+                                    + "}");
 
-    private static final JSONObject AUTO_BUILDS_JSON = (JSONObject) JSONSerializer.toJSON("{\n" +
-            "    \"autoBuilds\": { " +
-            "           \"autoBuildsRegex\":\"blah\"" +
-            "    } " +
-            "}");
+    private static final JSONObject AUTO_BUILDS_JSON =
+            (JSONObject)
+                    JSONSerializer.toJSON(
+                            "{\n"
+                                    + "    \"autoBuilds\": { "
+                                    + "           \"autoBuildsRegex\":\"blah\""
+                                    + "    } "
+                                    + "}");
 
     @Rule public JenkinsRule jRule = new JenkinsRule();
 
@@ -113,9 +120,10 @@ public class JiraCloudPluginConfigTest {
         final JiraCloudPluginConfig loadedConfig = new JiraCloudPluginConfig(configName);
 
         assertThat(loadedConfig.getSites()).hasSize(2);
-        assertThat(loadedConfig.getSites().get(0)).isEqualTo(
-                new JiraCloudSiteConfig("mysite1.atlassian.net", "myClientId1", "myCreds1")
-        );
+        assertThat(loadedConfig.getSites().get(0))
+                .isEqualTo(
+                        new JiraCloudSiteConfig(
+                                "mysite1.atlassian.net", "myClientId1", "myCreds1"));
     }
 
     @Test
@@ -141,7 +149,29 @@ public class JiraCloudPluginConfigTest {
     }
 
     @Test
-    public void testConfigure_dropsAutoBuildsEnabled_butPrservesRegex() throws Descriptor.FormException {
+    public void testConfigure_populatesAutoDeploymentsAndRegex() throws Descriptor.FormException {
+        // similar to builds test, but the regex is required here!
+        fail("not implemented");
+    }
+
+    @Test
+    public void testConfigure_populatesAutoDeploymentsThrowsErrorWhenNoRegex()
+            throws Descriptor.FormException {
+        // check the case when regex is empty!
+        fail("not implemented");
+    }
+
+    @Test
+    public void testConfigure_dropsAutoDeploymentsEnabled_butPreservesRegex()
+            throws Descriptor.FormException {
+        // set the regex, disable auto deployments, enable them again, check that regex is still
+        // there
+        fail("not implemented");
+    }
+
+    @Test
+    public void testConfigure_dropsAutoBuildsEnabled_butPreservesRegex()
+            throws Descriptor.FormException {
         final String configName = "config" + Math.random();
 
         new JiraCloudPluginConfig(configName).configure(mockStapler(), AUTO_BUILDS_JSON);
@@ -156,7 +186,8 @@ public class JiraCloudPluginConfigTest {
         final Stapler stapler = mock(Stapler.class);
         final WebApp webApp = new WebApp(mock(ServletContext.class));
         Mockito.when(stapler.getWebApp()).thenReturn(webApp);
-        return new RequestImpl(stapler, mock(HttpServletRequest.class), Collections.emptyList(), null);
+        return new RequestImpl(
+                stapler, mock(HttpServletRequest.class), Collections.emptyList(), null);
     }
 
     private void assertSiteConfig(

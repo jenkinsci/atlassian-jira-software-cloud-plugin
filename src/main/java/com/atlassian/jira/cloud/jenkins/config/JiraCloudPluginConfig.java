@@ -64,12 +64,14 @@ public class JiraCloudPluginConfig extends GlobalConfiguration {
                         req.bindJSONToList(
                                 JiraCloudSiteConfig.class, json.getJSONArray(FIELD_NAME_SITES));
             }
+
             this.autoBuildsEnabled = json.containsKey(FIELD_NAME_AUTO_BUILDS);
             if (this.autoBuildsEnabled) {
                 this.autoBuildsRegex =
                         json.getJSONObject(FIELD_NAME_AUTO_BUILDS)
                                 .getString(FIELD_NAME_AUTO_BUILDS_REGEX);
             }
+
             this.autoDeploymentsEnabled = json.containsKey(FIELD_NAME_AUTO_DEPLOYMENTS);
             if (this.autoDeploymentsEnabled) {
                 this.autoDeploymentsRegex =
