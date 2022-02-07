@@ -7,8 +7,9 @@ import com.google.common.annotations.VisibleForTesting;
 import com.atlassian.jira.cloud.jenkins.common.model.AppCredential;
 import okhttp3.FormBody;
 import okhttp3.OkHttpClient;
-import okhttp3.Request;
 import okhttp3.RequestBody;
+import okhttp3.ResponseBody;
+import okhttp3.Request;
 import okhttp3.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,7 +61,8 @@ public class AccessTokenRetriever {
                 return Optional.empty();
             }
 
-            if (response.body() == null) {
+            ResponseBody body = response.body();
+            if (body == null) {
                 log.warn(
                         String.format(
                                 "Empty response when retrieving access token for %s",
@@ -69,7 +71,7 @@ public class AccessTokenRetriever {
             }
 
             AccessTokenResponse accessTokenResponse =
-                    objectMapper.readValue(response.body().bytes(), AccessTokenResponse.class);
+                    objectMapper.readValue(body.bytes(), AccessTokenResponse.class);
 
             return Optional.ofNullable(accessTokenResponse.getAccessToken());
         } catch (JsonMappingException | JsonParseException e) {

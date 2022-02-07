@@ -8,6 +8,7 @@ import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.State;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.service.ChangeLogIssueKeyExtractor;
 import com.atlassian.jira.cloud.jenkins.util.BranchNameIssueKeyExtractor;
 import com.atlassian.jira.cloud.jenkins.util.JenkinsToJiraStatus;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.jenkinsci.plugins.workflow.cps.nodes.StepEndNode;
 import org.jenkinsci.plugins.workflow.cps.nodes.StepStartNode;
 import org.jenkinsci.plugins.workflow.graph.FlowNode;
@@ -50,19 +51,16 @@ public class AutoBuildsListener implements SinglePipelineListener {
     private String startFlowNodeId = "";
     private String endFlowNodeId = "";
 
-    private static final Logger systemLogger =
-            LoggerFactory.getLogger(AutoBuildsListener.class);
+    private static final Logger systemLogger = LoggerFactory.getLogger(AutoBuildsListener.class);
 
     public AutoBuildsListener(
-            final WorkflowRun run,
-            final PrintStream logger,
-            final String autoBuildsRegex) {
+            final WorkflowRun run, final PrintStream logger, final String autoBuildsRegex) {
         this.build = run;
         this.pipelineLogger = logger;
         this.autoBuildsRegex = autoBuildsRegex;
         issueKeyExtractors =
-                new IssueKeyExtractor[]{
-                        new BranchNameIssueKeyExtractor(), new ChangeLogIssueKeyExtractor()
+                new IssueKeyExtractor[] {
+                    new BranchNameIssueKeyExtractor(), new ChangeLogIssueKeyExtractor()
                 };
     }
 
@@ -118,9 +116,7 @@ public class AutoBuildsListener implements SinglePipelineListener {
         }
     }
 
-    /**
-     * This method is called periodically while the pipeline is working
-     */
+    /** This method is called periodically while the pipeline is working */
     private void maybeSendDataToJira(final boolean isOnCompleted) {
         if (finalResultSent) {
             return;
@@ -170,11 +166,26 @@ public class AutoBuildsListener implements SinglePipelineListener {
      * Checks if a node with id=endFlowNodeId has finished execution and the result is ready to be
      * sent to Jira
      */
+    @SuppressFBWarnings(
+            value = "NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE",
+            justification = "There is a null check, but SpotBugs doesn't recognize it")
     private boolean canDetermineFinalResultOfEndNode() {
         if (endFlowNodeId.isEmpty()) {
             return false;
         }
+
         try {
+
+            if (build.getExecution() == null
+                    || build.getExecution().getNode(endFlowNodeId) == null) {
+                final String message =
+                        String.format(
+                                "cannot determine status from endFlowNode '%s'", endFlowNodeId);
+                pipelineLogger.println("[WARN] " + message);
+                systemLogger.warn(message);
+                return false;
+            }
+
             final State state =
                     JenkinsToJiraStatus.getState(build.getExecution().getNode(endFlowNodeId));
             return state != State.IN_PROGRESS;
@@ -186,10 +197,24 @@ public class AutoBuildsListener implements SinglePipelineListener {
         }
     }
 
+    @SuppressFBWarnings(
+            value = "NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE",
+            justification = "There is a null check, but SpotBugs doesn't recognize it")
     private void sendBuildStatusToJira(final Optional<String> maybeStatusNodeId) {
         Optional<FlowNode> maybeStatusNode = Optional.empty();
         if (maybeStatusNodeId.isPresent()) {
             try {
+
+                if (build.getExecution() == null
+                        || build.getExecution().getNode(endFlowNodeId) == null) {
+                    final String message =
+                            String.format(
+                                    "cannot determine status from endFlowNode '%s'", endFlowNodeId);
+                    pipelineLogger.println("[WARN] " + message);
+                    systemLogger.warn(message);
+                    return;
+                }
+
                 maybeStatusNode =
                         Optional.ofNullable(build.getExecution().getNode(maybeStatusNodeId.get()));
                 if (!maybeStatusNode.isPresent()) {

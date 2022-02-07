@@ -149,15 +149,15 @@ public class JiraApi {
 
     private <ResponseEntity> ResponseEntity handleResponseBody(
             final Response response, final Class<ResponseEntity> responseClass) throws IOException {
-        if (response.body() == null) {
+        ResponseBody body = response.body();
+        if (body == null) {
             final String message = "Empty response body when submitting update to Jira";
 
             throw new ApiUpdateFailedException(message);
         }
 
         return objectMapper.readValue(
-                response.body().bytes(),
-                objectMapper.getTypeFactory().constructType(responseClass));
+                body.bytes(), objectMapper.getTypeFactory().constructType(responseClass));
     }
 
     @VisibleForTesting
@@ -185,6 +185,11 @@ public class JiraApi {
     private Request getRequest(
             final String accessToken, final Map<String, String> pathParams, final String clientId) {
         final HttpUrl url = HttpUrl.parse(this.apiEndpoint);
+
+        if (url == null) {
+            throw new RuntimeException(String.format("could not parse URL %s", this.apiEndpoint));
+        }
+
         // workaround to encode path segments
         final List<String> segments = url.pathSegments();
         final HttpUrl.Builder builder = url.newBuilder();

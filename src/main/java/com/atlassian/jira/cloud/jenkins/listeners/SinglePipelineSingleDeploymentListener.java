@@ -8,6 +8,7 @@ import com.atlassian.jira.cloud.jenkins.deploymentinfo.service.ChangeLogIssueKey
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.service.JiraDeploymentInfoRequest;
 import com.atlassian.jira.cloud.jenkins.util.BranchNameIssueKeyExtractor;
 import com.atlassian.jira.cloud.jenkins.util.JenkinsToJiraStatus;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.jenkinsci.plugins.workflow.cps.nodes.StepEndNode;
 import org.jenkinsci.plugins.workflow.graph.FlowNode;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
@@ -211,11 +212,25 @@ public class SinglePipelineSingleDeploymentListener implements SinglePipelineLis
                 });
     }
 
+    @SuppressFBWarnings(
+            value = "NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE",
+            justification = "There is a null check, but SpotBugs doesn't recognize it")
     private boolean canDetermineFinalResultOfEndNode() {
         if (endFlowNodeId.isEmpty()) {
             return false;
         }
         try {
+
+            if (build.getExecution() == null
+                    || build.getExecution().getNode(endFlowNodeId) == null) {
+                final String message =
+                        String.format(
+                                "cannot determine status from endFlowNode '%s'", endFlowNodeId);
+                pipelineLogger.println("[WARN] " + message);
+                systemLogger.warn(message);
+                return false;
+            }
+
             final State state =
                     JenkinsToJiraStatus.getState(build.getExecution().getNode(endFlowNodeId));
             return state != State.IN_PROGRESS;

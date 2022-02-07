@@ -39,8 +39,14 @@ public final class BuildPayloadBuilder {
             final Set<String> issueKeys) {
 
         try {
+
+            Run<?, ?> build = buildWrapper.getRawBuild();
+            if (build == null) {
+                throw new RuntimeException("no build object available!");
+            }
+
             TestInfo testInfo =
-                    Optional.ofNullable(buildWrapper.getRawBuild())
+                    Optional.ofNullable(build)
                             .map(r -> r.getAction(TestResultAction.class))
                             .map(
                                     a -> {
@@ -65,11 +71,7 @@ public final class BuildPayloadBuilder {
                             .withUpdateSequenceNumber(Instant.now().getEpochSecond())
                             .withLabel(buildWrapper.getDisplayName())
                             .withUrl(buildWrapper.getAbsoluteUrl())
-                            .withState(
-                                    toJiraBuildState(
-                                                    buildWrapper.getRawBuild().getResult(),
-                                                    statusFlowNode)
-                                            .value)
+                            .withState(toJiraBuildState(build.getResult(), statusFlowNode).value)
                             .withLastUpdated(Instant.now().toString())
                             .withIssueKeys(issueKeys)
                             .withTestInfo(testInfo)
