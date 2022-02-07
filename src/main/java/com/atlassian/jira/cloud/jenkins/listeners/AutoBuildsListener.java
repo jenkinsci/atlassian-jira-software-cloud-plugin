@@ -8,7 +8,6 @@ import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.State;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.service.ChangeLogIssueKeyExtractor;
 import com.atlassian.jira.cloud.jenkins.util.BranchNameIssueKeyExtractor;
 import com.atlassian.jira.cloud.jenkins.util.JenkinsToJiraStatus;
-import hudson.model.TaskListener;
 import org.jenkinsci.plugins.workflow.cps.nodes.StepEndNode;
 import org.jenkinsci.plugins.workflow.cps.nodes.StepStartNode;
 import org.jenkinsci.plugins.workflow.graph.FlowNode;
@@ -38,9 +37,8 @@ import java.util.stream.Collectors;
  * <p>- uncertainty about issue keys: they appear at some point during the execution of the pipeline
  * and might not be in place at the moment we need them.
  */
-public class SinglePipelineBuildsListener implements SinglePipelineListener {
+public class AutoBuildsListener implements SinglePipelineListener {
     private final WorkflowRun build;
-    private final boolean autoBuildsEnabled;
     private final String autoBuildsRegex;
 
     private final IssueKeyExtractor[] issueKeyExtractors;
@@ -53,20 +51,18 @@ public class SinglePipelineBuildsListener implements SinglePipelineListener {
     private String endFlowNodeId = "";
 
     private static final Logger systemLogger =
-            LoggerFactory.getLogger(SinglePipelineBuildsListener.class);
+            LoggerFactory.getLogger(AutoBuildsListener.class);
 
-    public SinglePipelineBuildsListener(
+    public AutoBuildsListener(
             final WorkflowRun run,
             final PrintStream logger,
-            final boolean autoBuildsEnabled,
             final String autoBuildsRegex) {
         this.build = run;
         this.pipelineLogger = logger;
-        this.autoBuildsEnabled = autoBuildsEnabled;
         this.autoBuildsRegex = autoBuildsRegex;
         issueKeyExtractors =
-                new IssueKeyExtractor[] {
-                    new BranchNameIssueKeyExtractor(), new ChangeLogIssueKeyExtractor()
+                new IssueKeyExtractor[]{
+                        new BranchNameIssueKeyExtractor(), new ChangeLogIssueKeyExtractor()
                 };
     }
 
@@ -91,9 +87,6 @@ public class SinglePipelineBuildsListener implements SinglePipelineListener {
      * flickering and then we send the update.
      */
     public void onNewHead(final FlowNode flowNode) {
-        if (!autoBuildsEnabled) {
-            return;
-        }
         if (!autoBuildsRegex.trim().isEmpty()) {
             tryToDefineStartAndStopNodeIds(flowNode);
         }
@@ -125,11 +118,10 @@ public class SinglePipelineBuildsListener implements SinglePipelineListener {
         }
     }
 
-    /** This method is called periodically while the pipeline is working */
+    /**
+     * This method is called periodically while the pipeline is working
+     */
     private void maybeSendDataToJira(final boolean isOnCompleted) {
-        if (!autoBuildsEnabled) {
-            return;
-        }
         if (finalResultSent) {
             return;
         }

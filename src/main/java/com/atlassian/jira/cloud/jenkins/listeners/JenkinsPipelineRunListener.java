@@ -20,25 +20,40 @@ public class JenkinsPipelineRunListener extends RunListener<Run> {
 
     @Override
     public void onStarted(final Run r, final TaskListener taskListener) {
-        if (r instanceof WorkflowRun) {
-            final WorkflowRun workflowRun = (WorkflowRun) r;
-            final JiraCloudPluginConfig config = JiraCloudPluginConfig.get();
-            singlePipelineListenerRegistry.registerForBuild(
-                    new SinglePipelineBuildsListener(
-                            workflowRun,
-                            taskListener.getLogger(),
-                            config.getAutoBuildsEnabled(),
-                            config.getAutoBuildsRegex()),
-                    new SinglePipelineDeploymentsListener(
-                            workflowRun,
-                            taskListener.getLogger(),
-                            config.getAutoDeploymentsEnabled(),
-                            config.getAutoDeploymentsRegex()));
-        } else {
+        if (!(r instanceof WorkflowRun)) {
             final String message =
                     "Not a WorkflowRun, automatic builds and deployments won't work.";
             log.warn(message);
             taskListener.getLogger().println("[WARN] " + message);
+            return;
+        }
+
+        final JiraCloudPluginConfig config = JiraCloudPluginConfig.get();
+        if (config == null) {
+            final String message =
+                    "Atlassian cloud plugin config is null. Please configure the plugin to support auto-detection of build and deployment events";
+            log.warn(message);
+            taskListener.getLogger().println("[WARN] " + message);
+            return;
+        }
+
+        final WorkflowRun workflowRun = (WorkflowRun) r;
+
+        if (config.getAutoBuildsEnabled()) {
+            singlePipelineListenerRegistry.registerForBuild(
+                    new AutoBuildsListener(
+                            workflowRun,
+                            taskListener.getLogger(),
+                            config.getAutoBuildsRegex()));
+        }
+
+        if (config.getAutoDeploymentsEnabled()) {
+            singlePipelineListenerRegistry.registerForBuild(
+                    new AutoDeploymentsListener(
+                            workflowRun,
+                            taskListener.getLogger(),
+                            config.getAutoDeploymentsRegex())
+            );
         }
     }
 
