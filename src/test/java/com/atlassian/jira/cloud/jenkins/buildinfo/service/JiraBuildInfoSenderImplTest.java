@@ -17,6 +17,8 @@ import com.atlassian.jira.cloud.jenkins.util.SecretRetriever;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import hudson.AbortException;
+import hudson.model.Result;
+import hudson.model.Run;
 import hudson.scm.ChangeLogSet;
 
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
@@ -341,6 +343,7 @@ public class JiraBuildInfoSenderImplTest {
         when(accessTokenRetriever.getAccessToken(any())).thenReturn(Optional.of("access-token"));
     }
 
+    @SuppressWarnings({"rawtypes", "unchecked"})
     private void setupRunWrapperProvider() {
         try {
             final RunWrapper mockRunWrapper = mock(RunWrapper.class);
@@ -351,7 +354,11 @@ public class JiraBuildInfoSenderImplTest {
             when(mockRunWrapper.getAbsoluteUrl())
                     .thenReturn(
                             "http://localhost:8080/jenkins/multibranch-1/job/TEST-123-branch-name");
-            when(mockRunWrapper.getCurrentResult()).thenReturn("SUCCESS_BUILD_ACCEPTED");
+
+            final Run run = mock(Run.class);
+            when(run.getResult()).thenReturn(Result.SUCCESS);
+
+            when(mockRunWrapper.getRawBuild()).thenReturn(run);
             when(runWrapperProvider.getWrapper(any())).thenReturn(mockRunWrapper);
         } catch (final AbortException e) {
             throw new RuntimeException(e);

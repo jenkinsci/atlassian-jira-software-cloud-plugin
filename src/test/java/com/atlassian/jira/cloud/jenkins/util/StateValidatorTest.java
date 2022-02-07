@@ -15,8 +15,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class StateValidatorTest {
 
     private static final String ERROR_MESSAGE =
-            "The parameter state is not valid. Allowed values are: "
-                    + "[unknown, pending, in_progress, cancelled, failed, rolled_back, successful]";
+            "The parameter state is not valid. Allowed values are: [unknown, pending, in_progress, cancelled, failed, rolled_back, successful]. Provided value was: 'bad input'";
 
     @Parameterized.Parameters
     public static Collection<Object[]> data() {

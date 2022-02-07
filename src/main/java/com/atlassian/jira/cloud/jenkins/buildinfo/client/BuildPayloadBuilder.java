@@ -6,6 +6,7 @@ import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.TestInfo;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.State;
 import com.atlassian.jira.cloud.jenkins.util.JenkinsToJiraStatus;
 
+import hudson.model.Result;
 import hudson.model.Run;
 import hudson.tasks.junit.TestResultAction;
 import org.jenkinsci.plugins.workflow.graph.FlowNode;
@@ -13,6 +14,7 @@ import org.jenkinsci.plugins.workflow.support.steps.build.RunWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.Optional;
@@ -64,7 +66,9 @@ public final class BuildPayloadBuilder {
                             .withLabel(buildWrapper.getDisplayName())
                             .withUrl(buildWrapper.getAbsoluteUrl())
                             .withState(
-                                    toJiraBuildState(buildWrapper.getRawBuild(), statusFlowNode)
+                                    toJiraBuildState(
+                                                    buildWrapper.getRawBuild().getResult(),
+                                                    statusFlowNode)
                                             .value)
                             .withLastUpdated(Instant.now().toString())
                             .withIssueKeys(issueKeys)
@@ -76,9 +80,10 @@ public final class BuildPayloadBuilder {
     }
 
     private static State toJiraBuildState(
-            final Run<?, ?> build, final Optional<FlowNode> statusFlowNode) throws IOException {
+            @Nullable final Result buildResult, final Optional<FlowNode> statusFlowNode)
+            throws IOException {
         return statusFlowNode
                 .map(JenkinsToJiraStatus::getState)
-                .orElseGet(() -> JenkinsToJiraStatus.getState(build));
+                .orElseGet(() -> JenkinsToJiraStatus.getState(buildResult));
     }
 }

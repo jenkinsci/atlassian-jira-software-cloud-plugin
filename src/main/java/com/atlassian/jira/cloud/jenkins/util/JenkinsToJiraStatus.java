@@ -6,14 +6,15 @@ import hudson.model.Result;
 import hudson.model.Run;
 import org.jenkinsci.plugins.workflow.graph.FlowNode;
 
+import javax.annotation.Nullable;
+
 public final class JenkinsToJiraStatus {
     /**
      * Maps a Jenkins Build status to Jira API build/deployment status
      *
      * @return State for Jira API payload
      */
-    public static State getState(final Run<?, ?> build) {
-        final Result jenkinsBuildResult = build.getResult();
+    public static State getState(@Nullable final Result jenkinsBuildResult) {
         if (jenkinsBuildResult == null) {
             return State.IN_PROGRESS;
         }

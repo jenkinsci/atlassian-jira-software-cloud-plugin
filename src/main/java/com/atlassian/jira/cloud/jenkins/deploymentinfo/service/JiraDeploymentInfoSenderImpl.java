@@ -284,7 +284,7 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
      */
     private String getDeploymentState(final WorkflowRun build, @Nullable final String state) {
         return Optional.ofNullable(state)
-                .orElseGet(() -> JenkinsToJiraStatus.getState(build).value);
+                .orElseGet(() -> JenkinsToJiraStatus.getState(build.getResult()).value);
     }
 
     private Set<Association> buildAssociations(

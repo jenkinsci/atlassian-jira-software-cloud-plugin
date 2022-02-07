@@ -55,6 +55,24 @@ public class JiraCloudPluginConfigTest {
                                     + "    } "
                                     + "}");
 
+    private static final JSONObject AUTO_DEPLOYMENTS_JSON =
+            (JSONObject)
+                    JSONSerializer.toJSON(
+                            "{\n"
+                                    + "    \"autoDeployments\": { "
+                                    + "           \"autoDeploymentsRegex\":\"blah\""
+                                    + "    } "
+                                    + "}");
+
+    private static final JSONObject AUTO_DEPLOYMENTS_JSON_WITHOUT_REGEX =
+            (JSONObject)
+                    JSONSerializer.toJSON(
+                            "{\n"
+                                    + "    \"autoDeployments\": { "
+                                    + "           \"autoDeploymentsRegex\":\"\""
+                                    + "    } "
+                                    + "}");
+
     @Rule public JenkinsRule jRule = new JenkinsRule();
 
     @Test
@@ -149,24 +167,16 @@ public class JiraCloudPluginConfigTest {
     }
 
     @Test
-    public void testConfigure_populatesAutoDeploymentsAndRegex() throws Descriptor.FormException {
-        // similar to builds test, but the regex is required here!
-        fail("not implemented");
-    }
+    public void testConfigure_populatesAutoDeploymentsEnabled() {
+        final String configName = "config" + Math.random();
 
-    @Test
-    public void testConfigure_populatesAutoDeploymentsThrowsErrorWhenNoRegex()
-            throws Descriptor.FormException {
-        // check the case when regex is empty!
-        fail("not implemented");
-    }
-
-    @Test
-    public void testConfigure_dropsAutoDeploymentsEnabled_butPreservesRegex()
-            throws Descriptor.FormException {
-        // set the regex, disable auto deployments, enable them again, check that regex is still
-        // there
-        fail("not implemented");
+        try {
+            new JiraCloudPluginConfig(configName)
+                    .configure(mockStapler(), AUTO_DEPLOYMENTS_JSON_WITHOUT_REGEX);
+            fail("expecting FormException because Deployments regex must be provided!");
+        } catch (Descriptor.FormException e) {
+            assertThat(e.getMessage()).contains("Deployments RegEx must be provided");
+        }
     }
 
     @Test
@@ -180,6 +190,19 @@ public class JiraCloudPluginConfigTest {
         final JiraCloudPluginConfig loadedConfig = new JiraCloudPluginConfig(configName);
         assertThat(loadedConfig.getAutoBuildsEnabled()).isFalse();
         assertThat(loadedConfig.getAutoBuildsRegex()).isEqualTo("blah");
+    }
+
+    @Test
+    public void testConfigure_dropsAutoDeploymentsEnabled_butPreservesRegex()
+            throws Descriptor.FormException {
+        final String configName = "config" + Math.random();
+
+        new JiraCloudPluginConfig(configName).configure(mockStapler(), AUTO_DEPLOYMENTS_JSON);
+        new JiraCloudPluginConfig(configName).configure(mockStapler(), new JSONObject());
+
+        final JiraCloudPluginConfig loadedConfig = new JiraCloudPluginConfig(configName);
+        assertThat(loadedConfig.getAutoDeploymentsEnabled()).isFalse();
+        assertThat(loadedConfig.getAutoDeploymentsRegex()).isEqualTo("blah");
     }
 
     private static StaplerRequest mockStapler() {

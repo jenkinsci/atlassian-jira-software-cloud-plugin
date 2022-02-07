@@ -22,6 +22,9 @@ import com.atlassian.jira.cloud.jenkins.util.SecretRetriever;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import hudson.AbortException;
+import hudson.model.Job;
+import hudson.model.Result;
+import hudson.model.Run;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.jenkinsci.plugins.workflow.support.steps.build.RunWrapper;
 import org.junit.Before;
@@ -302,11 +305,7 @@ public class JiraDeploymentInfoSenderImplTest {
         verify(mockWorkflowRun, never()).getResult();
         assertThat(response.getStatus())
                 .isEqualTo(JiraSendInfoResponse.Status.FAILURE_STATE_INVALID);
-        assertThat(response.getMessage())
-                .isEqualTo(
-                        "The deployment state is not valid. "
-                                + "The parameter state is not valid. "
-                                + "Allowed values are: [unknown, pending, in_progress, cancelled, failed, rolled_back, successful]");
+        assertThat(response.getMessage()).contains("The deployment state is not valid.");
     }
 
     @Test
@@ -479,6 +478,7 @@ public class JiraDeploymentInfoSenderImplTest {
         when(issueKeyExtractor.extractIssueKeys(any())).thenReturn(ImmutableSet.of("TEST-123"));
     }
 
+    @SuppressWarnings({"rawtypes", "unchecked"})
     private void setupRunWrapperProvider() {
         try {
             final RunWrapper mockRunWrapper = mock(RunWrapper.class);
@@ -488,6 +488,17 @@ public class JiraDeploymentInfoSenderImplTest {
             when(mockRunWrapper.getAbsoluteUrl())
                     .thenReturn(
                             "http://localhost:8080/jenkins/multibranch-1/job/TEST-123-branch-name");
+
+            final Job job = mock(Job.class);
+            when(job.getAbsoluteUrl())
+                    .thenReturn(
+                            "http://localhost:8080/jenkins/multibranch-1/job/TEST-123-branch-name");
+
+            final Run run = mock(Run.class);
+            when(run.getParent()).thenReturn(job);
+
+            when(mockRunWrapper.getRawBuild()).thenReturn(run);
+
             when(runWrapperProvider.getWrapper(any())).thenReturn(mockRunWrapper);
         } catch (final AbortException e) {
             throw new RuntimeException(e);

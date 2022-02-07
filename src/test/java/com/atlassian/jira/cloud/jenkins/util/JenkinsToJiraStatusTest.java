@@ -7,16 +7,17 @@ import org.junit.Test;
 import org.mockito.Mock;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class JenkinsToJiraStatusTest {
 
-    @Mock private WorkflowRun run;
+    private WorkflowRun run = mock(WorkflowRun.class);
 
     @Test
     public void getStatus_forSuccess() {
         when(run.getResult()).thenReturn(Result.SUCCESS);
-        final State result = JenkinsToJiraStatus.getState(run);
+        final State result = JenkinsToJiraStatus.getState(run.getResult());
 
         assertThat(result.value).isEqualTo("successful");
     }
@@ -24,7 +25,7 @@ public class JenkinsToJiraStatusTest {
     @Test
     public void getStatus_forFailure() {
         when(run.getResult()).thenReturn(Result.FAILURE);
-        final State result = JenkinsToJiraStatus.getState(run);
+        final State result = JenkinsToJiraStatus.getState(run.getResult());
 
         assertThat(result.value).isEqualTo("failed");
     }
@@ -32,7 +33,7 @@ public class JenkinsToJiraStatusTest {
     @Test
     public void getStatus_forUnknown() {
         when(run.getResult()).thenReturn(Result.UNSTABLE);
-        final State result = JenkinsToJiraStatus.getState(run);
+        final State result = JenkinsToJiraStatus.getState(run.getResult());
 
         assertThat(result.value).isEqualTo("unknown");
     }

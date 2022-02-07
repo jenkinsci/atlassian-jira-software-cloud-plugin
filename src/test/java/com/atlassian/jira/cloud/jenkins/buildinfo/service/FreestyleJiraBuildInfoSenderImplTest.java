@@ -15,6 +15,8 @@ import java.util.Collections;
 import java.util.Optional;
 import java.util.UUID;
 
+import hudson.model.Result;
+import hudson.model.Run;
 import org.jenkinsci.plugins.workflow.support.steps.build.RunWrapper;
 import org.junit.Before;
 import org.junit.Test;
@@ -308,6 +310,7 @@ public class FreestyleJiraBuildInfoSenderImplTest {
         when(accessTokenRetriever.getAccessToken(any())).thenReturn(Optional.of("access-token"));
     }
 
+    @SuppressWarnings({"rawtypes", "unchecked"})
     private void setupRunWrapperProvider() {
         try {
             final RunWrapper mockRunWrapper = mock(RunWrapper.class);
@@ -318,7 +321,11 @@ public class FreestyleJiraBuildInfoSenderImplTest {
             when(mockRunWrapper.getAbsoluteUrl())
                     .thenReturn(
                             "http://localhost:8080/jenkins/multibranch-1/job/TEST-123-branch-name");
-            when(mockRunWrapper.getCurrentResult()).thenReturn("SUCCESS_BUILD_ACCEPTED");
+
+            final Run run = mock(Run.class);
+            when(run.getResult()).thenReturn(Result.SUCCESS);
+            when(mockRunWrapper.getRawBuild()).thenReturn(run);
+
             when(runWrapperProvider.getWrapper(any())).thenReturn(mockRunWrapper);
         } catch (final AbortException e) {
             throw new RuntimeException(e);
