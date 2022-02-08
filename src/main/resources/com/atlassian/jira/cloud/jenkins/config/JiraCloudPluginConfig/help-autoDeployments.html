@@ -1,4 +1,12 @@
 <div>
-    This is help for autoDeployments. The following regex groups are needed:
-        - envName
+    <p>
+        If you enable "Send deployments automatically", the Atlassian Cloud plugin will automatically send a deployment
+        event to all configured
+        Jira sites when a build step matching the regular expression has finished.
+    </p>
+    <p>
+        The plugin expects the build step name to contain the environment name (like "deploy to prod").
+        Please make sure that the regular expression contains "(?&lt;envName&gt;.*)" so that the plugin can extract
+        the environment name from the step name.
+    </p>
 </div>

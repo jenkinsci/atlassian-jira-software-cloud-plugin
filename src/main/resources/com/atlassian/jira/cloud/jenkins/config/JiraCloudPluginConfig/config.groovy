@@ -29,9 +29,9 @@ f.section(title: "Jira Software Cloud Integration") {
             help: descriptor.getHelpFile("autoBuilds")
     ) {
         f.entry(
-                title: _("Pipeline step regex (Optional)")
+                title: _("Pipeline step regex (optional)")
         ) {
-            text(_("Leave blank to send Build at the end of the pipeline."))
+            text(_("Leave blank to send a build event at the end of the pipeline."))
             f.textbox(
                     name: instance.FIELD_NAME_AUTO_BUILDS_REGEX,
                     value: instance.autoBuildsRegex,
