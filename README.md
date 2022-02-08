@@ -32,8 +32,6 @@ and [Jenkins
 plugin](https://confluence.atlassian.com/adminjiracloud/integrate-jira-software-cloud-with-jenkins-972355471.html)
 in Atlassian documentation.
 
-------------------------------------------------------------------------
-
 ## What is the value?
 
 This plugin gives your team visibility and insight of your CI/CD pipelines, 
