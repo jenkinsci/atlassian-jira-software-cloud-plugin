@@ -1,6 +1,10 @@
 package com.atlassian.jira.cloud.jenkins.listeners;
 
+import com.atlassian.jira.cloud.jenkins.common.service.IssueKeyExtractor;
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudPluginConfig;
+import com.atlassian.jira.cloud.jenkins.deploymentinfo.service.ChangeLogIssueKeyExtractor;
+import com.atlassian.jira.cloud.jenkins.util.BranchNameIssueKeyExtractor;
+import com.atlassian.jira.cloud.jenkins.util.CompoundIssueKeyExtractor;
 import hudson.Extension;
 import hudson.model.Run;
 import hudson.model.TaskListener;
@@ -17,6 +21,17 @@ public class JenkinsPipelineRunListener extends RunListener<Run> {
     private static final Logger log = LoggerFactory.getLogger(JenkinsPipelineRunListener.class);
     private final SinglePipelineListenerRegistry singlePipelineListenerRegistry =
             SinglePipelineListenerRegistry.get();
+    private final IssueKeyExtractor issueKeyExtractor;
+
+    public JenkinsPipelineRunListener() {
+        this.issueKeyExtractor =
+                new CompoundIssueKeyExtractor(
+                        new BranchNameIssueKeyExtractor(), new ChangeLogIssueKeyExtractor());
+    }
+
+    public JenkinsPipelineRunListener(final IssueKeyExtractor issueKeyExtractor) {
+        this.issueKeyExtractor = issueKeyExtractor;
+    }
 
     @Override
     public void onStarted(final Run r, final TaskListener taskListener) {
@@ -44,7 +59,8 @@ public class JenkinsPipelineRunListener extends RunListener<Run> {
                     new AutoBuildsListener(
                             workflowRun,
                             taskListener.getLogger(),
-                            config.getAutoBuildsRegex()));
+                            config.getAutoBuildsRegex(),
+                            this.issueKeyExtractor));
         }
 
         if (config.getAutoDeploymentsEnabled()) {
@@ -52,8 +68,8 @@ public class JenkinsPipelineRunListener extends RunListener<Run> {
                     new AutoDeploymentsListener(
                             workflowRun,
                             taskListener.getLogger(),
-                            config.getAutoDeploymentsRegex())
-            );
+                            config.getAutoDeploymentsRegex(),
+                            this.issueKeyExtractor));
         }
     }
 

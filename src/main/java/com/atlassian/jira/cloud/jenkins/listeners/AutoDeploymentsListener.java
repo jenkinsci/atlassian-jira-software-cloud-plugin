@@ -1,5 +1,6 @@
 package com.atlassian.jira.cloud.jenkins.listeners;
 
+import com.atlassian.jira.cloud.jenkins.common.service.IssueKeyExtractor;
 import org.jenkinsci.plugins.workflow.cps.nodes.StepStartNode;
 import org.jenkinsci.plugins.workflow.graph.FlowNode;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
@@ -18,6 +19,7 @@ public class AutoDeploymentsListener implements SinglePipelineListener {
     private final List<SinglePipelineSingleDeploymentListener> deploymentListeners =
             new LinkedList<>();
     private final PrintStream pipelineLogger;
+    private final IssueKeyExtractor issueKeyExtractor;
 
     private static final Logger systemLogger =
             LoggerFactory.getLogger(AutoDeploymentsListener.class);
@@ -25,10 +27,12 @@ public class AutoDeploymentsListener implements SinglePipelineListener {
     public AutoDeploymentsListener(
             final WorkflowRun run,
             final PrintStream logger,
-            final String autoDeploymentsRegex) {
+            final String autoDeploymentsRegex,
+            final IssueKeyExtractor issueKeyExtractor) {
         this.build = run;
         this.autoDeploymentsRegex = autoDeploymentsRegex;
         this.pipelineLogger = logger;
+        this.issueKeyExtractor = issueKeyExtractor;
     }
 
     public String getBuildUrl() {
@@ -51,7 +55,11 @@ public class AutoDeploymentsListener implements SinglePipelineListener {
                             "[INFO] deployment node was determined, envName=" + envName);
                     deploymentListeners.add(
                             new SinglePipelineSingleDeploymentListener(
-                                    build, pipelineLogger, flowNode.getId(), envName));
+                                    build,
+                                    pipelineLogger,
+                                    flowNode.getId(),
+                                    envName,
+                                    issueKeyExtractor));
                 }
             } catch (final IllegalArgumentException ex) {
                 final String message = ex.getClass().getSimpleName() + ": " + ex.getMessage();

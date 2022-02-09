@@ -1,9 +1,5 @@
 package com.atlassian.jira.cloud.jenkins.buildinfo.service;
 
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 import com.atlassian.jira.cloud.jenkins.auth.AccessTokenRetriever;
 import com.atlassian.jira.cloud.jenkins.buildinfo.client.BuildPayloadBuilder;
 import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.Builds;
@@ -18,6 +14,10 @@ import com.atlassian.jira.cloud.jenkins.util.RunWrapperProvider;
 import com.atlassian.jira.cloud.jenkins.util.SecretRetriever;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.workflow.support.steps.build.RunWrapper;
+
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class MultibranchBuildInfoSenderImpl extends JiraBuildInfoSenderImpl {
 
@@ -73,7 +73,6 @@ public class MultibranchBuildInfoSenderImpl extends JiraBuildInfoSenderImpl {
         MultibranchBuildInfoRequest multibranchRequest = (MultibranchBuildInfoRequest) request;
         final RunWrapper buildWrapper =
                 runWrapperProvider.getWrapper(multibranchRequest.getBuild());
-        return BuildPayloadBuilder.getBuildPayload(
-                buildWrapper, multibranchRequest.getStatusFlowNode(), issueKeys);
+        return BuildPayloadBuilder.getBuildPayload(request.getJiraState(), buildWrapper, issueKeys);
     }
 }

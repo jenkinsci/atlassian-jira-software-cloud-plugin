@@ -113,6 +113,22 @@ public class JiraCloudPluginConfig extends GlobalConfiguration {
         this.sites = sites;
     }
 
+    public void setAutoBuildsEnabled(final boolean autoBuildsEnabled) {
+        this.autoBuildsEnabled = autoBuildsEnabled;
+    }
+
+    public void setAutoBuildsRegex(@Nullable final String autoBuildsRegex) {
+        this.autoBuildsRegex = autoBuildsRegex;
+    }
+
+    public void setAutoDeploymentsRegex(final String autoDeploymentsRegex) {
+        this.autoDeploymentsRegex = autoDeploymentsRegex;
+    }
+
+    public void setAutoDeploymentsEnabled(final boolean autoDeploymentsEnabled) {
+        this.autoBuildsEnabled = autoDeploymentsEnabled;
+    }
+
     public static Optional<JiraCloudSiteConfig> getJiraCloudSiteConfig(
             @Nullable final String site) {
         final Optional<String> userProvidedSite = Optional.ofNullable(site);

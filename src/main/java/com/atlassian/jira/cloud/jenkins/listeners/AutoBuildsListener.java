@@ -42,7 +42,7 @@ public class AutoBuildsListener implements SinglePipelineListener {
     private final WorkflowRun build;
     private final String autoBuildsRegex;
 
-    private final IssueKeyExtractor[] issueKeyExtractors;
+    private final IssueKeyExtractor issueKeyExtractor;
     private final PrintStream pipelineLogger;
 
     private boolean inProgressSent = false;
@@ -54,14 +54,14 @@ public class AutoBuildsListener implements SinglePipelineListener {
     private static final Logger systemLogger = LoggerFactory.getLogger(AutoBuildsListener.class);
 
     public AutoBuildsListener(
-            final WorkflowRun run, final PrintStream logger, final String autoBuildsRegex) {
+            final WorkflowRun run,
+            final PrintStream logger,
+            final String autoBuildsRegex,
+            final IssueKeyExtractor issueKeyExtractor) {
         this.build = run;
         this.pipelineLogger = logger;
         this.autoBuildsRegex = autoBuildsRegex;
-        issueKeyExtractors =
-                new IssueKeyExtractor[] {
-                    new BranchNameIssueKeyExtractor(), new ChangeLogIssueKeyExtractor()
-                };
+        this.issueKeyExtractor = issueKeyExtractor;
     }
 
     public String getBuildUrl() {
@@ -121,7 +121,7 @@ public class AutoBuildsListener implements SinglePipelineListener {
         if (finalResultSent) {
             return;
         }
-        if (extractBuildKeys().size() == 0) {
+        if (issueKeyExtractor.extractIssueKeys(this.build).isEmpty()) {
             // We don't have issueKeys at the start of the execution of the pipeline, need to wait
             // for them first
             return;
@@ -201,6 +201,12 @@ public class AutoBuildsListener implements SinglePipelineListener {
             value = "NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE",
             justification = "There is a null check, but SpotBugs doesn't recognize it")
     private void sendBuildStatusToJira(final Optional<String> maybeStatusNodeId) {
+
+        if (!autoBuildsRegex.trim().isEmpty() && startFlowNodeId.isEmpty()) {
+            // no node matched the regex, so we're not going to send any events to Jira
+            return;
+        }
+
         Optional<FlowNode> maybeStatusNode = Optional.empty();
         if (maybeStatusNodeId.isPresent()) {
             try {
@@ -251,11 +257,5 @@ public class AutoBuildsListener implements SinglePipelineListener {
                         pipelineLogger.println("[INFO] " + message);
                     }
                 });
-    }
-
-    private Set<String> extractBuildKeys() {
-        return Arrays.stream(issueKeyExtractors)
-                .flatMap(issueKeyExtractor -> issueKeyExtractor.extractIssueKeys(build).stream())
-                .collect(Collectors.toSet());
     }
 }

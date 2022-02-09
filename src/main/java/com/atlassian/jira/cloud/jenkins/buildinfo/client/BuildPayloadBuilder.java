@@ -3,18 +3,12 @@ package com.atlassian.jira.cloud.jenkins.buildinfo.client;
 import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.Builds;
 import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.JiraBuildInfo;
 import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.TestInfo;
+import com.atlassian.jira.cloud.jenkins.buildinfo.service.JiraBuildInfoRequest;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.State;
-import com.atlassian.jira.cloud.jenkins.util.JenkinsToJiraStatus;
-
-import hudson.model.Result;
 import hudson.model.Run;
 import hudson.tasks.junit.TestResultAction;
-import org.jenkinsci.plugins.workflow.graph.FlowNode;
 import org.jenkinsci.plugins.workflow.support.steps.build.RunWrapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.Optional;
@@ -22,21 +16,15 @@ import java.util.Set;
 
 public final class BuildPayloadBuilder {
 
-    private static final Logger log = LoggerFactory.getLogger(BuildPayloadBuilder.class);
-
     /**
      * Assembles a JiraBuildInfo with necessary parameters from the Jenkins context
      *
      * @param buildWrapper Jenkins context that provides project and build details
-     * @param statusFlowNode when provided, the status will be pulled from this node rather than
-     *     from the whole build
      * @param issueKeys Jira issue keys to associate the build info with
      * @return an assembled Builds payload
      */
     public static Builds getBuildPayload(
-            final RunWrapper buildWrapper,
-            final Optional<FlowNode> statusFlowNode,
-            final Set<String> issueKeys) {
+            final State jiraState, final RunWrapper buildWrapper, final Set<String> issueKeys) {
 
         try {
 
@@ -71,7 +59,7 @@ public final class BuildPayloadBuilder {
                             .withUpdateSequenceNumber(Instant.now().getEpochSecond())
                             .withLabel(buildWrapper.getDisplayName())
                             .withUrl(buildWrapper.getAbsoluteUrl())
-                            .withState(toJiraBuildState(build.getResult(), statusFlowNode).value)
+                            .withState(jiraState.value)
                             .withLastUpdated(Instant.now().toString())
                             .withIssueKeys(issueKeys)
                             .withTestInfo(testInfo)
@@ -79,13 +67,5 @@ public final class BuildPayloadBuilder {
         } catch (final IOException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    private static State toJiraBuildState(
-            @Nullable final Result buildResult, final Optional<FlowNode> statusFlowNode)
-            throws IOException {
-        return statusFlowNode
-                .map(JenkinsToJiraStatus::getState)
-                .orElseGet(() -> JenkinsToJiraStatus.getState(buildResult));
     }
 }

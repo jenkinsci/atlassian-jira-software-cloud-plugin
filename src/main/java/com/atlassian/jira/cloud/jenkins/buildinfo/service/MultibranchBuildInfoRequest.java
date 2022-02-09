@@ -1,5 +1,6 @@
 package com.atlassian.jira.cloud.jenkins.buildinfo.service;
 
+import com.atlassian.jira.cloud.jenkins.util.JenkinsToJiraStatus;
 import org.jenkinsci.plugins.workflow.graph.FlowNode;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 
@@ -29,5 +30,9 @@ public class MultibranchBuildInfoRequest extends JiraBuildInfoRequest {
         super(site, branch);
         this.build = build;
         this.statusFlowNode = statusFlowNode;
+        this.jiraState =
+                this.statusFlowNode
+                        .map(JenkinsToJiraStatus::getState)
+                        .orElseGet(() -> JenkinsToJiraStatus.getState(build.getResult()));
     }
 }

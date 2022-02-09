@@ -323,7 +323,6 @@ public class FreestyleJiraBuildInfoSenderImplTest {
                             "http://localhost:8080/jenkins/multibranch-1/job/TEST-123-branch-name");
 
             final Run run = mock(Run.class);
-            when(run.getResult()).thenReturn(Result.SUCCESS);
             when(mockRunWrapper.getRawBuild()).thenReturn(run);
 
             when(runWrapperProvider.getWrapper(any())).thenReturn(mockRunWrapper);

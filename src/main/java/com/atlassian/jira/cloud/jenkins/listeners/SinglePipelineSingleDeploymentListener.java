@@ -39,22 +39,19 @@ public class SinglePipelineSingleDeploymentListener implements SinglePipelineLis
     private final String startFlowNodeId;
     private String endFlowNodeId = "";
 
-    private final IssueKeyExtractor[] issueKeyExtractors;
+    private final IssueKeyExtractor issueKeyExtractor;
 
     public SinglePipelineSingleDeploymentListener(
             final WorkflowRun build,
             final PrintStream pipelineLogger,
             final String startFlowNodeId,
-            final String environmentName) {
+            final String environmentName,
+            final IssueKeyExtractor issueKeyExtractor) {
         this.build = build;
         this.pipelineLogger = pipelineLogger;
         this.startFlowNodeId = startFlowNodeId;
         this.environmentName = environmentName;
-
-        issueKeyExtractors =
-                new IssueKeyExtractor[] {
-                    new BranchNameIssueKeyExtractor(), new ChangeLogIssueKeyExtractor()
-                };
+        this.issueKeyExtractor = issueKeyExtractor;
     }
 
     @Override
@@ -88,7 +85,7 @@ public class SinglePipelineSingleDeploymentListener implements SinglePipelineLis
             return;
         }
 
-        if (extractIssueKeys().size() == 0) {
+        if (issueKeyExtractor.extractIssueKeys(this.build).isEmpty()) {
             // We don't have issueKeys at the start of the execution of the pipeline, need to wait
             // for them first
             return;
@@ -197,7 +194,7 @@ public class SinglePipelineSingleDeploymentListener implements SinglePipelineLis
                                                 .orElse(null),
                                         Collections.emptySet(),
                                         false,
-                                        extractIssueKeys(),
+                                        issueKeyExtractor.extractIssueKeys(this.build),
                                         build));
         allResponses.forEach(
                 response -> {
@@ -240,11 +237,5 @@ public class SinglePipelineSingleDeploymentListener implements SinglePipelineLis
             systemLogger.warn(message, e);
             return false;
         }
-    }
-
-    private Set<String> extractIssueKeys() {
-        return Arrays.stream(issueKeyExtractors)
-                .flatMap(issueKeyExtractor -> issueKeyExtractor.extractIssueKeys(build).stream())
-                .collect(Collectors.toSet());
     }
 }
