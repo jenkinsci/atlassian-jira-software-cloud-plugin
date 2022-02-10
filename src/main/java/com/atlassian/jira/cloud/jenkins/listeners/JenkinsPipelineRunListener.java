@@ -79,6 +79,11 @@ public class JenkinsPipelineRunListener extends RunListener<Run> {
     public void onCompleted(final Run r, final TaskListener taskListener) {
         if (r instanceof WorkflowRun) {
             final WorkflowRun workflowRun = (WorkflowRun) r;
+            singlePipelineListenerRegistry.find(workflowRun.getUrl())
+                    .map(listeners -> {
+                        listeners.forEach(SinglePipelineListener::onCompleted);
+                        return true;
+                    });
             singlePipelineListenerRegistry.unregister(workflowRun.getUrl());
         } else {
             final String message =
