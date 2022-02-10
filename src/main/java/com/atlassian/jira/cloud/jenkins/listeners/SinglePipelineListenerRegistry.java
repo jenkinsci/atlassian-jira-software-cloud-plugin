@@ -1,23 +1,23 @@
 package com.atlassian.jira.cloud.jenkins.listeners;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
-
-import static java.util.Arrays.asList;
 
 public class SinglePipelineListenerRegistry {
 
     private final Map<String, List<SinglePipelineListener>> buildUrlToSinglePipelineListeners;
 
-    public void registerForBuild(String buildUrl, SinglePipelineListener listener) {
+    public void registerForBuild(final String buildUrl, final SinglePipelineListener listener) {
         List<SinglePipelineListener> existingListeners =
                 buildUrlToSinglePipelineListeners.getOrDefault(buildUrl, new ArrayList<>());
         existingListeners.add(listener);
         buildUrlToSinglePipelineListeners.put(buildUrl, existingListeners);
     }
 
-    public void unregister(String buildUrl) {
+    public void unregister(final String buildUrl) {
         buildUrlToSinglePipelineListeners.remove(buildUrl);
     }
 
