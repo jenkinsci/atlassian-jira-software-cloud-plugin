@@ -56,6 +56,7 @@ public class JenkinsPipelineRunListener extends RunListener<Run> {
 
         if (config.getAutoBuildsEnabled()) {
             singlePipelineListenerRegistry.registerForBuild(
+                    workflowRun.getUrl(),
                     new AutoBuildsListener(
                             workflowRun,
                             taskListener.getLogger(),
@@ -65,6 +66,7 @@ public class JenkinsPipelineRunListener extends RunListener<Run> {
 
         if (config.getAutoDeploymentsEnabled()) {
             singlePipelineListenerRegistry.registerForBuild(
+                    workflowRun.getUrl(),
                     new AutoDeploymentsListener(
                             workflowRun,
                             taskListener.getLogger(),
@@ -77,23 +79,7 @@ public class JenkinsPipelineRunListener extends RunListener<Run> {
     public void onCompleted(final Run r, final TaskListener taskListener) {
         if (r instanceof WorkflowRun) {
             final WorkflowRun workflowRun = (WorkflowRun) r;
-            singlePipelineListenerRegistry
-                    .find(workflowRun.getUrl())
-                    .map(
-                            listeners -> {
-                                Arrays.stream(listeners)
-                                        .forEach(SinglePipelineListener::onCompleted);
-                                singlePipelineListenerRegistry.unregister(listeners);
-                                return true;
-                            })
-                    .orElseGet(
-                            () -> {
-                                final String message =
-                                        "Could not find listeners for " + workflowRun.getUrl();
-                                log.warn(message);
-                                taskListener.getLogger().println("[WARN] " + message);
-                                return false;
-                            });
+            singlePipelineListenerRegistry.unregister(workflowRun.getUrl());
         } else {
             final String message =
                     "Not a WorkflowRun, onCompleted won't be propagated to listeners";

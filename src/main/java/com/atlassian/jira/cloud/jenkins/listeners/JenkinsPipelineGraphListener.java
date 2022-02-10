@@ -32,8 +32,7 @@ public class JenkinsPipelineGraphListener implements GraphListener {
                 .find(nodeUrl)
                 .map(
                         (listeners) -> {
-                            Arrays.stream(listeners)
-                                    .forEach(listener -> listener.onNewHead(flowNode));
+                            listeners.forEach(listener -> listener.onNewHead(flowNode));
                             return true;
                         });
     }

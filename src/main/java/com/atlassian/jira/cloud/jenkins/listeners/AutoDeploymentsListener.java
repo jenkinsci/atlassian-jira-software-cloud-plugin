@@ -51,15 +51,7 @@ public class AutoDeploymentsListener implements SinglePipelineListener {
                         Pattern.compile(autoDeploymentsRegex).matcher(flowNode.getDisplayName());
                 if (matcher.matches()) {
                     final String envName = matcher.group("envName");
-                    pipelineLogger.println(
-                            "[INFO] deployment node was determined, envName=" + envName);
-                    deploymentListeners.add(
-                            new SinglePipelineSingleDeploymentListener(
-                                    build,
-                                    pipelineLogger,
-                                    flowNode.getId(),
-                                    envName,
-                                    issueKeyExtractor));
+                    registerDeploymentListener(flowNode, envName);
                 }
             } catch (final IllegalArgumentException ex) {
                 final String message = ex.getClass().getSimpleName() + ": " + ex.getMessage();
@@ -69,5 +61,12 @@ public class AutoDeploymentsListener implements SinglePipelineListener {
         }
 
         deploymentListeners.forEach(listener -> listener.onNewHead(flowNode));
+    }
+
+    private void registerDeploymentListener(final FlowNode flowNode, final String envName) {
+        pipelineLogger.println("[INFO] deployment node was determined, envName=" + envName);
+        deploymentListeners.add(
+                new SinglePipelineSingleDeploymentListener(
+                        build, pipelineLogger, flowNode.getId(), envName, issueKeyExtractor));
     }
 }

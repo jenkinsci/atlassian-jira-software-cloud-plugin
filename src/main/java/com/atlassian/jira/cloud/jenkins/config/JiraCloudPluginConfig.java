@@ -126,7 +126,7 @@ public class JiraCloudPluginConfig extends GlobalConfiguration {
     }
 
     public void setAutoDeploymentsEnabled(final boolean autoDeploymentsEnabled) {
-        this.autoBuildsEnabled = autoDeploymentsEnabled;
+        this.autoDeploymentsEnabled = autoDeploymentsEnabled;
     }
 
     public static Optional<JiraCloudSiteConfig> getJiraCloudSiteConfig(
