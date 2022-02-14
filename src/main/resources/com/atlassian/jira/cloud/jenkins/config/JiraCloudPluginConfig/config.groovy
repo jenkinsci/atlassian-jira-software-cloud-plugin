@@ -5,9 +5,9 @@ def c = namespace(lib.CredentialsTagLib)
 
 raw(
 "<script>" +
-    new File(getClass().getResource(
+    getClass().getResourceAsStream(
             "/com/atlassian/jira/cloud/jenkins/config/JiraCloudPluginConfig/config.js"
-    ).toURI()).readLines().join("\n") +
+    ).readLines().join("\n") +
 "</script>"
 )
 

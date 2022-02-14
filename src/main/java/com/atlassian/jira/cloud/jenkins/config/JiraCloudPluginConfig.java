@@ -3,6 +3,7 @@ package com.atlassian.jira.cloud.jenkins.config;
 import com.atlassian.jira.cloud.jenkins.Messages;
 import hudson.Extension;
 import jenkins.model.GlobalConfiguration;
+import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.StaplerRequest;
 import org.slf4j.Logger;
@@ -60,9 +61,20 @@ public class JiraCloudPluginConfig extends GlobalConfiguration {
         try {
             setSites(Collections.emptyList());
             if (json.containsKey(FIELD_NAME_SITES)) {
-                this.sites =
-                        req.bindJSONToList(
-                                JiraCloudSiteConfig.class, json.getJSONArray(FIELD_NAME_SITES));
+
+                Object sites = json.get(FIELD_NAME_SITES);
+
+                // we have a single site
+                if (sites instanceof JSONObject) {
+                    this.sites =
+                            Collections.singletonList(
+                                    req.bindJSON(JiraCloudSiteConfig.class, (JSONObject) sites));
+                }
+
+                // we have multiple sites
+                if (sites instanceof JSONArray) {
+                    this.sites = req.bindJSONToList(JiraCloudSiteConfig.class, sites);
+                }
             }
 
             this.autoBuildsEnabled = json.containsKey(FIELD_NAME_AUTO_BUILDS);

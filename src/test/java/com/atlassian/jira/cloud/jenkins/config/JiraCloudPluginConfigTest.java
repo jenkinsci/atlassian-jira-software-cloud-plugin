@@ -46,6 +46,18 @@ public class JiraCloudPluginConfigTest {
                                     + "    ]\n"
                                     + "}");
 
+    private static final JSONObject SINGLE_SITE_JSON =
+            (JSONObject)
+                    JSONSerializer.toJSON(
+                            "{\n"
+                                    + "    \"sites\": \n"
+                                    + "        {\n"
+                                    + "            \"site\": \"mysite1.atlassian.net\",\n"
+                                    + "            \"clientId\": \"myClientId1\",\n"
+                                    + "            \"credentialsId\": \"myCreds1\"\n"
+                                    + "        }"
+                                    + "}");
+
     private static final JSONObject AUTO_BUILDS_JSON =
             (JSONObject)
                     JSONSerializer.toJSON(
@@ -138,6 +150,22 @@ public class JiraCloudPluginConfigTest {
         final JiraCloudPluginConfig loadedConfig = new JiraCloudPluginConfig(configName);
 
         assertThat(loadedConfig.getSites()).hasSize(2);
+        assertThat(loadedConfig.getSites().get(0))
+                .isEqualTo(
+                        new JiraCloudSiteConfig(
+                                "mysite1.atlassian.net", "myClientId1", "myCreds1"));
+    }
+
+    @Test
+    public void testConfigure_populateSingleSite() throws Descriptor.FormException {
+        final String configName = "config" + Math.random();
+
+        // This simulates the case when you enter a single site via the Jenkins config page.
+        // Jenkins apparently sends a single JSON object instead of a JSONArray with size 1
+        new JiraCloudPluginConfig(configName).configure(mockStapler(), SINGLE_SITE_JSON);
+        final JiraCloudPluginConfig loadedConfig = new JiraCloudPluginConfig(configName);
+
+        assertThat(loadedConfig.getSites()).hasSize(1);
         assertThat(loadedConfig.getSites().get(0))
                 .isEqualTo(
                         new JiraCloudSiteConfig(
