@@ -25,7 +25,7 @@ import static org.mockito.Mockito.mock;
 public class JiraCloudPluginConfigTest {
 
     private static final String SITE = "example" + Math.random() + ".atlassian.net";
-    private static final String CLIENT_ID = "clientId";
+    private static final String WEBHOOK_URL = "https://webhook-url.com";
     private static final String CREDENTIALS_ID = "credsId";
 
     private static final JSONObject SITES_JSON =
@@ -35,12 +35,12 @@ public class JiraCloudPluginConfigTest {
                                     + "    \"sites\": [\n"
                                     + "        {\n"
                                     + "            \"site\": \"mysite1.atlassian.net\",\n"
-                                    + "            \"clientId\": \"myClientId1\",\n"
+                                    + "            \"webhookUrl\": \"myWebhookUrl1\",\n"
                                     + "            \"credentialsId\": \"myCreds1\"\n"
                                     + "        },\n"
                                     + "        {\n"
                                     + "            \"site\": \"mysite2.atlassian.net\",\n"
-                                    + "            \"clientId\": \"\", "
+                                    + "            \"webhookUrl\": \"\", "
                                     + "            \"credentialsId\": \"myCreds2\"\n"
                                     + "        }\n"
                                     + "    ]\n"
@@ -53,7 +53,7 @@ public class JiraCloudPluginConfigTest {
                                     + "    \"sites\": \n"
                                     + "        {\n"
                                     + "            \"site\": \"mysite1.atlassian.net\",\n"
-                                    + "            \"clientId\": \"myClientId1\",\n"
+                                    + "            \"webhookUrl\": \"myClientId1\",\n"
                                     + "            \"credentialsId\": \"myCreds1\"\n"
                                     + "        }"
                                     + "}");
@@ -100,7 +100,7 @@ public class JiraCloudPluginConfigTest {
     @Test
     public void testGetSiteConfig_whenSiteIsConfigured() {
         // given
-        JiraCloudSiteConfig siteConfig = new JiraCloudSiteConfig(SITE, CLIENT_ID, CREDENTIALS_ID);
+        JiraCloudSiteConfig siteConfig = new JiraCloudSiteConfig(SITE, WEBHOOK_URL, CREDENTIALS_ID);
         JiraCloudPluginConfig.get().setSites(ImmutableList.of(siteConfig));
 
         // when
@@ -114,7 +114,7 @@ public class JiraCloudPluginConfigTest {
     @Test
     public void testGetSiteConfig_whenSiteIsNotProvided() {
         // given
-        JiraCloudSiteConfig siteConfig = new JiraCloudSiteConfig(SITE, CLIENT_ID, CREDENTIALS_ID);
+        JiraCloudSiteConfig siteConfig = new JiraCloudSiteConfig(SITE, WEBHOOK_URL, CREDENTIALS_ID);
         JiraCloudPluginConfig.get().setSites(ImmutableList.of(siteConfig));
 
         // when
@@ -128,7 +128,8 @@ public class JiraCloudPluginConfigTest {
     @Test
     public void testGetSiteConfig_whenMultipleSitesConfigured() {
         // given
-        JiraCloudSiteConfig siteConfig1 = new JiraCloudSiteConfig(SITE, CLIENT_ID, CREDENTIALS_ID);
+        JiraCloudSiteConfig siteConfig1 =
+                new JiraCloudSiteConfig(SITE, WEBHOOK_URL, CREDENTIALS_ID);
         JiraCloudSiteConfig siteConfig2 =
                 new JiraCloudSiteConfig("foobar.atlassian.net", "clientId", "credsId");
         JiraCloudPluginConfig.get().setSites(ImmutableList.of(siteConfig1, siteConfig2));
@@ -153,7 +154,7 @@ public class JiraCloudPluginConfigTest {
         assertThat(loadedConfig.getSites().get(0))
                 .isEqualTo(
                         new JiraCloudSiteConfig(
-                                "mysite1.atlassian.net", "myClientId1", "myCreds1"));
+                                "mysite1.atlassian.net", "myWebhookUrl1", "myCreds1"));
     }
 
     @Test

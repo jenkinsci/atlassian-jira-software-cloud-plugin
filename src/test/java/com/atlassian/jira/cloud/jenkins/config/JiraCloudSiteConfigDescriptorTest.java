@@ -27,7 +27,7 @@ public class JiraCloudSiteConfigDescriptorTest {
 
     private static final String SITE = "example.atlassian.net";
     private static final String CLOUD_ID = UUID.randomUUID().toString();
-    private static final String CLIENT_ID = "clientId";
+    private static final String WEBHOOK_URL = "https://webhook.url";
     private static final String CREDENTIALS_ID = "credsId";
 
     @Rule public JenkinsRule jRule = new JenkinsRule();
@@ -43,7 +43,7 @@ public class JiraCloudSiteConfigDescriptorTest {
         accessTokenRetriever = mock(AccessTokenRetriever.class);
         cloudIdResolver = mock(CloudIdResolver.class);
         final JiraCloudSiteConfig siteConfig =
-                new JiraCloudSiteConfig(SITE, CLIENT_ID, CREDENTIALS_ID);
+                new JiraCloudSiteConfig(SITE, WEBHOOK_URL, CREDENTIALS_ID);
         classUnderTest = (JiraCloudSiteConfig.DescriptorImpl) siteConfig.getDescriptor();
         classUnderTest.setAccessTokenRetriever(accessTokenRetriever);
         classUnderTest.setCloudIdResolver(cloudIdResolver);
@@ -58,7 +58,7 @@ public class JiraCloudSiteConfigDescriptorTest {
 
         // when
         final FormValidation result =
-                classUnderTest.doTestConnection(SITE, CLIENT_ID, CREDENTIALS_ID);
+                classUnderTest.doTestConnection(SITE, WEBHOOK_URL, CREDENTIALS_ID);
 
         // then
         assertThat(result.kind).isEqualTo(FormValidation.Kind.OK);
@@ -73,7 +73,7 @@ public class JiraCloudSiteConfigDescriptorTest {
 
         // when
         final FormValidation result =
-                classUnderTest.doTestConnection(site, CLIENT_ID, CREDENTIALS_ID);
+                classUnderTest.doTestConnection(site, WEBHOOK_URL, CREDENTIALS_ID);
 
         // then
         assertThat(result.kind).isEqualTo(FormValidation.Kind.ERROR);
@@ -87,7 +87,7 @@ public class JiraCloudSiteConfigDescriptorTest {
 
         // when
         final FormValidation result =
-                classUnderTest.doTestConnection(SITE, CLIENT_ID, CREDENTIALS_ID);
+                classUnderTest.doTestConnection(SITE, WEBHOOK_URL, CREDENTIALS_ID);
 
         // then
         assertThat(result.kind).isEqualTo(FormValidation.Kind.OK);
@@ -97,7 +97,7 @@ public class JiraCloudSiteConfigDescriptorTest {
     public void testFailTestConnection_whenCredentialsNotFound() {
         // when
         final FormValidation result =
-                classUnderTest.doTestConnection(SITE, CLIENT_ID, CREDENTIALS_ID);
+                classUnderTest.doTestConnection(SITE, WEBHOOK_URL, CREDENTIALS_ID);
 
         // then
         assertThat(result.kind).isEqualTo(FormValidation.Kind.ERROR);
@@ -113,7 +113,7 @@ public class JiraCloudSiteConfigDescriptorTest {
 
         // when
         final FormValidation result =
-                classUnderTest.doTestConnection(SITE, CLIENT_ID, CREDENTIALS_ID);
+                classUnderTest.doTestConnection(SITE, WEBHOOK_URL, CREDENTIALS_ID);
         assertThat(result.kind).isEqualTo(FormValidation.Kind.ERROR);
         assertThat(result.getMessage()).isEqualTo("Failed to validate site credentials");
     }
@@ -132,11 +132,40 @@ public class JiraCloudSiteConfigDescriptorTest {
         // when
         final FormValidation result = classUnderTest.doCheckSite("hdfsjqkwjqkwj");
 
-        // than
+        // then
         assertThat(result.kind).isEqualTo(FormValidation.Kind.ERROR);
         assertThat(result.getMessage())
                 .isEqualTo(
                         "Site name is invalid. Paste a valid site name, e.g. sitename.atlassian.net.");
+    }
+
+    @Test
+    public void testWebhookValidation_whenValidWebhookUrl() {
+        // when
+        final FormValidation result = classUnderTest.doCheckWebhookUrl(WEBHOOK_URL);
+
+        // then
+        assertThat(result.kind).isEqualTo(FormValidation.Kind.OK);
+    }
+
+    @Test
+    public void testSiteValidation_whenEmptyWebhookUrl() {
+        // when
+        final FormValidation result = classUnderTest.doCheckWebhookUrl("");
+
+        // then
+        assertThat(result.kind).isEqualTo(FormValidation.Kind.ERROR);
+        assertThat(result.getMessage()).contains("Webhook URL can’t be blank");
+    }
+
+    @Test
+    public void testSiteValidation_whenInvalidWebhookUrl() {
+        // when
+        final FormValidation result = classUnderTest.doCheckWebhookUrl("abc");
+
+        // then
+        assertThat(result.kind).isEqualTo(FormValidation.Kind.ERROR);
+        assertThat(result.getMessage()).contains("Webhook URL is not a valid URL");
     }
 
     private void setupCredentials(String credentialId, String secret) throws Exception {

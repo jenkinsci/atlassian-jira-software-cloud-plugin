@@ -73,7 +73,7 @@ public class JiraGatingStatusRetrieverImpl implements JiraGatingStatusRetriever 
         final String cloudId = maybeCloudId.get();
 
         final AppCredential appCredential =
-                new AppCredential(siteConfig.getClientId(), maybeSecret.get());
+                new AppCredential(siteConfig.getWebhookUrl(), maybeSecret.get());
         final Optional<String> maybeAccessToken =
                 accessTokenRetriever.getAccessToken(appCredential);
 
@@ -94,7 +94,7 @@ public class JiraGatingStatusRetrieverImpl implements JiraGatingStatusRetriever 
                 gatingApi.getResult(
                         maybeAccessToken.get(),
                         pathParams,
-                        siteConfig.getClientId(),
+                        siteConfig.getWebhookUrl(),
                         GatingStatusResponse.class);
 
         if (result.getResponseEntity().isPresent()) {

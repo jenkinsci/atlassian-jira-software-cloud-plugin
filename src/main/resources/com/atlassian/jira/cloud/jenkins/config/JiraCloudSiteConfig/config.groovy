@@ -10,7 +10,7 @@ f.entry(title: _("Site Name"), field: "site") {
     f.textbox(default: JiraCloudSiteConfig.DEFAULT_SITE)
 }
 
-f.entry(title: _("Client ID"), field: "clientId") {
+f.entry(title: _("Webhook URL"), field: "webhookUrl") {
     f.textbox()
 }
 
@@ -23,7 +23,7 @@ f.block() {
             title: _("Test settings"),
             progress: _("Testing..."),
             method: "testConnection",
-            with: "site,clientId,credentialsId"
+            with: "site,webhookUrl,credentialsId"
     )
 }
 
