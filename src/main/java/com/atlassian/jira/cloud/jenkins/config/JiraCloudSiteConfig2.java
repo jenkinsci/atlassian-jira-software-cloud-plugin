@@ -87,14 +87,8 @@ public class JiraCloudSiteConfig2 extends AbstractDescribableImpl<JiraCloudSiteC
     @Extension
     public static class DescriptorImpl extends Descriptor<JiraCloudSiteConfig2> {
 
-        private transient AccessTokenRetriever accessTokenRetriever;
         private transient SecretRetriever secretRetriever;
         private transient CloudIdResolver cloudIdResolver;
-
-        @Inject
-        public void setAccessTokenRetriever(final AccessTokenRetriever accessTokenRetriever) {
-            this.accessTokenRetriever = accessTokenRetriever;
-        }
 
         @Inject
         public void setSecretRetriever(final SecretRetriever secretRetriever) {
