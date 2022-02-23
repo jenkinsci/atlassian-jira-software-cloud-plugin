@@ -45,7 +45,6 @@ public class JiraCloudSiteConfig2DescriptorTest {
         final JiraCloudSiteConfig2 siteConfig =
                 new JiraCloudSiteConfig2(SITE, WEBHOOK_URL, CREDENTIALS_ID);
         classUnderTest = (JiraCloudSiteConfig2.DescriptorImpl) siteConfig.getDescriptor();
-        classUnderTest.setAccessTokenRetriever(accessTokenRetriever);
         classUnderTest.setCloudIdResolver(cloudIdResolver);
 
         setupMocks();

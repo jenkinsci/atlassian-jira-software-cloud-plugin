@@ -1,7 +1,5 @@
 package com.atlassian.jira.cloud.jenkins.config;
 
-import com.atlassian.jira.cloud.jenkins.auth.AccessTokenRetriever;
-import com.atlassian.jira.cloud.jenkins.common.model.AppCredential;
 import com.atlassian.jira.cloud.jenkins.tenantinfo.CloudIdResolver;
 import com.atlassian.jira.cloud.jenkins.util.SecretRetriever;
 import com.atlassian.jira.cloud.jenkins.util.SiteValidator;
