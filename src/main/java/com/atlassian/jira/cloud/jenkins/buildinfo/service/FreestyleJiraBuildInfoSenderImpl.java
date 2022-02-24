@@ -6,6 +6,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.atlassian.jira.cloud.jenkins.buildinfo.client.BuildsApi;
+import com.atlassian.jira.cloud.jenkins.common.config.JiraSiteConfig2Retriever;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.workflow.support.steps.build.RunWrapper;
 
@@ -27,21 +29,14 @@ public class FreestyleJiraBuildInfoSenderImpl extends JiraBuildInfoSenderImpl {
     private final FreestyleIssueKeyExtractor changeLogIssueKeyExtractor;
 
     public FreestyleJiraBuildInfoSenderImpl(
-            final JiraSiteConfigRetriever siteConfigRetriever,
+            final JiraSiteConfig2Retriever siteConfigRetriever,
             final SecretRetriever secretRetriever,
             final FreestyleIssueKeyExtractor issueKeyExtractor,
             final CloudIdResolver cloudIdResolver,
-            final AccessTokenRetriever accessTokenRetriever,
-            final JiraApi buildsApi,
+            final BuildsApi buildsApi,
             final RunWrapperProvider runWrapperProvider,
             final FreestyleIssueKeyExtractor changeLogIssueKeyExtractor) {
-        super(
-                siteConfigRetriever,
-                secretRetriever,
-                cloudIdResolver,
-                accessTokenRetriever,
-                buildsApi,
-                runWrapperProvider);
+        super(siteConfigRetriever, secretRetriever, cloudIdResolver, buildsApi, runWrapperProvider);
         this.issueKeyExtractor = requireNonNull(issueKeyExtractor);
         this.changeLogIssueKeyExtractor = requireNonNull(changeLogIssueKeyExtractor);
     }

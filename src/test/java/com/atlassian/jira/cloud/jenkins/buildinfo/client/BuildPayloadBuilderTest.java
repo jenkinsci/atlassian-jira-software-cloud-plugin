@@ -31,7 +31,7 @@ public class BuildPayloadBuilderTest extends BaseUnitTest {
                 BuildPayloadBuilder.getBuildPayload(
                         request.getJiraState(), runWrapper, ImmutableSet.of(ISSUE_KEY));
 
-        final JiraBuildInfo buildInfo = buildPayload.getBuilds().get(0);
+        final JiraBuildInfo buildInfo = buildPayload.getBuild();
         // then
         assertThat(buildPayload.getProviderMetadata().getProduct()).isEqualTo("jenkins");
         assertThat(buildInfo.getPipelineId()).isEqualTo(runWrapper.getFullProjectName());
@@ -58,7 +58,7 @@ public class BuildPayloadBuilderTest extends BaseUnitTest {
                 BuildPayloadBuilder.getBuildPayload(
                         request.getJiraState(), runWrapper, ImmutableSet.of(ISSUE_KEY));
 
-        final JiraBuildInfo buildInfo = buildPayload.getBuilds().get(0);
+        final JiraBuildInfo buildInfo = buildPayload.getBuild();
 
         // then
         assertThat(buildPayload.getProviderMetadata().getProduct()).isEqualTo("jenkins");
