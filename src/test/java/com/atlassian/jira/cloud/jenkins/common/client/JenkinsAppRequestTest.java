@@ -3,6 +3,10 @@ package com.atlassian.jira.cloud.jenkins.common.client;
 import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.Builds;
 import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.JiraBuildInfo;
 import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.TestInfo;
+import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Deployments;
+import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Environment;
+import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.JiraDeploymentInfo;
+import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Pipeline;
 import com.atlassian.jira.cloud.jenkins.provider.ObjectMapperProvider;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -21,7 +25,7 @@ import java.util.stream.Collectors;
 public class JenkinsAppRequestTest {
 
     @Test
-    public void serializeToJSON() throws JsonProcessingException {
+    public void serializeBuildEventToJSON() throws JsonProcessingException {
 
         Instant lastUpdated = Instant.parse("2022-02-24T05:24:36.767Z");
 
@@ -52,7 +56,48 @@ public class JenkinsAppRequestTest {
         String json = mapper.writeValueAsString(request);
         String expected =
                 new BufferedReader(
-                                new InputStreamReader(getClass().getResourceAsStream("build.json")))
+                        new InputStreamReader(getClass().getResourceAsStream("build.json")))
+                        .lines()
+                        .collect(Collectors.joining("\n"));
+        JSONAssert.assertEquals(expected, json, JSONCompareMode.LENIENT);
+    }
+
+    @Test
+    public void serializeDeploymentEventToJSON() throws JsonProcessingException {
+
+        Instant lastUpdated = Instant.parse("2022-02-24T05:24:36.767Z");
+
+        JenkinsAppRequest request =
+                new JenkinsAppRequest(
+                        JenkinsAppRequest.RequestType.EVENT,
+                        JenkinsAppRequest.EventType.DEPLOYMENT,
+                        "pipelineId",
+                        "pipelineName",
+                        "success",
+                        lastUpdated.toString(),
+                        new Deployments(
+                                new JiraDeploymentInfo(
+                                        42,
+                                        45L,
+                                        Collections.emptySet(),
+                                        "pipelineName",
+                                        "https://url.com",
+                                        "description",
+                                        lastUpdated.toString(),
+                                        "label",
+                                        "success",
+                                        new Pipeline(
+                                                "pipelineId", "pipelineName", "https://url.com"),
+                                        new Environment("stg-east", "Staging east", "staging"),
+                                        Collections.emptyList())));
+
+        ObjectMapper mapper = new ObjectMapperProvider().objectMapper();
+        String json = mapper.writeValueAsString(request);
+        System.out.println(json);
+        String expected =
+                new BufferedReader(
+                        new InputStreamReader(
+                                getClass().getResourceAsStream("deployment.json")))
                         .lines()
                         .collect(Collectors.joining("\n"));
         JSONAssert.assertEquals(expected, json, JSONCompareMode.LENIENT);

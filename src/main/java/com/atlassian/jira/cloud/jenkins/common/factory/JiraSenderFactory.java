@@ -4,7 +4,6 @@ import com.atlassian.jira.cloud.jenkins.auth.AccessTokenRetriever;
 import com.atlassian.jira.cloud.jenkins.buildinfo.client.BuildsApi;
 import com.atlassian.jira.cloud.jenkins.buildinfo.service.FreestyleJiraBuildInfoSenderImpl;
 import com.atlassian.jira.cloud.jenkins.buildinfo.service.JiraBuildInfoSender;
-import com.atlassian.jira.cloud.jenkins.buildinfo.service.JiraBuildInfoSenderImpl;
 import com.atlassian.jira.cloud.jenkins.buildinfo.service.MultibranchBuildInfoSenderImpl;
 import com.atlassian.jira.cloud.jenkins.checkgatingstatus.service.JiraGatingStatusRetriever;
 import com.atlassian.jira.cloud.jenkins.checkgatingstatus.service.JiraGatingStatusRetrieverImpl;
@@ -15,6 +14,7 @@ import com.atlassian.jira.cloud.jenkins.common.config.JiraSiteConfigRetriever;
 import com.atlassian.jira.cloud.jenkins.common.config.JiraSiteConfigRetrieverImpl;
 import com.atlassian.jira.cloud.jenkins.common.service.FreestyleIssueKeyExtractor;
 import com.atlassian.jira.cloud.jenkins.common.service.IssueKeyExtractor;
+import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.DeploymentsApi;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.service.ChangeLogIssueKeyExtractor;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.service.FreestyleChangeLogIssueKeyExtractor;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.service.JiraDeploymentInfoSender;
@@ -22,9 +22,9 @@ import com.atlassian.jira.cloud.jenkins.deploymentinfo.service.JiraDeploymentInf
 import com.atlassian.jira.cloud.jenkins.provider.HttpClientProvider;
 import com.atlassian.jira.cloud.jenkins.provider.ObjectMapperProvider;
 import com.atlassian.jira.cloud.jenkins.tenantinfo.CloudIdResolver;
-import com.atlassian.jira.cloud.jenkins.util.RunWrapperProviderImpl;
 import com.atlassian.jira.cloud.jenkins.util.BranchNameIssueKeyExtractor;
 import com.atlassian.jira.cloud.jenkins.util.FreestyleBranchNameIssueKeyExtractor;
+import com.atlassian.jira.cloud.jenkins.util.RunWrapperProviderImpl;
 import com.atlassian.jira.cloud.jenkins.util.SecretRetriever;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
@@ -61,11 +61,7 @@ public final class JiraSenderFactory {
         final AccessTokenRetriever accessTokenRetriever =
                 new AccessTokenRetriever(httpClient, objectMapper);
         final BuildsApi buildsApi = new BuildsApi(httpClient, objectMapper);
-        final JiraApi deploymentsApi =
-                new JiraApi(
-                        httpClient,
-                        objectMapper,
-                        ATLASSIAN_API_URL + "/jira/deployments/0.1/cloud/%s/bulk");
+        final DeploymentsApi deploymentsApi = new DeploymentsApi(httpClient, objectMapper);
 
         final JiraApi gateApi =
                 new JiraApi(
@@ -100,10 +96,9 @@ public final class JiraSenderFactory {
 
         this.jiraDeploymentInfoSender =
                 new JiraDeploymentInfoSenderImpl(
-                        siteConfigRetriever,
+                        siteConfig2Retriever,
                         secretRetriever,
                         cloudIdResolver,
-                        accessTokenRetriever,
                         deploymentsApi,
                         changeLogIssueKeyExtractor,
                         new RunWrapperProviderImpl());
