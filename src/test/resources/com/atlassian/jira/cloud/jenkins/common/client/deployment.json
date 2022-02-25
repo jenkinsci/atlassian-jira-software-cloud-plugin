@@ -1,0 +1,40 @@
+{
+  "requestType": "event",
+  "eventType": "deployment",
+  "pipelineName": "pipelineName",
+  "status": "success",
+  "lastUpdated": "2022-02-24T05:24:36.767Z",
+  "payload": {
+    "properties": {
+      "source": "jenkins"
+    },
+    "providerMetadata": {
+      "product": "jenkins"
+    },
+    "deployments": [
+      {
+        "deploymentSequenceNumber": 42,
+        "updateSequenceNumber": 45,
+        "associations": [],
+        "displayName": "pipelineName",
+        "url": "https://url.com",
+        "description": "description",
+        "lastUpdated": "2022-02-24T05:24:36.767Z",
+        "label": "label",
+        "state": "success",
+        "pipeline": {
+          "id": "pipelineId",
+          "displayName": "pipelineName",
+          "url": "https://url.com"
+        },
+        "environment": {
+          "id": "stg-east",
+          "displayName": "Staging east",
+          "type": "staging"
+        },
+        "schemaVersion": "1.0"
+      }
+    ]
+  },
+  "pipelineId": "pipelineId"
+}

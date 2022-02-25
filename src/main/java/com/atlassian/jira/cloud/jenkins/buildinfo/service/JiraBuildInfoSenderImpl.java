@@ -1,32 +1,26 @@
 package com.atlassian.jira.cloud.jenkins.buildinfo.service;
 
-import static java.util.Objects.requireNonNull;
+import com.atlassian.jira.cloud.jenkins.buildinfo.client.BuildsApi;
+import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.BuildApiResponse;
+import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.Builds;
+import com.atlassian.jira.cloud.jenkins.common.client.ApiUpdateFailedException;
+import com.atlassian.jira.cloud.jenkins.common.config.JiraSiteConfig2Retriever;
+import com.atlassian.jira.cloud.jenkins.common.response.JiraCommonResponse;
+import com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse;
+import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig2;
+import com.atlassian.jira.cloud.jenkins.tenantinfo.CloudIdResolver;
+import com.atlassian.jira.cloud.jenkins.util.Constants;
+import com.atlassian.jira.cloud.jenkins.util.RunWrapperProvider;
+import com.atlassian.jira.cloud.jenkins.util.SecretRetriever;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.atlassian.jira.cloud.jenkins.auth.AccessTokenRetriever;
-import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.BuildApiResponse;
-import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.Builds;
-import com.atlassian.jira.cloud.jenkins.common.client.JiraApi;
-import com.atlassian.jira.cloud.jenkins.common.client.PostUpdateResult;
-import com.atlassian.jira.cloud.jenkins.common.config.JiraSiteConfigRetriever;
-import com.atlassian.jira.cloud.jenkins.common.model.AppCredential;
-import com.atlassian.jira.cloud.jenkins.common.response.JiraCommonResponse;
-import com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse;
-import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
-import com.atlassian.jira.cloud.jenkins.tenantinfo.CloudIdResolver;
-import com.atlassian.jira.cloud.jenkins.util.Constants;
-import com.atlassian.jira.cloud.jenkins.util.RunWrapperProvider;
-import com.atlassian.jira.cloud.jenkins.util.SecretRetriever;
+import static java.util.Objects.requireNonNull;
 
 /**
  * Implementation of JiraBuildInfoSender to send build updates to Jira by building the payload,
@@ -34,27 +28,22 @@ import com.atlassian.jira.cloud.jenkins.util.SecretRetriever;
  */
 public abstract class JiraBuildInfoSenderImpl implements JiraBuildInfoSender {
 
-    private static final Logger log = LoggerFactory.getLogger(JiraBuildInfoSenderImpl.class);
-
-    private final JiraSiteConfigRetriever siteConfigRetriever;
+    private final JiraSiteConfig2Retriever siteConfigRetriever;
     private final SecretRetriever secretRetriever;
 
     private final CloudIdResolver cloudIdResolver;
-    private final AccessTokenRetriever accessTokenRetriever;
-    private final JiraApi buildsApi;
+    private final BuildsApi buildsApi;
     protected final RunWrapperProvider runWrapperProvider;
 
     public JiraBuildInfoSenderImpl(
-            final JiraSiteConfigRetriever siteConfigRetriever,
+            final JiraSiteConfig2Retriever siteConfigRetriever,
             final SecretRetriever secretRetriever,
             final CloudIdResolver cloudIdResolver,
-            final AccessTokenRetriever accessTokenRetriever,
-            final JiraApi buildsApi,
+            final BuildsApi buildsApi,
             final RunWrapperProvider runWrapperProvider) {
         this.siteConfigRetriever = requireNonNull(siteConfigRetriever);
         this.secretRetriever = requireNonNull(secretRetriever);
         this.cloudIdResolver = requireNonNull(cloudIdResolver);
-        this.accessTokenRetriever = requireNonNull(accessTokenRetriever);
         this.buildsApi = requireNonNull(buildsApi);
         this.runWrapperProvider = requireNonNull(runWrapperProvider);
     }
@@ -65,7 +54,7 @@ public abstract class JiraBuildInfoSenderImpl implements JiraBuildInfoSender {
         if (request.getSite() == null) {
             List<String> jiraSites = siteConfigRetriever.getAllJiraSites();
             for (final String jiraSite : jiraSites) {
-                final Optional<JiraCloudSiteConfig> maybeSiteConfig = getSiteConfigFor(jiraSite);
+                final Optional<JiraCloudSiteConfig2> maybeSiteConfig = getSiteConfigFor(jiraSite);
 
                 responses.add(
                         maybeSiteConfig
@@ -73,7 +62,7 @@ public abstract class JiraBuildInfoSenderImpl implements JiraBuildInfoSender {
                                 .orElse(JiraCommonResponse.failureSiteConfigNotFound(jiraSite)));
             }
         } else {
-            final Optional<JiraCloudSiteConfig> maybeSiteConfig =
+            final Optional<JiraCloudSiteConfig2> maybeSiteConfig =
                     getSiteConfigFor(request.getSite());
             responses.add(
                     maybeSiteConfig
@@ -92,15 +81,15 @@ public abstract class JiraBuildInfoSenderImpl implements JiraBuildInfoSender {
      * @param request - JiraBuildInfoRequest::site is ignored and jiraSite is used instead
      */
     public JiraSendInfoResponse sendBuildInfoToJiraSite(
-            @Nonnull final JiraCloudSiteConfig siteConfig,
+            @Nonnull final JiraCloudSiteConfig2 siteConfig,
             @Nonnull final JiraBuildInfoRequest request) {
 
-        final String resolvedSiteConfig = siteConfig.getSite();
+        final String jiraSite = siteConfig.getSite();
 
         final Optional<String> maybeSecret = getSecretFor(siteConfig.getCredentialsId());
 
         if (!maybeSecret.isPresent()) {
-            return JiraCommonResponse.failureSecretNotFound(resolvedSiteConfig);
+            return JiraCommonResponse.failureSecretNotFound(jiraSite);
         }
 
         final Set<String> issueKeys = getIssueKeys(request);
@@ -109,36 +98,25 @@ public abstract class JiraBuildInfoSenderImpl implements JiraBuildInfoSender {
             return JiraBuildInfoResponse.skippedIssueKeysNotFound(siteConfig.getSite());
         }
 
-        final Optional<String> maybeCloudId = getCloudIdFor(resolvedSiteConfig);
+        final Optional<String> maybeCloudId = getCloudIdFor(jiraSite);
 
         if (!maybeCloudId.isPresent()) {
-            return JiraCommonResponse.failureSiteNotFound(resolvedSiteConfig);
-        }
-
-        final Optional<String> maybeAccessToken = getAccessTokenFor(siteConfig, maybeSecret.get());
-
-        if (!maybeAccessToken.isPresent()) {
-            return JiraCommonResponse.failureAccessToken(resolvedSiteConfig);
+            return JiraCommonResponse.failureSiteNotFound(jiraSite);
         }
 
         final Builds buildInfo = createJiraBuildInfo(request, issueKeys);
 
-        final PostUpdateResult<BuildApiResponse> postUpdateResult =
-                sendBuildInfo(
-                        maybeCloudId.get(), maybeAccessToken.get(), resolvedSiteConfig, buildInfo);
-
-        if (postUpdateResult.getResponseEntity().isPresent()) {
+        try {
             return handleBuildApiResponse(
-                    resolvedSiteConfig, postUpdateResult.getResponseEntity().get());
-        } else {
-            final String errorMessage = postUpdateResult.getErrorMessage().orElse("");
-            return handleBuildApiError(resolvedSiteConfig, errorMessage);
+                    jiraSite, buildsApi.sendBuild(siteConfig.getWebhookUrl(), buildInfo));
+        } catch (ApiUpdateFailedException e) {
+            return handleBuildApiError(jiraSite, e.getMessage());
         }
     }
 
     protected abstract Set<String> getIssueKeys(final JiraBuildInfoRequest request);
 
-    private Optional<JiraCloudSiteConfig> getSiteConfigFor(@Nullable final String jiraSite) {
+    private Optional<JiraCloudSiteConfig2> getSiteConfigFor(@Nullable final String jiraSite) {
         return siteConfigRetriever.getJiraSiteConfig(jiraSite);
     }
 
@@ -147,27 +125,12 @@ public abstract class JiraBuildInfoSenderImpl implements JiraBuildInfoSender {
         return cloudIdResolver.getCloudId(jiraSiteUrl);
     }
 
-    private Optional<String> getAccessTokenFor(
-            final JiraCloudSiteConfig siteConfig, final String secret) {
-        final AppCredential appCredential = new AppCredential(siteConfig.getClientId(), secret);
-        return accessTokenRetriever.getAccessToken(appCredential);
-    }
-
     private Optional<String> getSecretFor(final String credentialsId) {
         return secretRetriever.getSecretFor(credentialsId);
     }
 
     protected abstract Builds createJiraBuildInfo(
             final JiraBuildInfoRequest request, final Set<String> issueKeys);
-
-    private PostUpdateResult<BuildApiResponse> sendBuildInfo(
-            final String cloudId,
-            final String accessToken,
-            final String jiraSite,
-            final Builds buildInfo) {
-        return buildsApi.postUpdate(
-                cloudId, accessToken, jiraSite, buildInfo, BuildApiResponse.class);
-    }
 
     private JiraBuildInfoResponse handleBuildApiResponse(
             final String jiraSite, final BuildApiResponse response) {

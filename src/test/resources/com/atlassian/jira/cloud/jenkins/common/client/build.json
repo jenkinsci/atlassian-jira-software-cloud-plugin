@@ -1,0 +1,40 @@
+{
+  "requestType": "event",
+  "eventType": "build",
+  "pipelineName": "pipelineName",
+  "status": "success",
+  "lastUpdated": "2022-02-24T05:24:36.767Z",
+  "payload": {
+    "properties": {
+      "source": "jenkins"
+    },
+    "providerMetadata": {
+      "product": "jenkins"
+    },
+    "builds": [
+      {
+        "pipelineId": "pipelineId",
+        "buildNumber": 12,
+        "updateSequenceNumber": 12,
+        "displayName": "pipelineName",
+        "description": "description",
+        "label": "label",
+        "url": "https://url.com",
+        "state": "success",
+        "lastUpdated": "2022-02-24T05:24:36.767Z",
+        "issueKeys": [
+          "TEST-1"
+        ],
+        "references": [],
+        "testInfo": {
+          "totalNumber": null,
+          "numberPassed": null,
+          "numberFailed": null,
+          "numberSkipped": null
+        },
+        "schemaVersion": "1.0"
+      }
+    ]
+  },
+  "pipelineId": "pipelineId"
+}
