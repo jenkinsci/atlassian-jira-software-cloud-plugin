@@ -174,7 +174,7 @@ The main use case of this plugin is to send build and deployment events to Jira.
 
 In the Jenkins server configuration you can configure the plugin to automatically send builds events without having to add anything to your Jenkinsfiles:
 
-![img.png](docs/images/auto-builds.png)
+![Sending builds automatically](docs/images/auto-builds.png)
 
 If you enable the checkbox "Send builds automatically", the plugin will send an "in progress" build event to Jira once a pipeline run has started and a "success" or "failure" build event once the pipeline has finished successfully  or stopped due to an error.
 
@@ -197,11 +197,11 @@ pipeline {
 
 Whenever the pipeline in this Jenkinsfile runs, it will send build events to all configured Jira Cloud sites on start and finish of the `build` stage.
 
-### Automatically sending deployments
+### Sending deployments automatically
 
 In the Jenkins server configuration you can configure the plugin to automatically send deployment events without having to add anything to your Jenkinsfiles:
 
-![img.png](docs/images/auto-deployments.png)
+![Sending deployments automatically](docs/images/auto-deployments.png)
 
 If you enable the checkbox "Send deployments automatically", the plugin will send an "in progress" deployment event to Jira once a build step with a name matching the specified regular expression has started, and a "success" or "failure" deployment event once that build step has finished.
 
