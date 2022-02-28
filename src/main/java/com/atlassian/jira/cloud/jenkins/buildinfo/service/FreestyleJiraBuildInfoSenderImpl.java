@@ -76,6 +76,6 @@ public class FreestyleJiraBuildInfoSenderImpl extends JiraBuildInfoSenderImpl {
         FreestyleBuildInfoRequest freestyleRequest = (FreestyleBuildInfoRequest) request;
         final RunWrapper buildWrapper = runWrapperProvider.getWrapper(freestyleRequest.getBuild());
 
-        return BuildPayloadBuilder.getBuildPayload(buildWrapper, issueKeys);
+        return BuildPayloadBuilder.getBuildPayload(request.getJiraState(), buildWrapper, issueKeys);
     }
 }

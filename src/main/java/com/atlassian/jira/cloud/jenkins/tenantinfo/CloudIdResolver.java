@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import okhttp3.ResponseBody;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,8 +15,8 @@ import java.io.IOException;
 import java.util.Optional;
 
 /**
- * Resolves the Jira site URL provided by the Jenkins user into Cloud ID.
- * Cloud ID is required to submit build updates via API.
+ * Resolves the Jira site URL provided by the Jenkins user into Cloud ID. Cloud ID is required to
+ * submit build updates via API.
  */
 public class CloudIdResolver {
 
@@ -45,14 +46,15 @@ public class CloudIdResolver {
                 return Optional.empty();
             }
 
-            if (response.body() == null) {
+            ResponseBody body = response.body();
+            if (body == null) {
                 log.warn(
                         String.format(
                                 "Empty response when retrieving tenant info for %s", jiraSiteUrl));
                 return Optional.empty();
             }
 
-            TenantInfo tenantInfo = objectMapper.readValue(response.body().bytes(), TenantInfo.class);
+            TenantInfo tenantInfo = objectMapper.readValue(body.bytes(), TenantInfo.class);
 
             return Optional.of(tenantInfo.getCloudId());
         } catch (JsonMappingException | JsonParseException e) {

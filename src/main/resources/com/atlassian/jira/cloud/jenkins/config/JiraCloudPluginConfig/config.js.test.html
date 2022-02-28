@@ -1,0 +1,204 @@
+<html>
+<body>
+<p>Run tests in your browser! If you can think of a better way how to achieve same and/or turn it into a unit test,
+please let us know or raise a PR!</p>
+
+<p>
+    Things tried:
+        <ul>
+            <li>Rhino and Nashorn - both don't support ES2018 (required for RegExp named groups capturing)</li>
+        </ul>
+</p>
+
+
+<p>
+    Please open the DevTools console to see the execution log.
+</p>
+
+<hr />
+<script type="text/javascript" src="config.js"></script>
+
+<div id="errorDiv"></div>
+<div id="successDiv"></div>
+<input id="textRegexInput" type="text" value="" />
+
+<script>
+
+function isErrorVisible() {
+    return document.getElementById('errorDiv').style.display == 'block';
+}
+
+function isSuccessVisible() {
+    return document.getElementById('successDiv').style.display == 'block';
+}
+
+function setTestRegex(regexStr) {
+    document.getElementById('textRegexInput').value = regexStr;
+}
+
+function getErrorMessage() {
+    return document.getElementById('errorDiv').innerHTML;
+}
+
+function getSuccessMessage() {
+    return document.getElementById('successDiv').innerHTML;
+}
+
+function assertTrue(bool) {
+    if (!bool) {
+        throw new Error("Assertion error");
+    } else {
+        console.log("check!");
+    }
+}
+
+function checkStarted(message) {
+    console.warn("Running test: " + message);
+}
+
+function checkFinished() {
+    console.warn("OK!");
+}
+
+{
+    checkStarted("Test browser not supported case");
+
+    const testObj = new AtlassianRegexTester("textRegexInput", "errorDiv", "successDiv");
+    testObj._isCapturingGroupsSupported = function() { return false; };
+
+    assertTrue(!testObj.test("blah", ["a"]));
+    assertTrue(isErrorVisible());
+    assertTrue(!isSuccessVisible());
+    assertTrue(getErrorMessage().indexOf("Your browser does not support") >= 0);
+
+    checkFinished();
+}
+
+{
+    checkStarted("Happy path no groups");
+
+    setTestRegex("^Hello .*$")
+    const testObj = new AtlassianRegexTester("textRegexInput", "errorDiv", "successDiv");
+    testObj._getUserInput = function(question) {
+        assertTrue(question === "TheQuestion");
+        return "Hello World";
+    }
+
+    assertTrue(!testObj.test("TheQuestion", []));
+    assertTrue(!isErrorVisible());
+    assertTrue(isSuccessVisible());
+    assertTrue(getSuccessMessage() === "Matches!");
+
+    checkFinished();
+}
+
+{
+    checkStarted("Happy path no groups");
+
+    setTestRegex("^Hello .*$")
+    const testObj = new AtlassianRegexTester("textRegexInput", "errorDiv", "successDiv");
+    testObj._getUserInput = function(question) {
+        assertTrue(question === "TheQuestion");
+        return "Hello World";
+    }
+
+    assertTrue(!testObj.test("TheQuestion", []));
+    assertTrue(!isErrorVisible());
+    assertTrue(isSuccessVisible());
+    assertTrue(getSuccessMessage() === "Matches!");
+
+    checkFinished();
+}
+
+{
+    checkStarted("Invalid regex");
+
+    setTestRegex("^Hello (?<")
+    const testObj = new AtlassianRegexTester("textRegexInput", "errorDiv", "successDiv");
+
+    assertTrue(!testObj.test("TheQuestion", []));
+    assertTrue(isErrorVisible());
+    assertTrue(!isSuccessVisible());
+    assertTrue(getErrorMessage() === '"^Hello (?&lt;" is not a valid RegEx string. SyntaxError: Invalid regular expression: /^Hello (?&lt;/: Invalid capture group name');
+
+    checkFinished();
+}
+
+{
+    checkStarted("Empty regex");
+
+    setTestRegex("")
+    const testObj = new AtlassianRegexTester("textRegexInput", "errorDiv", "successDiv");
+
+    assertTrue(!testObj.test("TheQuestion", []));
+    assertTrue(isErrorVisible());
+    assertTrue(!isSuccessVisible());
+    assertTrue(getErrorMessage() === 'Empty RegEx, nothing to test');
+
+    checkFinished();
+}
+
+{
+    checkStarted("Happy path with groups");
+
+    setTestRegex("^Hello (?<group1>.*) (?<group2>.*)$")
+    const testObj = new AtlassianRegexTester("textRegexInput", "errorDiv", "successDiv");
+    testObj._getUserInput = function(question) {
+        assertTrue(question === "TheQuestion");
+        return "Hello WorldFirst WorldSecond";
+    }
+
+    assertTrue(!testObj.test("TheQuestion", ["group1", "group2"]));
+    assertTrue(!isErrorVisible());
+    assertTrue(isSuccessVisible());
+    assertTrue(getSuccessMessage() === "Matches: group1=WorldFirst, group2=WorldSecond");
+
+    checkFinished();
+}
+
+{
+    checkStarted("Error path not all groups");
+
+    setTestRegex("^Hello (?<group1>.*) (?<group2>.*)$")
+    const testObj = new AtlassianRegexTester("textRegexInput", "errorDiv", "successDiv");
+    testObj._getUserInput = function(question) {
+        assertTrue(question === "TheQuestion");
+        return "Hello WorldFirst ";
+    }
+
+    assertTrue(!testObj.test("TheQuestion", ["group1", "group2"]));
+    assertTrue(isErrorVisible());
+    assertTrue(!isSuccessVisible());
+    assertTrue(getErrorMessage() === "Error: the values for the following groups were not found: group2");
+
+    checkFinished();
+}
+
+{
+    checkStarted("setTestRegex")
+
+    atlWatchNotEmpty("textRegexInput", "errorDiv", "<notempty>");
+    setTestRegex("");
+
+    setTimeout(function() {
+        assertTrue(isErrorVisible());
+        console.log(getErrorMessage());
+        assertTrue(getErrorMessage() === "&lt;notempty&gt;");
+
+        setTestRegex("blah");
+
+        setTimeout(function() {
+            assertTrue(!isErrorVisible());
+
+            checkFinished();
+        }, 500);
+    }, 500);
+
+}
+
+console.warn("All checks are passing!")
+
+</script>
+
+</body>
+</html>

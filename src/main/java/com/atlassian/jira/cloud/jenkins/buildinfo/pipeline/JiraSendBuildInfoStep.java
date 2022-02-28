@@ -2,6 +2,7 @@ package com.atlassian.jira.cloud.jenkins.buildinfo.pipeline;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -121,7 +122,8 @@ public class JiraSendBuildInfoStep extends Step implements Serializable {
             final WorkflowRun workflowRun = getContext().get(WorkflowRun.class);
 
             final JiraBuildInfoRequest request =
-                    new MultibranchBuildInfoRequest(step.getSite(), step.getBranch(), workflowRun);
+                    new MultibranchBuildInfoRequest(
+                            step.getSite(), step.getBranch(), workflowRun, Optional.empty());
 
             final List<JiraSendInfoResponse> allResponses =
                     JiraSenderFactory.getInstance().getJiraBuildInfoSender().sendBuildInfo(request);

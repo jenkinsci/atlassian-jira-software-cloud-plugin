@@ -3,6 +3,7 @@ package com.atlassian.jira.cloud.jenkins.config;
 import com.atlassian.jira.cloud.jenkins.Messages;
 import hudson.Extension;
 import jenkins.model.GlobalConfiguration;
+import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.StaplerRequest;
 import org.slf4j.Logger;
@@ -21,14 +22,32 @@ import java.util.Optional;
 @Extension
 public class JiraCloudPluginConfig extends GlobalConfiguration {
 
+    public static final String FIELD_NAME_AUTO_BUILDS = "autoBuilds";
+    public static final String FIELD_NAME_AUTO_DEPLOYMENTS = "autoDeployments";
+    public static final String FIELD_NAME_SITES = "sites";
+    public static final String FIELD_NAME_AUTO_BUILDS_REGEX = "autoBuildsRegex";
+    public static final String FIELD_NAME_AUTO_DEPLOYMENTS_REGEX = "autoDeploymentsRegex";
+
     private static final Logger log = LoggerFactory.getLogger(JiraCloudPluginConfig.class);
 
     private static final String ATL_JSW_GLOBAL_CONFIGURATION_ID = "atl-jsw-global-configuration";
 
     private List<JiraCloudSiteConfig> sites = new ArrayList<>();
 
+    private Boolean autoBuildsEnabled;
+    private String autoBuildsRegex;
+
+    private Boolean autoDeploymentsEnabled;
+    private String autoDeploymentsRegex = "^deploy to (?<envName>.*)$";
+
     public JiraCloudPluginConfig() {
         getConfigFile().getXStream().alias("atl-jsw-site-configuration", JiraCloudSiteConfig.class);
+        load();
+    }
+
+    // Only for testing
+    JiraCloudPluginConfig(final String testName) {
+        getConfigFile().getXStream().alias(testName, JiraCloudSiteConfig.class);
         load();
     }
 
@@ -40,11 +59,44 @@ public class JiraCloudPluginConfig extends GlobalConfiguration {
     @Override
     public boolean configure(final StaplerRequest req, final JSONObject json) throws FormException {
         try {
-            // workaround to remove the last site from the list
-            if (json != null && json.isEmpty()) {
-                setSites(Collections.emptyList());
+            setSites(Collections.emptyList());
+            if (json.containsKey(FIELD_NAME_SITES)) {
+
+                Object sites = json.get(FIELD_NAME_SITES);
+
+                // we have a single site
+                if (sites instanceof JSONObject) {
+                    this.sites =
+                            Collections.singletonList(
+                                    req.bindJSON(JiraCloudSiteConfig.class, (JSONObject) sites));
+                }
+
+                // we have multiple sites
+                if (sites instanceof JSONArray) {
+                    this.sites = req.bindJSONToList(JiraCloudSiteConfig.class, sites);
+                }
             }
-            req.bindJSON(this, json);
+
+            this.autoBuildsEnabled = json.containsKey(FIELD_NAME_AUTO_BUILDS);
+            if (this.autoBuildsEnabled) {
+                this.autoBuildsRegex =
+                        json.getJSONObject(FIELD_NAME_AUTO_BUILDS)
+                                .getString(FIELD_NAME_AUTO_BUILDS_REGEX);
+            }
+
+            this.autoDeploymentsEnabled = json.containsKey(FIELD_NAME_AUTO_DEPLOYMENTS);
+            if (this.autoDeploymentsEnabled) {
+                this.autoDeploymentsRegex =
+                        json.getJSONObject(FIELD_NAME_AUTO_DEPLOYMENTS)
+                                .getString(FIELD_NAME_AUTO_DEPLOYMENTS_REGEX);
+                if (this.autoDeploymentsRegex == null
+                        || this.autoDeploymentsRegex.trim().isEmpty()) {
+                    throw new FormException(
+                            "Deployments RegEx must be provided!",
+                            FIELD_NAME_AUTO_DEPLOYMENTS_REGEX);
+                }
+            }
+
         } catch (Exception e) {
             log.debug("Submitting form to JSW Plugin failed: ({})", e.getMessage(), e);
             if (log.isTraceEnabled()) {
@@ -71,6 +123,22 @@ public class JiraCloudPluginConfig extends GlobalConfiguration {
 
     public void setSites(final List<JiraCloudSiteConfig> sites) {
         this.sites = sites;
+    }
+
+    public void setAutoBuildsEnabled(final boolean autoBuildsEnabled) {
+        this.autoBuildsEnabled = autoBuildsEnabled;
+    }
+
+    public void setAutoBuildsRegex(@Nullable final String autoBuildsRegex) {
+        this.autoBuildsRegex = autoBuildsRegex;
+    }
+
+    public void setAutoDeploymentsRegex(final String autoDeploymentsRegex) {
+        this.autoDeploymentsRegex = autoDeploymentsRegex;
+    }
+
+    public void setAutoDeploymentsEnabled(final boolean autoDeploymentsEnabled) {
+        this.autoDeploymentsEnabled = autoDeploymentsEnabled;
     }
 
     public static Optional<JiraCloudSiteConfig> getJiraCloudSiteConfig(
@@ -104,5 +172,21 @@ public class JiraCloudPluginConfig extends GlobalConfiguration {
         } else {
             return Optional.of(allSites.get(0));
         }
+    }
+
+    public boolean getAutoBuildsEnabled() {
+        return Optional.ofNullable(autoBuildsEnabled).orElse(false);
+    }
+
+    public String getAutoBuildsRegex() {
+        return Optional.ofNullable(autoBuildsRegex).orElse("");
+    }
+
+    public boolean getAutoDeploymentsEnabled() {
+        return Optional.ofNullable(autoDeploymentsEnabled).orElse(false);
+    }
+
+    public String getAutoDeploymentsRegex() {
+        return Optional.ofNullable(autoDeploymentsRegex).orElse("");
     }
 }

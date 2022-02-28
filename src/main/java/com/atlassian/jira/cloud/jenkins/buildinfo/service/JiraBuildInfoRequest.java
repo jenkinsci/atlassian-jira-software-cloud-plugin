@@ -1,5 +1,7 @@
 package com.atlassian.jira.cloud.jenkins.buildinfo.service;
 
+import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.State;
+
 import javax.annotation.Nullable;
 
 public abstract class JiraBuildInfoRequest {
@@ -7,12 +9,12 @@ public abstract class JiraBuildInfoRequest {
     private final String site; // NULL means "send to all connected sites"
 
     private final String branch;
-    // private final WorkflowRun build;
+
+    protected State jiraState;
 
     public JiraBuildInfoRequest(@Nullable final String site, @Nullable final String branch) {
         this.site = site;
         this.branch = branch;
-        // this.build = requireNonNull(build);
     }
 
     @Nullable
@@ -25,7 +27,7 @@ public abstract class JiraBuildInfoRequest {
         return branch;
     }
 
-    /*public WorkflowRun getBuild() {
-        return build;
-    }*/
+    public State getJiraState() {
+        return this.jiraState;
+    }
 }

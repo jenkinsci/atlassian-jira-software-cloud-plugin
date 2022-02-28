@@ -32,8 +32,6 @@ and [Jenkins
 plugin](https://confluence.atlassian.com/adminjiracloud/integrate-jira-software-cloud-with-jenkins-972355471.html)
 in Atlassian documentation.
 
-------------------------------------------------------------------------
-
 ## What is the value?
 
 This plugin gives your team visibility and insight of your CI/CD pipelines, 
@@ -168,20 +166,78 @@ Set up Jira credentials:
 4.  Click **Test connection** to make sure the provided credentials are 
     correct.
 
-## How to use the integration
+## Sending build and deployment events to Jira
 
-To make the integration work, the following changes should be applied to your 
-`Jenkinsfile`: 
-    
-### Sending build information
+The main use case of this plugin is to send build and deployment events to Jira. The plugin will look for Jira issue keys in the name of the branch for which a pipeline is run. If it finds issue keys, it will send build and deployment events to Jira to make them visible in Jira's issue and deployment views.
 
-Below is an example of the simplest ‘build’ step from *Jenkinsfile*. At the 
-end of the execution of the stage, the build information is sent to all 
-connected Jira Cloud sites.  
+### Sending builds automatically
 
-The issue keys are automatically extracted from the name of the branch.
+In the Jenkins server configuration you can configure the plugin to automatically send builds events without having to add anything to your Jenkinsfiles:
 
-``` syntaxhighlighter-pre
+![Sending builds automatically](docs/images/auto-builds.png)
+
+If you enable the checkbox "Send builds automatically", the plugin will send an "in progress" build event to Jira once a pipeline run has started and a "success" or "failure" build event once the pipeline has finished successfully  or stopped due to an error.
+
+If you additionally specify a regular expression for builds, the plugin will only send a build event to Jira once a build step with a matching name has been finished.
+
+The regular expression `^build$` would match the `build` stage in the following Jenkinsfile, for example:
+
+```groovy
+pipeline {
+    agent  any
+    stages {
+        stage('build') {
+            steps {
+                echo  'build done'
+            }
+        }
+    }
+}
+```
+
+Whenever the pipeline in this Jenkinsfile runs, it will send build events to all configured Jira Cloud sites on start and finish of the `build` stage.
+
+### Sending deployments automatically
+
+In the Jenkins server configuration you can configure the plugin to automatically send deployment events without having to add anything to your Jenkinsfiles:
+
+![Sending deployments automatically](docs/images/auto-deployments.png)
+
+If you enable the checkbox "Send deployments automatically", the plugin will send an "in progress" deployment event to Jira once a build step with a name matching the specified regular expression has started, and a "success" or "failure" deployment event once that build step has finished.
+
+For this to work, the deployment steps in your Jenkinsfile have to contain the environment name in their name. The regular expression must contain the fragment `(?<envName>.*)` to match the environment name so that the plugin can extract the environment name from the build step names.
+
+Let's look at an example Jenkinsfile:
+
+```groovy
+pipeline {
+    agent  any
+    stages {
+        stage('deployments') {
+            parallel {
+                stage('deploy to stg') {
+                    steps {
+                        echo 'stg deployment done'
+                    }
+                }
+                stage('deploy to prod') {
+                    steps {
+                        echo 'prod deployment done'
+                    }
+                }
+            }
+        }
+    }
+}
+```
+
+If the checkbox "Send deployments automatically" is enabled and the regular expression is set to `^deploy to (?<envName>.*)$`, a run of the above Jenkinsfile will send "in progress" deployment events for the `stg` and `prod` environments to all configured Jira Cloud sites, followed by respective "success" deployment events once the build steps are finished.
+
+### Sending builds explicitly
+
+If you want more control over when to send build events, you can use the `jiraSendBuildInfo` build step:
+
+```groovy
 pipeline {
      agent any
      stages {
@@ -199,15 +255,13 @@ pipeline {
  }
 ```
 
-By default, the branch name is fetched by Jenkins SCM API.
-Alternatively, the branch name can be explicitly provided as optional 
-**branch** parameter. 
+This will send a "success" or "failure" build event to all configured Jira Cloud sites after the `Build` stage has finished successfully or with an error. 
 
-Since `1.4.5.` builds are sent to ALL connected Jira Cloud sites, however
-you could change this behaviour by specifying optional **site** 
-parameter with the hostname of the target Jira Cloud site.
+By default, the branch name to extract Jira issue keys from is retrieved from the Jenkins API, however you can specify it yourself. 
 
-``` syntaxhighlighter-pre
+You can also specify a Jira site URL to instruct the plugin to send the build event to only this Jira site instead of to all configured Jira sites:
+
+```groovy
 pipeline {
      agent any
      stages {
@@ -224,22 +278,12 @@ pipeline {
      }
  }
 ```
-  
 
-### Sending deployment information
+### Sending deployments explicitly
 
-This is an example of a pipeline with two deployments to different 
-environments. Arbitrary "**environmentId**", "**environmentName**", and 
-"**environmentType**" parameters must be provided.
+If you want more control over when to send deployment events, you can use the `jiraSendDeploymentInfo` build step:
 
-Similarly to *Builds*, the issue keys are extracted from the name of the 
-branch and two additional optional parameters are available: **branch** 
-and **site**.
- - NOTE: when multiple Jira sites are connected to a Jenkins server, **site** 
-    parameter is required for `jiraSendDeploymentInfo` with `enableGating:true`.
-   More details about Deployment Gating could be found [here](https://support.atlassian.com/jira-service-management-cloud/docs/use-deployment-gating-with-jenkins/).
-
-``` syntaxhighlighter-pre
+```groovy
 pipeline {
      agent any
      stages {
@@ -273,9 +317,24 @@ pipeline {
  }
 ```
 
-### Example of complete Jenkinsfile
+This will send a "success" or "failure" deployment event to all configured Jira sites at the end of the stages `Deploy - Staging` and `Deploy - Production`. 
 
-``` syntaxhighlighter-pre
+You **must** provide the parameters `environmentId`, `environmentName`, and `environmentType`.
+
+You can also provide the parameter `site` to specify to send the deployment events to a single Jira site instead of all configured Jira sites. 
+
+Also, you can specify a branch with the `branch` parameter to define the branch from which to extract Jira issue keys to connect the deployments with.
+
+When multiple Jira sites are connected to a Jenkins server, the `site` 
+    parameter is required for `jiraSendDeploymentInfo` with `enableGating:true`.
+   More details about Deployment Gating can be found [here](https://support.atlassian.com/jira-service-management-cloud/docs/use-deployment-gating-with-jenkins/).
+
+
+### Example of a complete Jenkinsfile
+
+You can mix build and deployments as in the Jenkinsfile below:
+
+```groovy
 pipeline {
      agent any
      stages {

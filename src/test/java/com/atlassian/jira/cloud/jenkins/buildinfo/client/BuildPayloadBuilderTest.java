@@ -3,11 +3,16 @@ package com.atlassian.jira.cloud.jenkins.buildinfo.client;
 import com.atlassian.jira.cloud.jenkins.BaseUnitTest;
 import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.Builds;
 import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.JiraBuildInfo;
+import com.atlassian.jira.cloud.jenkins.buildinfo.service.JiraBuildInfoRequest;
+import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.State;
 import com.google.common.collect.ImmutableSet;
+import hudson.model.Result;
 import hudson.model.Run;
 import hudson.tasks.junit.TestResultAction;
 import org.jenkinsci.plugins.workflow.support.steps.build.RunWrapper;
 import org.junit.Test;
+
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
@@ -20,8 +25,11 @@ public class BuildPayloadBuilderTest extends BaseUnitTest {
     public void testSuccessfulBuild() throws Exception {
         // when
         final RunWrapper runWrapper = mockRunWrapper("SUCCESS");
+        final JiraBuildInfoRequest request = mock(JiraBuildInfoRequest.class);
+        when(request.getJiraState()).thenReturn(State.SUCCESSFUL);
         final Builds buildPayload =
-                BuildPayloadBuilder.getBuildPayload(runWrapper, ImmutableSet.of(ISSUE_KEY));
+                BuildPayloadBuilder.getBuildPayload(
+                        request.getJiraState(), runWrapper, ImmutableSet.of(ISSUE_KEY));
 
         final JiraBuildInfo buildInfo = buildPayload.getBuilds().get(0);
         // then
@@ -44,8 +52,11 @@ public class BuildPayloadBuilderTest extends BaseUnitTest {
     public void testFailedBuild() throws Exception {
         // when
         final RunWrapper runWrapper = mockRunWrapper("FAILURE");
+        final JiraBuildInfoRequest request = mock(JiraBuildInfoRequest.class);
+        when(request.getJiraState()).thenReturn(State.FAILED);
         final Builds buildPayload =
-                BuildPayloadBuilder.getBuildPayload(runWrapper, ImmutableSet.of(ISSUE_KEY));
+                BuildPayloadBuilder.getBuildPayload(
+                        request.getJiraState(), runWrapper, ImmutableSet.of(ISSUE_KEY));
 
         final JiraBuildInfo buildInfo = buildPayload.getBuilds().get(0);
 
@@ -61,7 +72,6 @@ public class BuildPayloadBuilderTest extends BaseUnitTest {
 
     private RunWrapper mockRunWrapper(final String result) throws Exception {
         final RunWrapper runWrapper = mock(RunWrapper.class);
-        final Run<?, ?> run = mock(Run.class);
         final TestResultAction testResultAction = mock(TestResultAction.class);
 
         when(runWrapper.getFullProjectName()).thenReturn("multibranch-1/TEST-123-branch-name");
@@ -71,12 +81,20 @@ public class BuildPayloadBuilderTest extends BaseUnitTest {
                 .thenReturn("http://localhost:8080/jenkins/multibranch-1/job/TEST-123-branch-name");
         when(runWrapper.getCurrentResult()).thenReturn(result);
 
+        final Run run = mock(Run.class);
+
         when(testResultAction.getTotalCount()).thenReturn(10);
         when(testResultAction.getFailCount()).thenReturn(3);
         when(testResultAction.getSkipCount()).thenReturn(2);
 
-        doReturn(run).when(runWrapper).getRawBuild();
-        doReturn(testResultAction).when(run).getAction(TestResultAction.class);
+        if (result.equals("SUCCESS")) {
+            when(run.getResult()).thenReturn(Result.SUCCESS);
+        } else if (result.equals("FAILURE")) {
+            when(run.getResult()).thenReturn(Result.FAILURE);
+        }
+
+        when(run.getAction(TestResultAction.class)).thenReturn(testResultAction);
+        when(runWrapper.getRawBuild()).thenReturn(run);
 
         return runWrapper;
     }
