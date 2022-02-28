@@ -176,7 +176,7 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
         try {
             return handleDeploymentApiResponse(
                     jiraSite,
-                    deploymentsApi.sendDeployment(siteConfig.getWebhookUrl(), deploymentInfo));
+                    deploymentsApi.sendDeploymentAsJwt(siteConfig.getWebhookUrl(), deploymentInfo, maybeSecret.get()));
         } catch (ApiUpdateFailedException e) {
             return handleDeploymentApiError(jiraSite, e.getMessage());
         }

@@ -31,6 +31,7 @@
         <slf4j.version>1.7.30</slf4j.version>
         <maven.compiler.target>1.8</maven.compiler.target>
         <maven.compiler.source>1.8</maven.compiler.source>
+        <jwt.version>3.18.3</jwt.version>
     </properties>
     <name>Atlassian Jira Software Cloud</name>
     <description>Atlassian Jira Software Cloud Jenkins Integration</description>
@@ -265,6 +266,13 @@
             <version>${jsonassert.version}</version>
             <scope>test</scope>
         </dependency>
+
+        <dependency>
+            <groupId>com.auth0</groupId>
+            <artifactId>java-jwt</artifactId>
+            <version>${jwt.version}</version>
+        </dependency>
+
     </dependencies>
     
   <dependencyManagement>

@@ -108,7 +108,7 @@ public abstract class JiraBuildInfoSenderImpl implements JiraBuildInfoSender {
 
         try {
             return handleBuildApiResponse(
-                    jiraSite, buildsApi.sendBuild(siteConfig.getWebhookUrl(), buildInfo));
+                    jiraSite, buildsApi.sendBuildAsJwt(siteConfig.getWebhookUrl(), buildInfo, maybeSecret.get()));
         } catch (ApiUpdateFailedException e) {
             return handleBuildApiError(jiraSite, e.getMessage());
         }

@@ -7,6 +7,7 @@ import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.DeploymentAp
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Deployments;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.OkHttpClient;
+import org.jetbrains.annotations.NotNull;
 
 public class DeploymentsApi extends JenkinsAppApi<DeploymentApiResponse> {
 
@@ -27,16 +28,29 @@ public class DeploymentsApi extends JenkinsAppApi<DeploymentApiResponse> {
             final String webhookUrl, final Deployments deploymentsRequest)
             throws ApiUpdateFailedException {
 
-        JenkinsAppRequest request =
-                new JenkinsAppRequest(
-                        JenkinsAppRequest.RequestType.EVENT,
-                        JenkinsAppRequest.EventType.DEPLOYMENT,
-                        deploymentsRequest.getDeployment().getPipeline().getId(),
-                        deploymentsRequest.getDeployment().getDisplayName(),
-                        deploymentsRequest.getDeployment().getState(),
-                        deploymentsRequest.getDeployment().getLastUpdated(),
-                        deploymentsRequest);
-
+        JenkinsAppRequest request = createRequest(deploymentsRequest);
         return this.sendRequest(webhookUrl, request, DeploymentApiResponse.class);
     }
+
+    public DeploymentApiResponse sendDeploymentAsJwt(
+            final String webhookUrl,
+            final Deployments deploymentsRequest,
+            String secret) throws ApiUpdateFailedException {
+
+        JenkinsAppRequest request = createRequest(deploymentsRequest);
+        return this.sendRequestAsJwt(webhookUrl, secret, request, DeploymentApiResponse.class);
+    }
+
+    @NotNull
+    private JenkinsAppRequest createRequest(Deployments deploymentsRequest) {
+        return new JenkinsAppRequest(
+                JenkinsAppRequest.RequestType.EVENT,
+                JenkinsAppRequest.EventType.DEPLOYMENT,
+                deploymentsRequest.getDeployment().getPipeline().getId(),
+                deploymentsRequest.getDeployment().getDisplayName(),
+                deploymentsRequest.getDeployment().getState(),
+                deploymentsRequest.getDeployment().getLastUpdated(),
+                deploymentsRequest);
+    }
+
 }
