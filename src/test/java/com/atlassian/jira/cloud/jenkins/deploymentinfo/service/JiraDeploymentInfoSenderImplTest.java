@@ -308,7 +308,8 @@ public class JiraDeploymentInfoSenderImplTest {
         // then
         assertThat(response.getStatus())
                 .isEqualTo(JiraSendInfoResponse.Status.SUCCESS_DEPLOYMENT_ACCEPTED);
-        verify(deploymentsApi).sendDeployment(any(), deploymentsArgumentCaptor.capture());
+        verify(deploymentsApi)
+                .sendDeploymentAsJwt(any(), deploymentsArgumentCaptor.capture(), any());
         final JiraDeploymentInfo jiraDeploymentInfo =
                 deploymentsArgumentCaptor.getValue().getDeployments().get(0);
         assertThat(jiraDeploymentInfo.getCommands())
@@ -335,9 +336,9 @@ public class JiraDeploymentInfoSenderImplTest {
             assertThat(message).isNotBlank();
         }
         verify(deploymentsApi, times(1))
-                .sendDeployment(eq(JIRA_SITE_CONFIG.getWebhookUrl()), any());
+                .sendDeploymentAsJwt(eq(JIRA_SITE_CONFIG.getWebhookUrl()), any(), any());
         verify(deploymentsApi, times(1))
-                .sendDeployment(eq(JIRA_SITE_CONFIG2.getWebhookUrl()), any());
+                .sendDeploymentAsJwt(eq(JIRA_SITE_CONFIG2.getWebhookUrl()), any(), any());
     }
 
     @Test
@@ -353,7 +354,7 @@ public class JiraDeploymentInfoSenderImplTest {
         assertThat(responses).hasSize(1);
         assertThat(responses.get(0).getStatus())
                 .isEqualTo(JiraSendInfoResponse.Status.FAILURE_DEPLOYMENT_GATING_MANY_JIRAS);
-        verify(deploymentsApi, times(0)).sendDeployment(any(), any());
+        verify(deploymentsApi, times(0)).sendDeploymentAsJwt(any(), any(), any());
     }
 
     @Test
@@ -477,7 +478,7 @@ public class JiraDeploymentInfoSenderImplTest {
     }
 
     private void setupDeploymentsApiFailure() {
-        when(deploymentsApi.sendDeployment(any(), any()))
+        when(deploymentsApi.sendDeploymentAsJwt(any(), any(), any()))
                 .thenThrow(new ApiUpdateFailedException("Error"));
     }
 
@@ -489,7 +490,8 @@ public class JiraDeploymentInfoSenderImplTest {
                         ImmutableList.of(deploymentKeyResponse),
                         Collections.emptyList(),
                         Collections.emptyList());
-        when(deploymentsApi.sendDeployment(any(), any())).thenReturn(deploymentApiResponse);
+        when(deploymentsApi.sendDeploymentAsJwt(any(), any(), any()))
+                .thenReturn(deploymentApiResponse);
     }
 
     private void setupDeploymentsApiDeploymentRejected() {
@@ -505,7 +507,8 @@ public class JiraDeploymentInfoSenderImplTest {
                         Collections.emptyList(),
                         ImmutableList.of(deploymentResponse),
                         Collections.emptyList());
-        when(deploymentsApi.sendDeployment(any(), any())).thenReturn(deploymentApiResponse);
+        when(deploymentsApi.sendDeploymentAsJwt(any(), any(), any()))
+                .thenReturn(deploymentApiResponse);
     }
 
     private void setupDeploymentApiUnknownIssueKeys() {
@@ -518,7 +521,8 @@ public class JiraDeploymentInfoSenderImplTest {
                                         .withAssociationType(AssociationType.ISSUE_KEYS)
                                         .withValues(ImmutableSet.of("TEST-123"))
                                         .build()));
-        when(deploymentsApi.sendDeployment(any(), any())).thenReturn(deploymentApiResponse);
+        when(deploymentsApi.sendDeploymentAsJwt(any(), any(), any()))
+                .thenReturn(deploymentApiResponse);
     }
 
     private static WorkflowRun mockWorkflowRun() {

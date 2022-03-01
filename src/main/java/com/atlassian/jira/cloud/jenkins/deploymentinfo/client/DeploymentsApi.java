@@ -15,23 +15,6 @@ public class DeploymentsApi extends JenkinsAppApi<DeploymentApiResponse> {
         super(httpClient, objectMapper);
     }
 
-    /**
-     * Sends a build event to the Jenkins app in Jira.
-     *
-     * @param webhookUrl URL to the Jenkins app webhook.
-     * @param deploymentsRequest the payload of the builds request.
-     * @return the response of the Jenkins app webhook.
-     * @throws ApiUpdateFailedException if the webhook responded with a non-successful HTTP status
-     *     code.
-     */
-    public DeploymentApiResponse sendDeployment(
-            final String webhookUrl, final Deployments deploymentsRequest)
-            throws ApiUpdateFailedException {
-
-        JenkinsAppRequest request = createRequest(deploymentsRequest);
-        return this.sendRequest(webhookUrl, request, DeploymentApiResponse.class);
-    }
-
     public DeploymentApiResponse sendDeploymentAsJwt(
             final String webhookUrl, final Deployments deploymentsRequest, final String secret)
             throws ApiUpdateFailedException {

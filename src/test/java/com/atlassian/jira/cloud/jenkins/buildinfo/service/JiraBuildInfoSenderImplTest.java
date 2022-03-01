@@ -273,8 +273,10 @@ public class JiraBuildInfoSenderImplTest {
             final String message = response.getMessage();
             assertThat(message).isNotBlank();
         }
-        verify(buildsApi, times(1)).sendBuild(eq(JIRA_SITE_CONFIG.getWebhookUrl()), any());
-        verify(buildsApi, times(1)).sendBuild(eq(JIRA_SITE_CONFIG2.getWebhookUrl()), any());
+        verify(buildsApi, times(1))
+                .sendBuildAsJwt(eq(JIRA_SITE_CONFIG.getWebhookUrl()), any(), any());
+        verify(buildsApi, times(1))
+                .sendBuildAsJwt(eq(JIRA_SITE_CONFIG2.getWebhookUrl()), any(), any());
     }
 
     private JiraBuildInfoRequest createOneJiraRequest() {
@@ -335,7 +337,8 @@ public class JiraBuildInfoSenderImplTest {
     }
 
     private void setupBuildsApiFailure() {
-        when(buildsApi.sendBuild(any(), any())).thenThrow(new ApiUpdateFailedException("Error"));
+        when(buildsApi.sendBuildAsJwt(any(), any(), any()))
+                .thenThrow(new ApiUpdateFailedException("Error"));
     }
 
     private void setupBuildsApiBuildAccepted() {
@@ -345,7 +348,7 @@ public class JiraBuildInfoSenderImplTest {
                         ImmutableList.of(buildKeyResponse),
                         Collections.emptyList(),
                         Collections.emptyList());
-        when(buildsApi.sendBuild(any(), any())).thenReturn(buildApiResponse);
+        when(buildsApi.sendBuildAsJwt(any(), any(), any())).thenReturn(buildApiResponse);
     }
 
     private void setupBuildApiBuildRejected() {
@@ -359,7 +362,7 @@ public class JiraBuildInfoSenderImplTest {
                         Collections.emptyList(),
                         ImmutableList.of(buildResponse),
                         Collections.emptyList());
-        when(buildsApi.sendBuild(any(), any())).thenReturn(buildApiResponse);
+        when(buildsApi.sendBuildAsJwt(any(), any(), any())).thenReturn(buildApiResponse);
     }
 
     private void setupBuildApiUnknownIssueKeys() {
@@ -368,7 +371,7 @@ public class JiraBuildInfoSenderImplTest {
                         Collections.emptyList(),
                         Collections.emptyList(),
                         ImmutableList.of("TEST-123"));
-        when(buildsApi.sendBuild(any(), any())).thenReturn(buildApiResponse);
+        when(buildsApi.sendBuildAsJwt(any(), any(), any())).thenReturn(buildApiResponse);
     }
 
     private static WorkflowRun mockWorkflowRun() {
