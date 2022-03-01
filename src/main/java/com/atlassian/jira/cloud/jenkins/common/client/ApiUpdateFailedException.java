@@ -5,7 +5,7 @@ public class ApiUpdateFailedException extends RuntimeException {
         super(errorMessage);
     }
 
-    public ApiUpdateFailedException(final String errorMessage, Throwable cause) {
+    public ApiUpdateFailedException(final String errorMessage, final Throwable cause) {
         super(errorMessage, cause);
     }
 }

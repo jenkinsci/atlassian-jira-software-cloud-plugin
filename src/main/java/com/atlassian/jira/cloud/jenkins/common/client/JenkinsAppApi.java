@@ -24,7 +24,8 @@ import java.util.Objects;
 public abstract class JenkinsAppApi<ResponseEntity> {
 
     private static final Logger log = LoggerFactory.getLogger(JenkinsAppApi.class);
-    private static final MediaType JSON_CONTENT_TYPE = MediaType.get("application/json; charset=utf-8");
+    private static final MediaType JSON_CONTENT_TYPE =
+            MediaType.get("application/json; charset=utf-8");
     private static final MediaType JWT_CONTENT_TYPE = MediaType.get("application/jwt");
 
     private final OkHttpClient httpClient;
@@ -71,7 +72,7 @@ public abstract class JenkinsAppApi<ResponseEntity> {
         }
     }
 
-    private ApiUpdateFailedException handleError(Exception e) {
+    private ApiUpdateFailedException handleError(final Exception e) {
         if (e instanceof NotSerializableException) {
             return new ApiUpdateFailedException(
                     String.format("Invalid JSON payload: %s", e.getMessage()), e);
@@ -82,13 +83,15 @@ public abstract class JenkinsAppApi<ResponseEntity> {
             return new ApiUpdateFailedException(
                     String.format(
                             "Server exception when submitting update to Jenkins app in Jira: %s",
-                            e.getMessage()), e);
+                            e.getMessage()),
+                    e);
         } else if (e instanceof RequestNotPermitted) {
             return new ApiUpdateFailedException("Rate limit reached " + e.getMessage(), e);
         } else {
             return new ApiUpdateFailedException(
                     String.format(
-                            "Unexpected error when submitting update to Jira: %s", e.getMessage()), e);
+                            "Unexpected error when submitting update to Jira: %s", e.getMessage()),
+                    e);
         }
     }
 
@@ -125,7 +128,8 @@ public abstract class JenkinsAppApi<ResponseEntity> {
                 body.bytes(), objectMapper.getTypeFactory().constructType(responseClass));
     }
 
-    private String wrapInJwt(JenkinsAppRequest request, String secret) throws JsonProcessingException {
+    private String wrapInJwt(final JenkinsAppRequest request, final String secret)
+            throws JsonProcessingException {
         final String body = objectMapper.writeValueAsString(request);
         Algorithm algorithm = Algorithm.HMAC256(secret);
         return JWT.create()
@@ -135,7 +139,5 @@ public abstract class JenkinsAppApi<ResponseEntity> {
                 .withExpiresAt(Date.from(Instant.now().plusSeconds(5 * 60)))
                 .withClaim("request_body_json", body)
                 .sign(algorithm);
-
     }
-
 }

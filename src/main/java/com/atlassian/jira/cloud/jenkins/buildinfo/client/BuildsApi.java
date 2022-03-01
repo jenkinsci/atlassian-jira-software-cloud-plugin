@@ -18,11 +18,11 @@ public class BuildsApi extends JenkinsAppApi<BuildApiResponse> {
     /**
      * Sends a build event to the Jenkins app in Jira.
      *
-     * @param webhookUrl    URL to the Jenkins app webhook.
+     * @param webhookUrl URL to the Jenkins app webhook.
      * @param buildsRequest the payload of the builds request.
      * @return the response of the Jenkins app webhook.
      * @throws ApiUpdateFailedException if the webhook responded with a non-successful HTTP status
-     *                                  code.
+     *     code.
      */
     public BuildApiResponse sendBuild(final String webhookUrl, final Builds buildsRequest)
             throws ApiUpdateFailedException {
@@ -31,7 +31,8 @@ public class BuildsApi extends JenkinsAppApi<BuildApiResponse> {
         return this.sendRequest(webhookUrl, request, BuildApiResponse.class);
     }
 
-    public BuildApiResponse sendBuildAsJwt(final String webhookUrl, final Builds buildsRequest, String secret)
+    public BuildApiResponse sendBuildAsJwt(
+            final String webhookUrl, final Builds buildsRequest, final String secret)
             throws ApiUpdateFailedException {
 
         JenkinsAppRequest request = createRequest(buildsRequest);
@@ -39,7 +40,7 @@ public class BuildsApi extends JenkinsAppApi<BuildApiResponse> {
     }
 
     @NotNull
-    private JenkinsAppRequest createRequest(Builds buildsRequest) {
+    private JenkinsAppRequest createRequest(final Builds buildsRequest) {
         return new JenkinsAppRequest(
                 JenkinsAppRequest.RequestType.EVENT,
                 JenkinsAppRequest.EventType.BUILD,
