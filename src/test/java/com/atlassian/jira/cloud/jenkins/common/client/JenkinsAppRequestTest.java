@@ -20,7 +20,7 @@ public class JenkinsAppRequestTest {
 
         JenkinsAppRequest request = jenkinsAppEventRequest(
                 lastUpdated,
-                JenkinsAppRequest.EventType.BUILD,
+                JenkinsAppEventRequest.EventType.BUILD,
                 builds(lastUpdated));
 
         ObjectMapper mapper = new ObjectMapperProvider().objectMapper();
@@ -36,7 +36,7 @@ public class JenkinsAppRequestTest {
 
         JenkinsAppRequest request = jenkinsAppEventRequest(
                 lastUpdated,
-                JenkinsAppRequest.EventType.DEPLOYMENT,
+                JenkinsAppEventRequest.EventType.DEPLOYMENT,
                 deployments(lastUpdated));
 
         ObjectMapper mapper = new ObjectMapperProvider().objectMapper();

@@ -17,10 +17,9 @@ public class JenkinsAppRequestTestData {
 
     public static JenkinsAppRequest jenkinsAppEventRequest(
             Instant lastUpdated,
-            JenkinsAppRequest.EventType eventType,
+            JenkinsAppEventRequest.EventType eventType,
             JiraRequest payload) {
-        return new JenkinsAppRequest(
-                JenkinsAppRequest.RequestType.EVENT,
+        return new JenkinsAppEventRequest(
                 eventType,
                 "pipelineId",
                 "pipelineName",

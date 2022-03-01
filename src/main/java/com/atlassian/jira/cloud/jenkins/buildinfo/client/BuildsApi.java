@@ -4,6 +4,7 @@ import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.BuildApiResponse;
 import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.Builds;
 import com.atlassian.jira.cloud.jenkins.common.client.ApiUpdateFailedException;
 import com.atlassian.jira.cloud.jenkins.common.client.JenkinsAppApi;
+import com.atlassian.jira.cloud.jenkins.common.client.JenkinsAppEventRequest;
 import com.atlassian.jira.cloud.jenkins.common.client.JenkinsAppRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.OkHttpClient;
@@ -25,9 +26,8 @@ public class BuildsApi extends JenkinsAppApi<BuildApiResponse> {
 
     @NotNull
     private JenkinsAppRequest createRequest(final Builds buildsRequest) {
-        return new JenkinsAppRequest(
-                JenkinsAppRequest.RequestType.EVENT,
-                JenkinsAppRequest.EventType.BUILD,
+        return new JenkinsAppEventRequest(
+                JenkinsAppEventRequest.EventType.BUILD,
                 buildsRequest.getBuild().getPipelineId(),
                 buildsRequest.getBuild().getDisplayName(),
                 buildsRequest.getBuild().getState(),

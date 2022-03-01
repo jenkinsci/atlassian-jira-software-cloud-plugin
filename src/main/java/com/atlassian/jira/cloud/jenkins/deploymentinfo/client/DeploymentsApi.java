@@ -2,6 +2,7 @@ package com.atlassian.jira.cloud.jenkins.deploymentinfo.client;
 
 import com.atlassian.jira.cloud.jenkins.common.client.ApiUpdateFailedException;
 import com.atlassian.jira.cloud.jenkins.common.client.JenkinsAppApi;
+import com.atlassian.jira.cloud.jenkins.common.client.JenkinsAppEventRequest;
 import com.atlassian.jira.cloud.jenkins.common.client.JenkinsAppRequest;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.DeploymentApiResponse;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Deployments;
@@ -25,9 +26,8 @@ public class DeploymentsApi extends JenkinsAppApi<DeploymentApiResponse> {
 
     @NotNull
     private JenkinsAppRequest createRequest(final Deployments deploymentsRequest) {
-        return new JenkinsAppRequest(
-                JenkinsAppRequest.RequestType.EVENT,
-                JenkinsAppRequest.EventType.DEPLOYMENT,
+        return new JenkinsAppEventRequest(
+                JenkinsAppEventRequest.EventType.DEPLOYMENT,
                 deploymentsRequest.getDeployment().getPipeline().getId(),
                 deploymentsRequest.getDeployment().getDisplayName(),
                 deploymentsRequest.getDeployment().getState(),
