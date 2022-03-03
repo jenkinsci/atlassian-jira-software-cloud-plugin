@@ -12,12 +12,12 @@ public class JenkinsAppEventRequest extends JenkinsAppRequest {
     private final String pipelineId;
 
     public JenkinsAppEventRequest(
-            EventType eventType,
-            String pipelineId,
-            String pipelineName,
-            String status,
-            String lastUpdated,
-            JiraRequest payload) {
+            final EventType eventType,
+            final String pipelineId,
+            final String pipelineName,
+            final String status,
+            final String lastUpdated,
+            final JiraRequest payload) {
         super(RequestType.EVENT);
         this.eventType = eventType;
         this.pipelineName = pipelineName;
@@ -66,5 +66,4 @@ public class JenkinsAppEventRequest extends JenkinsAppRequest {
             return value;
         }
     }
-
 }
