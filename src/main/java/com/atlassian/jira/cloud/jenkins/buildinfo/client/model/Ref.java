@@ -7,7 +7,7 @@ public class Ref {
     private String name;
     private String uri;
 
-    public Ref(String name, String uri) {
+    public Ref(final String name, final String uri) {
         this.name = name;
         this.uri = uri;
     }

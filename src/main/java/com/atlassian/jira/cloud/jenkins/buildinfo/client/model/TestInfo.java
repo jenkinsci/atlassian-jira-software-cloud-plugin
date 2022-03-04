@@ -11,7 +11,11 @@ public class TestInfo {
     private Integer numberFailed;
     private Integer numberSkipped;
 
-    public TestInfo(Integer totalNumber, Integer numberPassed, Integer numberFailed, Integer numberSkipped) {
+    public TestInfo(
+            final Integer totalNumber,
+            final Integer numberPassed,
+            final Integer numberFailed,
+            final Integer numberSkipped) {
         this.totalNumber = totalNumber;
         this.numberPassed = numberPassed;
         this.numberFailed = numberFailed;

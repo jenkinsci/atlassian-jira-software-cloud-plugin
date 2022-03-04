@@ -7,7 +7,7 @@ public class Commit {
     private String id;
     private String repositoryUri;
 
-    public Commit(String id, String repositoryUri) {
+    public Commit(final String id, final String repositoryUri) {
         this.id = id;
         this.repositoryUri = repositoryUri;
     }
