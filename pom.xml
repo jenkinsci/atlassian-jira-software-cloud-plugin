@@ -20,7 +20,7 @@
         <java.level>8</java.level>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <filterModified>true</filterModified>
-        <mockito.version>2.27.0</mockito.version>
+        <mockito.version>4.3.1</mockito.version>
         <jackson.version>2.13.1</jackson.version>
         <jackson-databind.version>2.13.1</jackson-databind.version>
         <okhttp.version>4.0.1</okhttp.version>
@@ -231,12 +231,6 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <version>${mockito.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-inline</artifactId>
             <version>${mockito.version}</version>
             <scope>test</scope>
         </dependency>

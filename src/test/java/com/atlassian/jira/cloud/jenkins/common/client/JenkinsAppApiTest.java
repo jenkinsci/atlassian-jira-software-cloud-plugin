@@ -39,7 +39,7 @@ public class JenkinsAppApiTest {
         BuildsApi buildsApi = new BuildsApi(client, objectMapper);
 
         // when
-        buildsApi.sendBuildAsJwt("https://webhook.url", builds(lastUpdated), "secret");
+        buildsApi.sendBuildAsJwt("https://webhook.url", builds(lastUpdated), "this is a secret");
 
         // then
         ArgumentCaptor<Request> requestCaptor = ArgumentCaptor.forClass(Request.class);
@@ -62,7 +62,7 @@ public class JenkinsAppApiTest {
         DeploymentsApi deploymentsApi = new DeploymentsApi(client, objectMapper);
 
         // when
-        deploymentsApi.sendDeploymentAsJwt("https://webhook.url", deployments(lastUpdated), "secret");
+        deploymentsApi.sendDeploymentAsJwt("https://webhook.url", deployments(lastUpdated), "this is a secret");
 
         // then
         ArgumentCaptor<Request> requestCaptor = ArgumentCaptor.forClass(Request.class);

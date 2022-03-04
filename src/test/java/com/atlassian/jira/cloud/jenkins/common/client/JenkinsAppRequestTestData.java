@@ -1,8 +1,13 @@
 package com.atlassian.jira.cloud.jenkins.common.client;
 
 import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.Builds;
+import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.Commit;
 import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.JiraBuildInfo;
+import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.Ref;
+import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.Reference;
 import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.TestInfo;
+import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Association;
+import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.AssociationType;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Deployments;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Environment;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.JiraDeploymentInfo;
@@ -12,6 +17,7 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Set;
 
 public class JenkinsAppRequestTestData {
 
@@ -30,6 +36,10 @@ public class JenkinsAppRequestTestData {
     }
 
     public static Builds builds(Instant lastUpdated) {
+        Reference ref = new Reference();
+        ref.setCommit(new Commit("cafebabe", "https://repo.url"));
+        ref.setRef(new Ref("refname", "https:ref.uri"));
+
         return new Builds(
                 new JiraBuildInfo(
                         "pipelineId",
@@ -39,25 +49,29 @@ public class JenkinsAppRequestTestData {
                         "description",
                         "label",
                         "https://url.com",
-                        "success",
+                        "successful",
                         lastUpdated.toString(),
-                        new HashSet<>(Arrays.asList("TEST-1")),
-                        Collections.emptyList(),
-                        new TestInfo()));
+                        new HashSet<>(Arrays.asList("JEN-25")),
+                        Collections.singletonList(ref),
+                        new TestInfo(0, 0, 0, 0)));
     }
 
     public static Deployments deployments(Instant lastUpdated) {
+        Set<String> issueKeys = new HashSet<>();
+        issueKeys.add("JEN-25");
+        Association association = new Association(AssociationType.ISSUE_KEYS, issueKeys);
+
         return new Deployments(
                 new JiraDeploymentInfo(
                         42,
                         45L,
-                        Collections.emptySet(),
+                        Collections.singleton(association),
                         "pipelineName",
                         "https://url.com",
                         "description",
                         lastUpdated.toString(),
                         "label",
-                        "success",
+                        "successful",
                         new Pipeline(
                                 "pipelineId", "pipelineName", "https://url.com"),
                         new Environment("stg-east", "Staging east", "staging"),
