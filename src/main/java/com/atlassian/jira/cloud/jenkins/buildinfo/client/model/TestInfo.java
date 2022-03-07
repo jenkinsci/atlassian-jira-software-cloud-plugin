@@ -11,6 +11,20 @@ public class TestInfo {
     private Integer numberFailed;
     private Integer numberSkipped;
 
+    public TestInfo(
+            final Integer totalNumber,
+            final Integer numberPassed,
+            final Integer numberFailed,
+            final Integer numberSkipped) {
+        this.totalNumber = totalNumber;
+        this.numberPassed = numberPassed;
+        this.numberFailed = numberFailed;
+        this.numberSkipped = numberSkipped;
+    }
+
+    public TestInfo() {
+    }
+
     public Integer getTotalNumber() {
         return totalNumber;
     }

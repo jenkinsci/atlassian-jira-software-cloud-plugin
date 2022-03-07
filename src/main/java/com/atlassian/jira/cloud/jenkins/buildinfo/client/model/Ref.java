@@ -7,6 +7,14 @@ public class Ref {
     private String name;
     private String uri;
 
+    public Ref(final String name, final String uri) {
+        this.name = name;
+        this.uri = uri;
+    }
+
+    public Ref() {
+    }
+
     public String getName() {
         return name;
     }

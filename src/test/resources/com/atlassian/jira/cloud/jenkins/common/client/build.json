@@ -2,7 +2,7 @@
   "requestType": "event",
   "eventType": "build",
   "pipelineName": "pipelineName",
-  "status": "success",
+  "status": "successful",
   "lastUpdated": "2022-02-24T05:24:36.767Z",
   "payload": {
     "properties": {
@@ -20,17 +20,28 @@
         "description": "description",
         "label": "label",
         "url": "https://url.com",
-        "state": "success",
+        "state": "successful",
         "lastUpdated": "2022-02-24T05:24:36.767Z",
         "issueKeys": [
-          "TEST-1"
+          "JEN-25"
         ],
-        "references": [],
+        "references": [
+          {
+            "commit": {
+              "id": "cafebabe",
+              "repositoryUri": "https://repo.url"
+            },
+            "ref": {
+              "name": "refname",
+              "uri": "https:ref.uri"
+            }
+          }
+        ],
         "testInfo": {
-          "totalNumber": null,
-          "numberPassed": null,
-          "numberFailed": null,
-          "numberSkipped": null
+          "totalNumber": 0,
+          "numberPassed": 0,
+          "numberFailed": 0,
+          "numberSkipped": 0
         },
         "schemaVersion": "1.0"
       }

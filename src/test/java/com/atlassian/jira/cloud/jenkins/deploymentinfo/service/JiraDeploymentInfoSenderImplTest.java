@@ -193,7 +193,7 @@ public class JiraDeploymentInfoSenderImplTest {
                         .get(0);
 
         // then
-        verifyZeroInteractions(issueKeyExtractor);
+        verifyNoInteractions(issueKeyExtractor);
         assertThat(response.getStatus())
                 .isEqualTo(JiraSendInfoResponse.Status.SUCCESS_DEPLOYMENT_ACCEPTED);
         final String message = response.getMessage();
