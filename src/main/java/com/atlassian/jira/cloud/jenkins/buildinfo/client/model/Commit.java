@@ -7,6 +7,14 @@ public class Commit {
     private String id;
     private String repositoryUri;
 
+    public Commit(final String id, final String repositoryUri) {
+        this.id = id;
+        this.repositoryUri = repositoryUri;
+    }
+
+    public Commit() {
+    }
+
     public String getId() {
         return id;
     }

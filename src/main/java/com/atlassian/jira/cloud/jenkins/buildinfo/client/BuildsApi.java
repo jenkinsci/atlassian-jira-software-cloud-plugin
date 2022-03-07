@@ -7,6 +7,7 @@ import com.atlassian.jira.cloud.jenkins.common.client.JenkinsAppApi;
 import com.atlassian.jira.cloud.jenkins.common.client.JenkinsAppRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.OkHttpClient;
+import org.jetbrains.annotations.NotNull;
 
 public class BuildsApi extends JenkinsAppApi<BuildApiResponse> {
 
@@ -14,28 +15,23 @@ public class BuildsApi extends JenkinsAppApi<BuildApiResponse> {
         super(httpClient, objectMapper);
     }
 
-    /**
-     * Sends a build event to the Jenkins app in Jira.
-     *
-     * @param webhookUrl    URL to the Jenkins app webhook.
-     * @param buildsRequest the payload of the builds request.
-     * @return the response of the Jenkins app webhook.
-     * @throws ApiUpdateFailedException if the webhook responded with a non-successful HTTP status
-     *                                  code.
-     */
-    public BuildApiResponse sendBuild(final String webhookUrl, final Builds buildsRequest)
+    public BuildApiResponse sendBuildAsJwt(
+            final String webhookUrl, final Builds buildsRequest, final String secret)
             throws ApiUpdateFailedException {
 
-        JenkinsAppRequest request =
-                new JenkinsAppRequest(
-                        JenkinsAppRequest.RequestType.EVENT,
-                        JenkinsAppRequest.EventType.BUILD,
-                        buildsRequest.getBuild().getPipelineId(),
-                        buildsRequest.getBuild().getDisplayName(),
-                        buildsRequest.getBuild().getState(),
-                        buildsRequest.getBuild().getLastUpdated(),
-                        buildsRequest);
+        JenkinsAppRequest request = createRequest(buildsRequest);
+        return this.sendRequestAsJwt(webhookUrl, secret, request, BuildApiResponse.class);
+    }
 
-        return this.sendRequest(webhookUrl, request, BuildApiResponse.class);
+    @NotNull
+    private JenkinsAppRequest createRequest(final Builds buildsRequest) {
+        return new JenkinsAppRequest(
+                JenkinsAppRequest.RequestType.EVENT,
+                JenkinsAppRequest.EventType.BUILD,
+                buildsRequest.getBuild().getPipelineId(),
+                buildsRequest.getBuild().getDisplayName(),
+                buildsRequest.getBuild().getState(),
+                buildsRequest.getBuild().getLastUpdated(),
+                buildsRequest);
     }
 }
