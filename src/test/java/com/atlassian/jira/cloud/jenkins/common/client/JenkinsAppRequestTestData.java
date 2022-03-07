@@ -30,7 +30,7 @@ public class JenkinsAppRequestTestData {
                 eventType,
                 "pipelineId",
                 "pipelineName",
-                "success",
+                "successful",
                 lastUpdated.toString(),
                 payload);
     }
