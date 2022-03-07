@@ -172,7 +172,7 @@ The main use case of this plugin is to send build and deployment events to Jira.
 
 ### Sending builds automatically
 
-In the Jenkins server configuration you can configure the plugin to automatically send builds events without having to add anything to your Jenkinsfiles:
+Starting with version 2.0.0 of the plugin (not yet available!), you can configure the plugin to automatically send builds events without having to add anything to your Jenkinsfiles:
 
 ![Sending builds automatically](docs/images/auto-builds.png)
 
@@ -199,7 +199,7 @@ Whenever the pipeline in this Jenkinsfile runs, it will send build events to all
 
 ### Sending deployments automatically
 
-In the Jenkins server configuration you can configure the plugin to automatically send deployment events without having to add anything to your Jenkinsfiles:
+Starting with version 2.0.0 of the plugin (not yet available!), you can configure the plugin to automatically send deployment events without having to add anything to your Jenkinsfiles:
 
 ![Sending deployments automatically](docs/images/auto-deployments.png)
 
@@ -247,7 +247,8 @@ pipeline {
              }
              post {
                  always {
-                     jiraSendBuildInfo()
+                     // previous to version 2.0.0 you must provide parameters to this command (see below)!
+                     jiraSendBuildInfo() 
                  }
              }
          }
