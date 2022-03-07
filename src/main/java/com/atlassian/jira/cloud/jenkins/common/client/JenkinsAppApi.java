@@ -4,6 +4,7 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.annotations.VisibleForTesting;
 import io.github.resilience4j.ratelimiter.RequestNotPermitted;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -128,7 +129,8 @@ public abstract class JenkinsAppApi<ResponseEntity> {
                 body.bytes(), objectMapper.getTypeFactory().constructType(responseClass));
     }
 
-    private String wrapInJwt(final JenkinsAppRequest request, final String secret)
+    @VisibleForTesting
+    protected String wrapInJwt(final JenkinsAppRequest request, final String secret)
             throws JsonProcessingException {
         final String body = objectMapper.writeValueAsString(request);
         Algorithm algorithm = Algorithm.HMAC256(secret);

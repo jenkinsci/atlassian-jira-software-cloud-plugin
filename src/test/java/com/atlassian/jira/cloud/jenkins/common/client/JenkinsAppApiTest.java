@@ -16,18 +16,40 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.skyscreamer.jsonassert.JSONAssert;
 import org.skyscreamer.jsonassert.JSONCompareMode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 
-import static com.atlassian.jira.cloud.jenkins.common.client.JenkinsAppRequestTestData.builds;
-import static com.atlassian.jira.cloud.jenkins.common.client.JenkinsAppRequestTestData.deployments;
+import static com.atlassian.jira.cloud.jenkins.common.client.JenkinsAppRequestTestData.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
 public class JenkinsAppApiTest {
+
+    private final Logger logger = LoggerFactory.getLogger(JenkinsAppApiTest.class);
+
+    /** Generates an example JWT that can be used in other tests. */
+    @Test
+    public void generateExampleJwt() throws IOException {
+        OkHttpClient client = mockHttpClient();
+        ObjectMapperProvider objectMapperProvider = new ObjectMapperProvider();
+        ObjectMapper objectMapper = objectMapperProvider.objectMapper();
+        BuildsApi buildsApi = new BuildsApi(client, objectMapper);
+
+        String jwt =
+                buildsApi.wrapInJwt(
+                        jenkinsAppEventRequest(
+                                Instant.now(),
+                                JenkinsAppRequest.EventType.BUILD,
+                                builds(Instant.now())),
+                        "this is a secret");
+
+        logger.info("Here's your JWT: {}", jwt);
+    }
 
     @Test
     public void wrapsBuildRequestInJwt() throws IOException {
@@ -62,7 +84,8 @@ public class JenkinsAppApiTest {
         DeploymentsApi deploymentsApi = new DeploymentsApi(client, objectMapper);
 
         // when
-        deploymentsApi.sendDeploymentAsJwt("https://webhook.url", deployments(lastUpdated), "this is a secret");
+        deploymentsApi.sendDeploymentAsJwt(
+                "https://webhook.url", deployments(lastUpdated), "this is a secret");
 
         // then
         ArgumentCaptor<Request> requestCaptor = ArgumentCaptor.forClass(Request.class);
@@ -75,16 +98,17 @@ public class JenkinsAppApiTest {
         JSONAssert.assertEquals(expectedPayload, actualPayload, JSONCompareMode.LENIENT);
     }
 
-    private String getPayloadFromJwt(Request actualRequest) throws IOException {
+    private String getPayloadFromJwt(final Request actualRequest) throws IOException {
         Buffer buffer = new Buffer();
         actualRequest.body().writeTo(buffer);
-        String actualPayload = JWT.decode(buffer.readString(StandardCharsets.UTF_8)).getClaim("request_body_json").asString();
+        String actualPayload =
+                JWT.decode(buffer.readString(StandardCharsets.UTF_8))
+                        .getClaim("request_body_json")
+                        .asString();
         return actualPayload;
     }
 
-    /**
-     * Mocks the OkHttpClient to always return a successful response.
-     */
+    /** Mocks the OkHttpClient to always return a successful response. */
     private OkHttpClient mockHttpClient() throws IOException {
         OkHttpClient client = Mockito.mock(OkHttpClient.class);
         Call call = Mockito.mock(Call.class);
@@ -95,9 +119,9 @@ public class JenkinsAppApiTest {
         given(response.body()).willReturn(responseBody);
         given(response.isSuccessful()).willReturn(true);
         given(responseBody.string()).willReturn("{\"success\": \"true\"}");
-        given(responseBody.bytes()).willReturn("{\"success\": \"true\"}".getBytes(StandardCharsets.UTF_8));
+        given(responseBody.bytes())
+                .willReturn("{\"success\": \"true\"}".getBytes(StandardCharsets.UTF_8));
         given(client.newCall(any(Request.class))).willReturn(call);
         return client;
     }
-
 }

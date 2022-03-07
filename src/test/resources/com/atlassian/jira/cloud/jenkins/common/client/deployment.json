@@ -2,7 +2,7 @@
   "requestType": "event",
   "eventType": "deployment",
   "pipelineName": "pipelineName",
-  "status": "success",
+  "status": "successful",
   "lastUpdated": "2022-02-24T05:24:36.767Z",
   "payload": {
     "properties": {
@@ -15,13 +15,20 @@
       {
         "deploymentSequenceNumber": 42,
         "updateSequenceNumber": 45,
-        "associations": [],
+        "associations": [
+          {
+            "values": [
+              "JEN-25"
+            ],
+            "associationType": "issueKeys"
+          }
+        ],
         "displayName": "pipelineName",
         "url": "https://url.com",
         "description": "description",
         "lastUpdated": "2022-02-24T05:24:36.767Z",
         "label": "label",
-        "state": "success",
+        "state": "successful",
         "pipeline": {
           "id": "pipelineId",
           "displayName": "pipelineName",
