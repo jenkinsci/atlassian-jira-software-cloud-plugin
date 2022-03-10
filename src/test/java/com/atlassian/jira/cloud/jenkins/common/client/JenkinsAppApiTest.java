@@ -2,6 +2,9 @@ package com.atlassian.jira.cloud.jenkins.common.client;
 
 import com.atlassian.jira.cloud.jenkins.buildinfo.client.BuildsApi;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.DeploymentsApi;
+import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.DeploymentApiResponse;
+import com.atlassian.jira.cloud.jenkins.ping.JenkinsAppPingRequest;
+import com.atlassian.jira.cloud.jenkins.ping.PingApi;
 import com.atlassian.jira.cloud.jenkins.provider.ObjectMapperProvider;
 import com.auth0.jwt.JWT;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -22,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.util.Calendar;
 
 import static com.atlassian.jira.cloud.jenkins.common.client.JenkinsAppRequestTestData.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -34,7 +38,10 @@ public class JenkinsAppApiTest {
 
     /** Generates an example JWT that can be used in other tests. */
     @Test
-    public void generateExampleJwt() throws IOException {
+    public void generateExampleBuildsJwt() throws IOException {
+        Calendar farFuture = Calendar.getInstance();
+        farFuture.set(2999, 1, 1);
+
         OkHttpClient client = mockHttpClient();
         ObjectMapperProvider objectMapperProvider = new ObjectMapperProvider();
         ObjectMapper objectMapper = objectMapperProvider.objectMapper();
@@ -44,9 +51,49 @@ public class JenkinsAppApiTest {
                 buildsApi.wrapInJwt(
                         jenkinsAppEventRequest(
                                 Instant.now(),
-                                JenkinsAppRequest.EventType.BUILD,
+                                JenkinsAppEventRequest.EventType.BUILD,
                                 builds(Instant.now())),
-                        "this is a secret");
+                        "this is a secret",
+                        farFuture.getTime());
+
+        logger.info("Here's your JWT: {}", jwt);
+    }
+
+    @Test
+    public void generateExampleDeploymentsJwt() throws IOException {
+        Calendar farFuture = Calendar.getInstance();
+        farFuture.set(2999, 1, 1);
+
+        OkHttpClient client = mockHttpClient();
+        ObjectMapperProvider objectMapperProvider = new ObjectMapperProvider();
+        ObjectMapper objectMapper = objectMapperProvider.objectMapper();
+        DeploymentsApi deploymentsApi = new DeploymentsApi(client, objectMapper);
+
+        String jwt =
+                deploymentsApi.wrapInJwt(
+                        jenkinsAppEventRequest(
+                                Instant.now(),
+                                JenkinsAppEventRequest.EventType.DEPLOYMENT,
+                                deployments(Instant.now())),
+                        "this is a secret",
+                        farFuture.getTime());
+
+        logger.info("Here's your JWT: {}", jwt);
+    }
+
+    @Test
+    public void generateExamplePingJwt() throws IOException {
+        Calendar farFuture = Calendar.getInstance();
+        farFuture.set(2999, 1, 1);
+
+        OkHttpClient client = mockHttpClient();
+        ObjectMapperProvider objectMapperProvider = new ObjectMapperProvider();
+        ObjectMapper objectMapper = objectMapperProvider.objectMapper();
+        PingApi pingApi = new PingApi(client, objectMapper);
+
+        String jwt =
+                pingApi.wrapInJwt(
+                        new JenkinsAppPingRequest(), "this is a secret", farFuture.getTime());
 
         logger.info("Here's your JWT: {}", jwt);
     }
@@ -69,9 +116,10 @@ public class JenkinsAppApiTest {
         Request actualRequest = requestCaptor.getValue();
 
         // can extract payload from JWT
-        String actualPayload = getPayloadFromJwt(actualRequest);
-        String expectedPayload = ClassPathReader.readFromClasspath("build.json");
-        JSONAssert.assertEquals(expectedPayload, actualPayload, JSONCompareMode.LENIENT);
+        String actualRequestPayload = getPayloadFromJwt(actualRequest);
+        String expectedRequestPayload = ClassPathReader.readFromClasspath("build.json");
+        JSONAssert.assertEquals(
+                expectedRequestPayload, actualRequestPayload, JSONCompareMode.LENIENT);
     }
 
     @Test
@@ -84,8 +132,9 @@ public class JenkinsAppApiTest {
         DeploymentsApi deploymentsApi = new DeploymentsApi(client, objectMapper);
 
         // when
-        deploymentsApi.sendDeploymentAsJwt(
-                "https://webhook.url", deployments(lastUpdated), "this is a secret");
+        DeploymentApiResponse response =
+                deploymentsApi.sendDeploymentAsJwt(
+                        "https://webhook.url", deployments(lastUpdated), "this is a secret");
 
         // then
         ArgumentCaptor<Request> requestCaptor = ArgumentCaptor.forClass(Request.class);
@@ -93,9 +142,33 @@ public class JenkinsAppApiTest {
         Request actualRequest = requestCaptor.getValue();
 
         // can extract payload from JWT
-        String actualPayload = getPayloadFromJwt(actualRequest);
-        String expectedPayload = ClassPathReader.readFromClasspath("deployment.json");
-        JSONAssert.assertEquals(expectedPayload, actualPayload, JSONCompareMode.LENIENT);
+        String actualRequestPayload = getPayloadFromJwt(actualRequest);
+        String expectedRequestPayload = ClassPathReader.readFromClasspath("deployment.json");
+        JSONAssert.assertEquals(
+                expectedRequestPayload, actualRequestPayload, JSONCompareMode.LENIENT);
+    }
+
+    @Test
+    public void wrapsPingRequestInJwt() throws IOException {
+        // given
+        OkHttpClient client = mockHttpClient();
+        ObjectMapperProvider objectMapperProvider = new ObjectMapperProvider();
+        ObjectMapper objectMapper = objectMapperProvider.objectMapper();
+        PingApi pingApi = new PingApi(client, objectMapper);
+
+        // when
+        pingApi.sendPing("https://webhook.url", "this is a secret");
+
+        // then
+        ArgumentCaptor<Request> requestCaptor = ArgumentCaptor.forClass(Request.class);
+        verify(client).newCall(requestCaptor.capture());
+        Request actualRequest = requestCaptor.getValue();
+
+        // can extract payload from JWT
+        String actualRequestPayload = getPayloadFromJwt(actualRequest);
+        String expectedRequestPayload = ClassPathReader.readFromClasspath("ping.json");
+        JSONAssert.assertEquals(
+                expectedRequestPayload, actualRequestPayload, JSONCompareMode.LENIENT);
     }
 
     private String getPayloadFromJwt(final Request actualRequest) throws IOException {
@@ -118,9 +191,9 @@ public class JenkinsAppApiTest {
         given(response.code()).willReturn(200);
         given(response.body()).willReturn(responseBody);
         given(response.isSuccessful()).willReturn(true);
-        given(responseBody.string()).willReturn("{\"success\": \"true\"}");
+        given(responseBody.string()).willReturn("{\"success\": true}");
         given(responseBody.bytes())
-                .willReturn("{\"success\": \"true\"}".getBytes(StandardCharsets.UTF_8));
+                .willReturn("{\"success\": true}".getBytes(StandardCharsets.UTF_8));
         given(client.newCall(any(Request.class))).willReturn(call);
         return client;
     }

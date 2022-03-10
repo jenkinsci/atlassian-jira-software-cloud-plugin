@@ -2,13 +2,13 @@ package com.atlassian.jira.cloud.jenkins.ping;
 
 public class PingResponse {
 
-    private final boolean success;
+    private boolean success;
 
-    public PingResponse(final boolean success) {
-        this.success = success;
+    public boolean getSuccess() {
+        return success;
     }
 
-    public boolean isSuccess() {
-        return success;
+    public void setSuccess(final boolean success) {
+        this.success = success;
     }
 }

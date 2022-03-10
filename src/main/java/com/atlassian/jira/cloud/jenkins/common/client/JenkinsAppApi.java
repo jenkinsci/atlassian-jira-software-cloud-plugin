@@ -31,6 +31,7 @@ public abstract class JenkinsAppApi<ResponseEntity> {
 
     private final OkHttpClient httpClient;
     private final ObjectMapper objectMapper;
+    private static final int JWT_EXPIRY_SECONDS = 5 * 60;
 
     @Inject
     public JenkinsAppApi(final OkHttpClient httpClient, final ObjectMapper objectMapper) {
@@ -62,7 +63,11 @@ public abstract class JenkinsAppApi<ResponseEntity> {
             final Class<ResponseEntity> responseClass)
             throws ApiUpdateFailedException {
         try {
-            final String requestPayload = wrapInJwt(jenkinsAppRequest, secret);
+            final String requestPayload =
+                    wrapInJwt(
+                            jenkinsAppRequest,
+                            secret,
+                            Date.from(Instant.now().plusSeconds(JWT_EXPIRY_SECONDS)));
             RequestBody body = RequestBody.create(JWT_CONTENT_TYPE, requestPayload);
             Request request = new Request.Builder().url(webhookUrl).post(body).build();
             final Response response = httpClient.newCall(request).execute();
@@ -74,7 +79,9 @@ public abstract class JenkinsAppApi<ResponseEntity> {
     }
 
     private ApiUpdateFailedException handleError(final Exception e) {
-        if (e instanceof NotSerializableException) {
+        if (e instanceof ApiUpdateFailedException) {
+            return (ApiUpdateFailedException) e;
+        } else if (e instanceof NotSerializableException) {
             return new ApiUpdateFailedException(
                     String.format("Invalid JSON payload: %s", e.getMessage()), e);
         } else if (e instanceof JsonProcessingException) {
@@ -98,20 +105,31 @@ public abstract class JenkinsAppApi<ResponseEntity> {
 
     private void checkForErrorResponse(final Response response) throws IOException {
         if (!response.isSuccessful()) {
-            final String message =
-                    String.format(
-                            "Error response code %d when submitting update to Jenkins app in Jira",
-                            response.code());
+
+            // log the error response
             final ResponseBody responseBody = response.body();
+            String responseBodyString = null;
             if (responseBody != null) {
+                responseBodyString = responseBody.string();
                 log.error(
                         String.format(
-                                "Error response body when submitting update to Jenkins app in Jira: %s",
-                                responseBody.string()));
+                                "HTTP status %d when calling Jenkins app in Jira: %s",
+                                response.code(), responseBodyString));
                 responseBody.close();
             }
 
-            throw new ApiUpdateFailedException(message);
+            // on a 400 we want to expose the error message to the user
+            if (response.code() >= 400 && response.code() < 500 && responseBodyString != null) {
+                throw new BadRequestException(responseBodyString);
+            }
+
+            // otherwise, we only want to expose the error code
+            final String errorCodeMessage =
+                    String.format(
+                            "Error response code %d when calling Jenkins app in Jira",
+                            response.code());
+
+            throw new ApiUpdateFailedException(errorCodeMessage);
         }
     }
 
@@ -130,7 +148,8 @@ public abstract class JenkinsAppApi<ResponseEntity> {
     }
 
     @VisibleForTesting
-    protected String wrapInJwt(final JenkinsAppRequest request, final String secret)
+    protected String wrapInJwt(
+            final JenkinsAppRequest request, final String secret, final Date expiryDate)
             throws JsonProcessingException {
         final String body = objectMapper.writeValueAsString(request);
         Algorithm algorithm = Algorithm.HMAC256(secret);
@@ -138,7 +157,7 @@ public abstract class JenkinsAppApi<ResponseEntity> {
                 .withIssuer("jenkins-plugin")
                 .withAudience("jenkins-forge-app")
                 .withIssuedAt(new Date())
-                .withExpiresAt(Date.from(Instant.now().plusSeconds(5 * 60)))
+                .withExpiresAt(expiryDate)
                 .withClaim("request_body_json", body)
                 .sign(algorithm);
     }

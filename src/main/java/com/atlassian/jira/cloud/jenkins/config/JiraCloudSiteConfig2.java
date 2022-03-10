@@ -1,5 +1,6 @@
 package com.atlassian.jira.cloud.jenkins.config;
 
+import com.atlassian.jira.cloud.jenkins.common.client.BadRequestException;
 import com.atlassian.jira.cloud.jenkins.ping.PingApi;
 import com.atlassian.jira.cloud.jenkins.tenantinfo.CloudIdResolver;
 import com.atlassian.jira.cloud.jenkins.util.SecretRetriever;
@@ -183,6 +184,9 @@ public class JiraCloudSiteConfig2 extends AbstractDescribableImpl<JiraCloudSiteC
                     return FormValidation.error(
                             "Connection could not be established. Is the secret correct?");
                 }
+            } catch (BadRequestException e) {
+                return FormValidation.error(
+                        String.format("Error message from Jira: %s", e.getMessage()));
             } catch (Exception e) {
                 logger.error("Unexpected error when testing connection!", e);
                 return FormValidation.error("Unexpected error when testing connection!");
