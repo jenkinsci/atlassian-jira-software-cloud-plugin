@@ -51,6 +51,7 @@ public class JiraCloudSiteConfig2DescriptorTest {
                 new JiraCloudSiteConfig2(SITE, WEBHOOK_URL, CREDENTIALS_ID);
         classUnderTest = (JiraCloudSiteConfig2.DescriptorImpl) siteConfig.getDescriptor();
         classUnderTest.setCloudIdResolver(cloudIdResolver);
+        classUnderTest.setPingApi(pingApi);
 
         setupMocks();
     }
