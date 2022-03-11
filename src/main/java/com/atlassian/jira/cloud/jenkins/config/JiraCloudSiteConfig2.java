@@ -1,5 +1,7 @@
 package com.atlassian.jira.cloud.jenkins.config;
 
+import com.atlassian.jira.cloud.jenkins.common.client.BadRequestException;
+import com.atlassian.jira.cloud.jenkins.ping.PingApi;
 import com.atlassian.jira.cloud.jenkins.tenantinfo.CloudIdResolver;
 import com.atlassian.jira.cloud.jenkins.util.SecretRetriever;
 import com.atlassian.jira.cloud.jenkins.util.SiteValidator;
@@ -21,6 +23,8 @@ import org.kohsuke.accmod.restrictions.DoNotUse;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.interceptor.RequirePOST;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import java.util.Objects;
@@ -85,8 +89,10 @@ public class JiraCloudSiteConfig2 extends AbstractDescribableImpl<JiraCloudSiteC
     @Extension
     public static class DescriptorImpl extends Descriptor<JiraCloudSiteConfig2> {
 
+        private static Logger logger = LoggerFactory.getLogger(DescriptorImpl.class);
         private transient SecretRetriever secretRetriever;
         private transient CloudIdResolver cloudIdResolver;
+        private transient PingApi pingApi;
 
         @Inject
         public void setSecretRetriever(final SecretRetriever secretRetriever) {
@@ -96,6 +102,11 @@ public class JiraCloudSiteConfig2 extends AbstractDescribableImpl<JiraCloudSiteC
         @Inject
         public void setCloudIdResolver(final CloudIdResolver cloudIdResolver) {
             this.cloudIdResolver = cloudIdResolver;
+        }
+
+        @Inject
+        public void setPingApi(final PingApi pingApi) {
+            this.pingApi = pingApi;
         }
 
         public FormValidation doCheckSite(@QueryParameter final String value) {
@@ -167,7 +178,19 @@ public class JiraCloudSiteConfig2 extends AbstractDescribableImpl<JiraCloudSiteC
                 return FormValidation.error("Failed to retrieve secret");
             }
 
-            // TODO (ARC-1135): call a "ping" endpoint of the Jenkins app to test the connection
+            try {
+                boolean pingSuccess = pingApi.sendPing(webhookUrl, maybeSecret.get());
+                if (!pingSuccess) {
+                    return FormValidation.error(
+                            "Connection could not be established. Is the secret correct?");
+                }
+            } catch (BadRequestException e) {
+                return FormValidation.error(
+                        String.format("Error message from Jira: %s", e.getMessage()));
+            } catch (Exception e) {
+                logger.error("Unexpected error when testing connection!", e);
+                return FormValidation.error("Unexpected error when testing connection!");
+            }
 
             return FormValidation.ok("Successfully validated site credentials");
         }

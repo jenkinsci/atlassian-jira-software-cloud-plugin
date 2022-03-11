@@ -1,5 +1,6 @@
 package com.atlassian.jira.cloud.jenkins.config;
 
+import com.atlassian.jira.cloud.jenkins.ping.PingApi;
 import com.atlassian.jira.cloud.jenkins.tenantinfo.CloudIdResolver;
 import com.cloudbees.plugins.credentials.Credentials;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
@@ -20,6 +21,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -38,14 +40,18 @@ public class JiraCloudSiteConfig2DescriptorTest {
 
     private JiraCloudSiteConfig2.DescriptorImpl classUnderTest;
 
+    private PingApi pingApi;
+
     @Before
     public void setUp() {
         accessTokenRetriever = mock(AccessTokenRetriever.class);
         cloudIdResolver = mock(CloudIdResolver.class);
+        pingApi = mock(PingApi.class);
         final JiraCloudSiteConfig2 siteConfig =
                 new JiraCloudSiteConfig2(SITE, WEBHOOK_URL, CREDENTIALS_ID);
         classUnderTest = (JiraCloudSiteConfig2.DescriptorImpl) siteConfig.getDescriptor();
         classUnderTest.setCloudIdResolver(cloudIdResolver);
+        classUnderTest.setPingApi(pingApi);
 
         setupMocks();
     }
@@ -94,6 +100,19 @@ public class JiraCloudSiteConfig2DescriptorTest {
 
     @Test
     public void testFailTestConnection_whenCredentialsNotFound() {
+        // when
+        final FormValidation result =
+                classUnderTest.doTestConnection(SITE, WEBHOOK_URL, CREDENTIALS_ID);
+
+        // then
+        assertThat(result.kind).isEqualTo(FormValidation.Kind.ERROR);
+        assertThat(result.getMessage()).isEqualTo("Failed to retrieve secret");
+    }
+
+    @Test
+    public void testFailTestConnection_whenPingFailed() {
+        given(pingApi.sendPing(any(), any())).willReturn(false);
+
         // when
         final FormValidation result =
                 classUnderTest.doTestConnection(SITE, WEBHOOK_URL, CREDENTIALS_ID);
@@ -187,6 +206,11 @@ public class JiraCloudSiteConfig2DescriptorTest {
     private void setupMocks() {
         setupAccessTokenRetriever();
         setupCloudIdResolver();
+        setupPingApi();
+    }
+
+    private void setupPingApi() {
+        when(pingApi.sendPing(any(), any())).thenReturn(true);
     }
 
     private void setupAccessTokenRetriever() {
