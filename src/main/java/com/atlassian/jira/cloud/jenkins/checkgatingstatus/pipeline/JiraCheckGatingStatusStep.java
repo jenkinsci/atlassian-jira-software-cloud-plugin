@@ -2,7 +2,6 @@ package com.atlassian.jira.cloud.jenkins.checkgatingstatus.pipeline;
 
 import com.atlassian.jira.cloud.jenkins.Messages;
 import com.atlassian.jira.cloud.jenkins.checkgatingstatus.client.model.GatingStatus;
-import com.atlassian.jira.cloud.jenkins.checkgatingstatus.service.GatingStatusRequest;
 import com.atlassian.jira.cloud.jenkins.checkgatingstatus.service.JiraGatingStatusResponse;
 import com.atlassian.jira.cloud.jenkins.common.factory.JiraSenderFactory;
 import com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse;
@@ -68,8 +67,7 @@ public class JiraCheckGatingStatusStep extends Step implements Serializable {
     @Extension
     public static class DescriptorImpl extends StepDescriptor {
 
-        @Inject
-        private transient JiraCloudPluginConfig globalConfig;
+        @Inject private transient JiraCloudPluginConfig globalConfig;
 
         @Override
         public Set<Class<?>> getRequiredContext() {
@@ -115,7 +113,7 @@ public class JiraCheckGatingStatusStep extends Step implements Serializable {
          * This execution returns
          *
          * @return {@code true}, if deployment has been approved {@code false}, if gating status is
-         * unknown or not approved/rejected yet
+         *     unknown or not approved/rejected yet
          * @throws AbortException if deployment has been rejected, or client has reached limits
          */
         @Override
@@ -123,13 +121,10 @@ public class JiraCheckGatingStatusStep extends Step implements Serializable {
             final TaskListener taskListener = requireNonNull(getContext().get(TaskListener.class));
             final WorkflowRun run = requireNonNull(getContext().get(WorkflowRun.class));
 
-            final GatingStatusRequest gatingStatusRequest =
-                    new GatingStatusRequest(step.getSite(), step.getEnvironmentId(), run);
-
             final JiraGatingStatusResponse response =
                     JiraSenderFactory.getInstance()
                             .getJiraGateStateRetriever()
-                            .getGatingStatus(gatingStatusRequest);
+                            .getGatingStatus(step.getSite(), step.getEnvironmentId(), run);
 
             logResult(taskListener, response);
 
@@ -143,7 +138,10 @@ public class JiraCheckGatingStatusStep extends Step implements Serializable {
                 case EXPIRED:
                 case PREVENTED:
                     Optional.ofNullable(run.getExecutor())
-                            .ifPresent(executor -> executor.interrupt(Result.ABORTED, new DeploymentAborted()));
+                            .ifPresent(
+                                    executor ->
+                                            executor.interrupt(
+                                                    Result.ABORTED, new DeploymentAborted()));
                     return false;
                 case AWAITING:
                     return false;

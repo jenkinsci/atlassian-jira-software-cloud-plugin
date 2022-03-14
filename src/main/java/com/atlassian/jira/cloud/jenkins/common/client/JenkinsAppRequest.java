@@ -8,7 +8,6 @@ public abstract class JenkinsAppRequest {
 
     private final RequestType requestType;
 
-
     public JenkinsAppRequest(final RequestType requestType) {
         this.requestType = requestType;
     }
@@ -17,10 +16,10 @@ public abstract class JenkinsAppRequest {
         return requestType;
     }
 
-
     public enum RequestType {
         EVENT("event"),
-        PING("ping");
+        PING("ping"),
+        GATING_STATUS("gatingStatus");
 
         private final String value;
 
@@ -33,5 +32,4 @@ public abstract class JenkinsAppRequest {
             return value;
         }
     }
-
 }

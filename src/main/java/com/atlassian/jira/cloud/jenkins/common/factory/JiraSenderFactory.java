@@ -1,17 +1,14 @@
 package com.atlassian.jira.cloud.jenkins.common.factory;
 
-import com.atlassian.jira.cloud.jenkins.auth.AccessTokenRetriever;
 import com.atlassian.jira.cloud.jenkins.buildinfo.client.BuildsApi;
 import com.atlassian.jira.cloud.jenkins.buildinfo.service.FreestyleJiraBuildInfoSenderImpl;
 import com.atlassian.jira.cloud.jenkins.buildinfo.service.JiraBuildInfoSender;
 import com.atlassian.jira.cloud.jenkins.buildinfo.service.MultibranchBuildInfoSenderImpl;
+import com.atlassian.jira.cloud.jenkins.checkgatingstatus.client.GatingStatusApi;
 import com.atlassian.jira.cloud.jenkins.checkgatingstatus.service.JiraGatingStatusRetriever;
 import com.atlassian.jira.cloud.jenkins.checkgatingstatus.service.JiraGatingStatusRetrieverImpl;
-import com.atlassian.jira.cloud.jenkins.common.client.JiraApi;
 import com.atlassian.jira.cloud.jenkins.common.config.JiraSiteConfig2Retriever;
 import com.atlassian.jira.cloud.jenkins.common.config.JiraSiteConfig2RetrieverImpl;
-import com.atlassian.jira.cloud.jenkins.common.config.JiraSiteConfigRetriever;
-import com.atlassian.jira.cloud.jenkins.common.config.JiraSiteConfigRetrieverImpl;
 import com.atlassian.jira.cloud.jenkins.common.service.FreestyleIssueKeyExtractor;
 import com.atlassian.jira.cloud.jenkins.common.service.IssueKeyExtractor;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.DeploymentsApi;
@@ -30,8 +27,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import okhttp3.OkHttpClient;
 
-import static com.atlassian.jira.cloud.jenkins.Config.ATLASSIAN_API_URL;
-
 public final class JiraSenderFactory {
 
     private static JiraSenderFactory INSTANCE;
@@ -47,7 +42,6 @@ public final class JiraSenderFactory {
         final OkHttpClient httpClient = httpClientProvider.httpClient();
         final ObjectMapper objectMapper = objectMapperProvider.objectMapper();
 
-        final JiraSiteConfigRetriever siteConfigRetriever = new JiraSiteConfigRetrieverImpl();
         final JiraSiteConfig2Retriever siteConfig2Retriever = new JiraSiteConfig2RetrieverImpl();
         final BranchNameIssueKeyExtractor branchNameIssueKeyExtractor =
                 new BranchNameIssueKeyExtractor();
@@ -58,22 +52,9 @@ public final class JiraSenderFactory {
         final IssueKeyExtractor changeLogIssueKeyExtractor = new ChangeLogIssueKeyExtractor();
         final SecretRetriever secretRetriever = new SecretRetriever();
         final CloudIdResolver cloudIdResolver = new CloudIdResolver(httpClient, objectMapper);
-        final AccessTokenRetriever accessTokenRetriever =
-                new AccessTokenRetriever(httpClient, objectMapper);
         final BuildsApi buildsApi = new BuildsApi(httpClient, objectMapper);
         final DeploymentsApi deploymentsApi = new DeploymentsApi(httpClient, objectMapper);
-
-        final JiraApi gateApi =
-                new JiraApi(
-                        httpClient,
-                        objectMapper,
-                        ATLASSIAN_API_URL
-                                + "/jira/deployments/0.1"
-                                + "/cloud/${cloudId}"
-                                + "/pipelines/${pipelineId}"
-                                + "/environments/${environmentId}"
-                                + "/deployments/${deploymentId}"
-                                + "/gating-status");
+        final GatingStatusApi gatingStatusApi = new GatingStatusApi(httpClient, objectMapper);
 
         this.jiraBuildInfoSender =
                 new MultibranchBuildInfoSenderImpl(
@@ -105,11 +86,7 @@ public final class JiraSenderFactory {
 
         this.jiraGatingStatusRetriever =
                 new JiraGatingStatusRetrieverImpl(
-                        siteConfigRetriever,
-                        secretRetriever,
-                        cloudIdResolver,
-                        accessTokenRetriever,
-                        gateApi);
+                        siteConfig2Retriever, secretRetriever, cloudIdResolver, gatingStatusApi);
     }
 
     public static synchronized JiraSenderFactory getInstance() {
