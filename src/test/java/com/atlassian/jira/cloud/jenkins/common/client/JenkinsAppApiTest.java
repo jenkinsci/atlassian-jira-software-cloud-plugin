@@ -1,6 +1,8 @@
 package com.atlassian.jira.cloud.jenkins.common.client;
 
 import com.atlassian.jira.cloud.jenkins.buildinfo.client.BuildsApi;
+import com.atlassian.jira.cloud.jenkins.checkgatingstatus.client.GatingStatusApi;
+import com.atlassian.jira.cloud.jenkins.checkgatingstatus.client.model.GatingStatusRequest;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.DeploymentsApi;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.DeploymentApiResponse;
 import com.atlassian.jira.cloud.jenkins.ping.JenkinsAppPingRequest;
@@ -94,6 +96,23 @@ public class JenkinsAppApiTest {
         String jwt =
                 pingApi.wrapInJwt(
                         new JenkinsAppPingRequest(), "this is a secret", farFuture.getTime());
+
+        logger.info("Here's your JWT: {}", jwt);
+    }
+
+    @Test
+    public void generateExampleGatingStatusJwt() throws IOException {
+        Calendar farFuture = Calendar.getInstance();
+        farFuture.set(2999, 1, 1);
+
+        OkHttpClient client = mockHttpClient();
+        ObjectMapperProvider objectMapperProvider = new ObjectMapperProvider();
+        ObjectMapper objectMapper = objectMapperProvider.objectMapper();
+        GatingStatusApi gatingStatusApi = new GatingStatusApi(client, objectMapper);
+
+        String jwt =
+                gatingStatusApi.wrapInJwt(
+                        new GatingStatusRequest("4711", "0815", "prod"), "this is a secret", farFuture.getTime());
 
         logger.info("Here's your JWT: {}", jwt);
     }

@@ -135,7 +135,8 @@ public class JiraCheckGatingStatusStepTest {
                         DEPLOYMENT_NUMBER);
         final JiraGatingStatusResponse gateStatusResponse =
                 JiraGatingStatusResponse.success(SITE, apiResponse);
-        when(mockRetriever.getGatingStatus(any())).thenReturn(gateStatusResponse);
+        when(mockRetriever.getGatingStatus(any(), any(), any(), any()))
+                .thenReturn(gateStatusResponse);
         when(mockTaskListener.getLogger()).thenReturn(mock(PrintStream.class));
         when(mockWorkflowRun.getExecutor()).thenReturn(executor);
 
@@ -179,7 +180,8 @@ public class JiraCheckGatingStatusStepTest {
                         DEPLOYMENT_NUMBER);
         final JiraGatingStatusResponse gateStatusResponse =
                 JiraGatingStatusResponse.success(SITE, apiResponse);
-        when(mockRetriever.getGatingStatus(any())).thenReturn(gateStatusResponse);
+        when(mockRetriever.getGatingStatus(any(), any(), any(), any()))
+                .thenReturn(gateStatusResponse);
 
         // when
         final Boolean response = start.run();
@@ -223,7 +225,8 @@ public class JiraCheckGatingStatusStepTest {
                         DEPLOYMENT_NUMBER);
         final JiraGatingStatusResponse gateStatusResponse =
                 JiraGatingStatusResponse.success(SITE, apiResponse);
-        when(mockRetriever.getGatingStatus(any())).thenReturn(gateStatusResponse);
+        when(mockRetriever.getGatingStatus(any(), any(), any(), any()))
+                .thenReturn(gateStatusResponse);
 
         // when
         final Boolean response = start.run();
@@ -235,6 +238,7 @@ public class JiraCheckGatingStatusStepTest {
         final List<CauseOfInterruption> allValues = causeCaptor.getAllValues();
         assertThat(allValues).hasSize(1);
         final CauseOfInterruption causeOfInterruption = allValues.get(0);
-        assertThat(causeOfInterruption.getShortDescription()).isEqualTo("The deployment was prevented by Jira Service Desk.");
+        assertThat(causeOfInterruption.getShortDescription())
+                .isEqualTo("The deployment was prevented by Jira Service Desk.");
     }
 }

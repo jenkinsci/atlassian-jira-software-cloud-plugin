@@ -32,6 +32,7 @@ public abstract class JenkinsAppApi<ResponseEntity> {
     private final OkHttpClient httpClient;
     private final ObjectMapper objectMapper;
     private static final int JWT_EXPIRY_SECONDS = 5 * 60;
+    private static final Logger logger = LoggerFactory.getLogger(JenkinsAppApi.class);
 
     @Inject
     public JenkinsAppApi(final OkHttpClient httpClient, final ObjectMapper objectMapper) {
@@ -152,6 +153,7 @@ public abstract class JenkinsAppApi<ResponseEntity> {
             final JenkinsAppRequest request, final String secret, final Date expiryDate)
             throws JsonProcessingException {
         final String body = objectMapper.writeValueAsString(request);
+        logger.info(String.format("wrapping request in JWT: %s", body));
         Algorithm algorithm = Algorithm.HMAC256(secret);
         return JWT.create()
                 .withIssuer("jenkins-plugin")

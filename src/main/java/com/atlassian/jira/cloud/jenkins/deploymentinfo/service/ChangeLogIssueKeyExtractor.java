@@ -8,8 +8,6 @@ import hudson.model.Run;
 import hudson.plugins.git.GitChangeSet;
 import hudson.scm.ChangeLogSet;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.CheckForNull;
 import java.util.HashSet;
@@ -26,8 +24,6 @@ import java.util.stream.Collectors;
  */
 public final class ChangeLogIssueKeyExtractor implements IssueKeyExtractor {
 
-    private static final Logger log = LoggerFactory.getLogger(ChangeLogIssueKeyExtractor.class);
-
     public Set<String> extractIssueKeys(final WorkflowRun workflowRun) {
 
         final Set<IssueKey> allIssueKeys = new HashSet<>();
@@ -36,8 +32,6 @@ public final class ChangeLogIssueKeyExtractor implements IssueKeyExtractor {
 
         WorkflowRun previous = workflowRun.getPreviousBuild();
         while (Objects.nonNull(previous) && !isBuildSuccessful(previous)) {
-            log.info("Extract issue keys from build: " + previous.getNumber());
-
             changeSets.addAll(previous.getChangeSets());
             previous = previous.getPreviousBuild();
         }

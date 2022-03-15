@@ -2,7 +2,6 @@ package com.atlassian.jira.cloud.jenkins.checkgatingstatus.pipeline;
 
 import com.atlassian.jira.cloud.jenkins.Messages;
 import com.atlassian.jira.cloud.jenkins.checkgatingstatus.client.model.GatingStatus;
-import com.atlassian.jira.cloud.jenkins.checkgatingstatus.service.GatingStatusRequest;
 import com.atlassian.jira.cloud.jenkins.checkgatingstatus.service.JiraGatingStatusResponse;
 import com.atlassian.jira.cloud.jenkins.common.factory.JiraSenderFactory;
 import com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse;
@@ -23,6 +22,8 @@ import org.jenkinsci.plugins.workflow.steps.StepExecution;
 import org.jenkinsci.plugins.workflow.steps.SynchronousNonBlockingStepExecution;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import java.io.Serializable;
@@ -41,6 +42,7 @@ public class JiraCheckGatingStatusStep extends Step implements Serializable {
 
     private String site;
     private String environmentId;
+    private static final Logger logger = LoggerFactory.getLogger(JiraCheckGatingStatusStep.class);
 
     @DataBoundConstructor
     public JiraCheckGatingStatusStep(final String environmentId) {
@@ -68,8 +70,7 @@ public class JiraCheckGatingStatusStep extends Step implements Serializable {
     @Extension
     public static class DescriptorImpl extends StepDescriptor {
 
-        @Inject
-        private transient JiraCloudPluginConfig globalConfig;
+        @Inject private transient JiraCloudPluginConfig globalConfig;
 
         @Override
         public Set<Class<?>> getRequiredContext() {
@@ -115,7 +116,7 @@ public class JiraCheckGatingStatusStep extends Step implements Serializable {
          * This execution returns
          *
          * @return {@code true}, if deployment has been approved {@code false}, if gating status is
-         * unknown or not approved/rejected yet
+         *     unknown or not approved/rejected yet
          * @throws AbortException if deployment has been rejected, or client has reached limits
          */
         @Override
@@ -123,13 +124,11 @@ public class JiraCheckGatingStatusStep extends Step implements Serializable {
             final TaskListener taskListener = requireNonNull(getContext().get(TaskListener.class));
             final WorkflowRun run = requireNonNull(getContext().get(WorkflowRun.class));
 
-            final GatingStatusRequest gatingStatusRequest =
-                    new GatingStatusRequest(step.getSite(), step.getEnvironmentId(), run);
-
             final JiraGatingStatusResponse response =
                     JiraSenderFactory.getInstance()
                             .getJiraGateStateRetriever()
-                            .getGatingStatus(gatingStatusRequest);
+                            .getGatingStatus(
+                                    taskListener, step.getSite(), step.getEnvironmentId(), run);
 
             logResult(taskListener, response);
 
@@ -143,7 +142,10 @@ public class JiraCheckGatingStatusStep extends Step implements Serializable {
                 case EXPIRED:
                 case PREVENTED:
                     Optional.ofNullable(run.getExecutor())
-                            .ifPresent(executor -> executor.interrupt(Result.ABORTED, new DeploymentAborted()));
+                            .ifPresent(
+                                    executor ->
+                                            executor.interrupt(
+                                                    Result.ABORTED, new DeploymentAborted()));
                     return false;
                 case AWAITING:
                     return false;
@@ -155,13 +157,12 @@ public class JiraCheckGatingStatusStep extends Step implements Serializable {
 
         private void logResult(
                 final TaskListener taskListener, final JiraSendInfoResponse response) {
-            taskListener
-                    .getLogger()
-                    .println(
-                            "checkGatingStatus: "
-                                    + response.getStatus()
-                                    + ": "
-                                    + response.getMessage());
+
+            String message =
+                    "checkGatingStatus: " + response.getStatus() + ": " + response.getMessage();
+
+            logger.info(message);
+            taskListener.getLogger().println(message);
         }
     }
 
