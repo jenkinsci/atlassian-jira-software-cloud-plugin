@@ -6,7 +6,7 @@ import com.atlassian.jira.cloud.jenkins.checkgatingstatus.service.JiraGatingStat
 import com.atlassian.jira.cloud.jenkins.common.factory.JiraSenderFactory;
 import com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse;
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudPluginConfig;
-import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
+import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig2;
 import com.google.common.collect.ImmutableSet;
 import hudson.AbortException;
 import hudson.Extension;
@@ -80,8 +80,8 @@ public class JiraCheckGatingStatusStep extends Step implements Serializable {
         @SuppressWarnings("unused")
         public ListBoxModel doFillSiteItems() {
             ListBoxModel items = new ListBoxModel();
-            final List<JiraCloudSiteConfig> siteList = globalConfig.getSites();
-            for (JiraCloudSiteConfig siteConfig : siteList) {
+            final List<JiraCloudSiteConfig2> siteList = globalConfig.getSites2();
+            for (JiraCloudSiteConfig2 siteConfig : siteList) {
                 items.add(siteConfig.getSite(), siteConfig.getSite());
             }
 

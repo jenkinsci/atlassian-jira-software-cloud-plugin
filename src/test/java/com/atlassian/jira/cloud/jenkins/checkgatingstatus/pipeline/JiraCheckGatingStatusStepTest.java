@@ -6,7 +6,7 @@ import com.atlassian.jira.cloud.jenkins.checkgatingstatus.service.JiraGatingStat
 import com.atlassian.jira.cloud.jenkins.checkgatingstatus.service.JiraGatingStatusRetriever;
 import com.atlassian.jira.cloud.jenkins.common.factory.JiraSenderFactory;
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudPluginConfig;
-import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
+import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig2;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.CredentialsScope;
 import com.cloudbees.plugins.credentials.domains.Domain;
@@ -44,9 +44,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class JiraCheckGatingStatusStepTest {
     private static final String SITE = "example.atlassian.net";
@@ -56,11 +54,14 @@ public class JiraCheckGatingStatusStepTest {
     private static final String PIPELINE_ID = UUID.randomUUID().toString();
     private static final Integer DEPLOYMENT_NUMBER = 123;
 
-    @ClassRule public static BuildWatcher buildWatcher = new BuildWatcher();
+    @ClassRule
+    public static BuildWatcher buildWatcher = new BuildWatcher();
 
-    @Rule public JenkinsRule jenkinsRule = new JenkinsRule();
+    @Rule
+    public JenkinsRule jenkinsRule = new JenkinsRule();
 
-    @Inject JiraCheckGatingStatusStep.DescriptorImpl descriptor;
+    @Inject
+    JiraCheckGatingStatusStep.DescriptorImpl descriptor;
 
     private JiraGatingStatusRetriever mockRetriever;
 
@@ -76,8 +77,8 @@ public class JiraCheckGatingStatusStepTest {
 
         // setup Jira site config
         JiraCloudPluginConfig.get()
-                .setSites(
-                        ImmutableList.of(new JiraCloudSiteConfig(SITE, CLIENT_ID, CREDENTIAL_ID)));
+                .setSites2(
+                        ImmutableList.of(new JiraCloudSiteConfig2(SITE, CLIENT_ID, CREDENTIAL_ID)));
 
         // setup credentials
         CredentialsProvider.lookupStores(jenkinsRule.getInstance())

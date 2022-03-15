@@ -4,7 +4,7 @@ import com.atlassian.jira.cloud.jenkins.Messages;
 import com.atlassian.jira.cloud.jenkins.common.factory.JiraSenderFactory;
 import com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse;
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudPluginConfig;
-import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
+import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig2;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.State;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.service.JiraDeploymentInfoRequest;
 import com.google.common.collect.ImmutableSet;
@@ -138,7 +138,8 @@ public class JiraSendDeploymentInfoStep extends Step implements Serializable {
     @Extension
     public static class DescriptorImpl extends StepDescriptor {
 
-        @Inject private transient JiraCloudPluginConfig globalConfig;
+        @Inject
+        private transient JiraCloudPluginConfig globalConfig;
 
         @Override
         public Set<Class<?>> getRequiredContext() {
@@ -158,9 +159,9 @@ public class JiraSendDeploymentInfoStep extends Step implements Serializable {
         @SuppressWarnings("unused")
         public ListBoxModel doFillSiteItems() {
             ListBoxModel items = new ListBoxModel();
-            final List<JiraCloudSiteConfig> siteList = globalConfig.getSites();
+            final List<JiraCloudSiteConfig2> siteList = globalConfig.getSites2();
             items.add("All", null);
-            for (JiraCloudSiteConfig siteConfig : siteList) {
+            for (JiraCloudSiteConfig2 siteConfig : siteList) {
                 items.add(siteConfig.getSite(), siteConfig.getSite());
             }
 

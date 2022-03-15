@@ -85,13 +85,14 @@ public class JiraCloudPluginConfigTest {
                                     + "    } "
                                     + "}");
 
-    @Rule public JenkinsRule jRule = new JenkinsRule();
+    @Rule
+    public JenkinsRule jRule = new JenkinsRule();
 
     @Test
     public void testDoesNotGetSiteConfig_whenSiteIsNotConfigured() {
         // when
-        final Optional<JiraCloudSiteConfig> config =
-                JiraCloudPluginConfig.getJiraCloudSiteConfig(SITE);
+        final Optional<JiraCloudSiteConfig2> config =
+                JiraCloudPluginConfig.getJiraCloudSiteConfig2(SITE);
 
         // then
         assertThat(config.isPresent()).isFalse();
@@ -100,12 +101,12 @@ public class JiraCloudPluginConfigTest {
     @Test
     public void testGetSiteConfig_whenSiteIsConfigured() {
         // given
-        JiraCloudSiteConfig siteConfig = new JiraCloudSiteConfig(SITE, CLIENT_ID, CREDENTIALS_ID);
-        JiraCloudPluginConfig.get().setSites(ImmutableList.of(siteConfig));
+        JiraCloudSiteConfig2 siteConfig = new JiraCloudSiteConfig2(SITE, CLIENT_ID, CREDENTIALS_ID);
+        JiraCloudPluginConfig.get().setSites2(ImmutableList.of(siteConfig));
 
         // when
-        final Optional<JiraCloudSiteConfig> config =
-                JiraCloudPluginConfig.getJiraCloudSiteConfig(SITE);
+        final Optional<JiraCloudSiteConfig2> config =
+                JiraCloudPluginConfig.getJiraCloudSiteConfig2(SITE);
 
         // then
         assertSiteConfig(config.get(), SITE, CREDENTIALS_ID);
@@ -114,12 +115,12 @@ public class JiraCloudPluginConfigTest {
     @Test
     public void testGetSiteConfig_whenSiteIsNotProvided() {
         // given
-        JiraCloudSiteConfig siteConfig = new JiraCloudSiteConfig(SITE, CLIENT_ID, CREDENTIALS_ID);
-        JiraCloudPluginConfig.get().setSites(ImmutableList.of(siteConfig));
+        JiraCloudSiteConfig2 siteConfig = new JiraCloudSiteConfig2(SITE, CLIENT_ID, CREDENTIALS_ID);
+        JiraCloudPluginConfig.get().setSites2(ImmutableList.of(siteConfig));
 
         // when
-        final Optional<JiraCloudSiteConfig> config =
-                JiraCloudPluginConfig.getJiraCloudSiteConfig(null);
+        final Optional<JiraCloudSiteConfig2> config =
+                JiraCloudPluginConfig.getJiraCloudSiteConfig2(null);
 
         // then
         assertSiteConfig(config.get(), SITE, CREDENTIALS_ID);
@@ -128,15 +129,15 @@ public class JiraCloudPluginConfigTest {
     @Test
     public void testGetSiteConfig_whenMultipleSitesConfigured() {
         // given
-        JiraCloudSiteConfig siteConfig1 = new JiraCloudSiteConfig(SITE, CLIENT_ID, CREDENTIALS_ID);
-        JiraCloudSiteConfig siteConfig2 =
-                new JiraCloudSiteConfig("foobar.atlassian.net", "clientId", "credsId");
-        JiraCloudPluginConfig.get().setSites(ImmutableList.of(siteConfig1, siteConfig2));
+        JiraCloudSiteConfig2 siteConfig1 = new JiraCloudSiteConfig2(SITE, CLIENT_ID, CREDENTIALS_ID);
+        JiraCloudSiteConfig2 siteConfig2 =
+                new JiraCloudSiteConfig2("foobar.atlassian.net", "clientId", "credsId");
+        JiraCloudPluginConfig.get().setSites2(ImmutableList.of(siteConfig1, siteConfig2));
 
         // when
         // when
-        final Optional<JiraCloudSiteConfig> config =
-                JiraCloudPluginConfig.getJiraCloudSiteConfig(SITE);
+        final Optional<JiraCloudSiteConfig2> config =
+                JiraCloudPluginConfig.getJiraCloudSiteConfig2(SITE);
 
         // then
         assertSiteConfig(config.get(), SITE, CREDENTIALS_ID);
@@ -149,10 +150,10 @@ public class JiraCloudPluginConfigTest {
         new JiraCloudPluginConfig(configName).configure(mockStapler(), SITES_JSON);
         final JiraCloudPluginConfig loadedConfig = new JiraCloudPluginConfig(configName);
 
-        assertThat(loadedConfig.getSites()).hasSize(2);
-        assertThat(loadedConfig.getSites().get(0))
+        assertThat(loadedConfig.getSites2()).hasSize(2);
+        assertThat(loadedConfig.getSites2().get(0))
                 .isEqualTo(
-                        new JiraCloudSiteConfig(
+                        new JiraCloudSiteConfig2(
                                 "mysite1.atlassian.net", "myClientId1", "myCreds1"));
     }
 
@@ -165,10 +166,10 @@ public class JiraCloudPluginConfigTest {
         new JiraCloudPluginConfig(configName).configure(mockStapler(), SINGLE_SITE_JSON);
         final JiraCloudPluginConfig loadedConfig = new JiraCloudPluginConfig(configName);
 
-        assertThat(loadedConfig.getSites()).hasSize(1);
-        assertThat(loadedConfig.getSites().get(0))
+        assertThat(loadedConfig.getSites2()).hasSize(1);
+        assertThat(loadedConfig.getSites2().get(0))
                 .isEqualTo(
-                        new JiraCloudSiteConfig(
+                        new JiraCloudSiteConfig2(
                                 "mysite1.atlassian.net", "myClientId1", "myCreds1"));
     }
 
@@ -180,7 +181,7 @@ public class JiraCloudPluginConfigTest {
         new JiraCloudPluginConfig(configName).configure(mockStapler(), new JSONObject());
 
         final JiraCloudPluginConfig loadedConfig = new JiraCloudPluginConfig(configName);
-        assertThat(loadedConfig.getSites()).hasSize(0);
+        assertThat(loadedConfig.getSites2()).hasSize(0);
     }
 
     @Test
@@ -242,7 +243,7 @@ public class JiraCloudPluginConfigTest {
     }
 
     private void assertSiteConfig(
-            final JiraCloudSiteConfig config,
+            final JiraCloudSiteConfig2 config,
             final String expectedSite,
             final String expectedCredentialsId) {
         assertThat(config.getSite()).isEqualTo(expectedSite);

@@ -24,7 +24,6 @@ public class JiraCloudPluginConfig extends GlobalConfiguration {
 
     public static final String FIELD_NAME_AUTO_BUILDS = "autoBuilds";
     public static final String FIELD_NAME_AUTO_DEPLOYMENTS = "autoDeployments";
-    public static final String FIELD_NAME_SITES = "sites";
     public static final String FIELD_NAME_SITES2 = "sites2";
     public static final String FIELD_NAME_AUTO_BUILDS_REGEX = "autoBuildsRegex";
     public static final String FIELD_NAME_AUTO_DEPLOYMENTS_REGEX = "autoDeploymentsRegex";
@@ -32,9 +31,6 @@ public class JiraCloudPluginConfig extends GlobalConfiguration {
     private static final Logger log = LoggerFactory.getLogger(JiraCloudPluginConfig.class);
 
     private static final String ATL_JSW_GLOBAL_CONFIGURATION_ID = "atl-jsw-global-configuration";
-
-    // TODO: remove the old "sites" field
-    private List<JiraCloudSiteConfig> sites = new ArrayList<>();
 
     private List<JiraCloudSiteConfig2> sites2 = new ArrayList<>();
 
@@ -45,13 +41,13 @@ public class JiraCloudPluginConfig extends GlobalConfiguration {
     private String autoDeploymentsRegex = "^deploy to (?<envName>.*)$";
 
     public JiraCloudPluginConfig() {
-        getConfigFile().getXStream().alias("atl-jsw-site-configuration", JiraCloudSiteConfig.class);
+        getConfigFile().getXStream().alias("atl-jsw-site-configuration", JiraCloudSiteConfig2.class);
         load();
     }
 
     // Only for testing
     JiraCloudPluginConfig(final String testName) {
-        getConfigFile().getXStream().alias(testName, JiraCloudSiteConfig.class);
+        getConfigFile().getXStream().alias(testName, JiraCloudSiteConfig2.class);
         load();
     }
 
@@ -63,24 +59,7 @@ public class JiraCloudPluginConfig extends GlobalConfiguration {
     @Override
     public boolean configure(final StaplerRequest req, final JSONObject json) throws FormException {
         try {
-            setSites(Collections.emptyList());
             setSites2(Collections.emptyList());
-            if (json.containsKey(FIELD_NAME_SITES)) {
-
-                Object sites = json.get(FIELD_NAME_SITES);
-
-                // we have a single site
-                if (sites instanceof JSONObject) {
-                    this.sites =
-                            Collections.singletonList(
-                                    req.bindJSON(JiraCloudSiteConfig.class, (JSONObject) sites));
-                }
-
-                // we have multiple sites
-                if (sites instanceof JSONArray) {
-                    this.sites = req.bindJSONToList(JiraCloudSiteConfig.class, sites);
-                }
-            }
 
             if (json.containsKey(FIELD_NAME_SITES2)) {
 
@@ -139,14 +118,6 @@ public class JiraCloudPluginConfig extends GlobalConfiguration {
         return ATL_JSW_GLOBAL_CONFIGURATION_ID;
     }
 
-    public List<JiraCloudSiteConfig> getSites() {
-        return sites;
-    }
-
-    public void setSites(final List<JiraCloudSiteConfig> sites) {
-        this.sites = sites;
-    }
-
     public List<JiraCloudSiteConfig2> getSites2() {
         return sites2;
     }
@@ -171,28 +142,12 @@ public class JiraCloudPluginConfig extends GlobalConfiguration {
         this.autoDeploymentsEnabled = autoDeploymentsEnabled;
     }
 
-    public static Optional<JiraCloudSiteConfig> getJiraCloudSiteConfig(
-            @Nullable final String site) {
-        final Optional<String> userProvidedSite = Optional.ofNullable(site);
-        return userProvidedSite
-                .map(JiraCloudPluginConfig::filterFromConfig)
-                .orElseGet(JiraCloudPluginConfig::defaultFromConfig);
-    }
-
     public static Optional<JiraCloudSiteConfig2> getJiraCloudSiteConfig2(
             @Nullable final String site) {
         final Optional<String> userProvidedSite = Optional.ofNullable(site);
         return userProvidedSite
                 .map(JiraCloudPluginConfig::filterFromConfig2)
                 .orElseGet(JiraCloudPluginConfig::defaultFromConfig2);
-    }
-
-    public static Optional<JiraCloudSiteConfig> filterFromConfig(final String site) {
-        return JiraCloudPluginConfig.get()
-                .getSites()
-                .stream()
-                .filter(s -> s.getSite().equals(site))
-                .findFirst();
     }
 
     public static Optional<JiraCloudSiteConfig2> filterFromConfig2(final String site) {
@@ -203,25 +158,8 @@ public class JiraCloudPluginConfig extends GlobalConfiguration {
                 .findFirst();
     }
 
-    public static List<JiraCloudSiteConfig> getAllSites() {
-        return JiraCloudPluginConfig.get().getSites();
-    }
-
     public static List<JiraCloudSiteConfig2> getAllSites2() {
         return JiraCloudPluginConfig.get().getSites2();
-    }
-
-    private static Optional<JiraCloudSiteConfig> defaultFromConfig() {
-        final List<JiraCloudSiteConfig> allSites = JiraCloudPluginConfig.get().getSites();
-        if (allSites.isEmpty()) {
-            log.warn(Messages.JiraCommonResponse_FAILURE_NO_SITE_CONFIG_PRESENT());
-            return Optional.empty();
-        } else if (allSites.size() > 1) {
-            log.warn(Messages.JiraCommonResponse_FAILURE_MULTIPLE_SITE_CONFIGS_PRESENT());
-            return Optional.empty();
-        } else {
-            return Optional.of(allSites.get(0));
-        }
     }
 
     private static Optional<JiraCloudSiteConfig2> defaultFromConfig2() {

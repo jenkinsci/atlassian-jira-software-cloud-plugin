@@ -7,7 +7,7 @@ import com.atlassian.jira.cloud.jenkins.buildinfo.service.MultibranchBuildInfoRe
 import com.atlassian.jira.cloud.jenkins.common.factory.JiraSenderFactory;
 import com.atlassian.jira.cloud.jenkins.common.service.IssueKeyExtractor;
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudPluginConfig;
-import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
+import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig2;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.DeploymentApiResponse;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.State;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.service.JiraDeploymentInfoRequest;
@@ -126,8 +126,8 @@ public class AutoBuildsAndDeploymentsTest {
 
     private void givenJiraSiteConfigured() {
         JiraCloudPluginConfig.get()
-                .setSites(
-                        ImmutableList.of(new JiraCloudSiteConfig(SITE, CLIENT_ID, CREDENTIAL_ID)));
+                .setSites2(
+                        ImmutableList.of(new JiraCloudSiteConfig2(SITE, CLIENT_ID, CREDENTIAL_ID)));
     }
 
     private void givenAutoBuildsEnabled() {

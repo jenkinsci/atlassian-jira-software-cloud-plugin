@@ -6,7 +6,7 @@ import com.atlassian.jira.cloud.jenkins.buildinfo.service.JiraBuildInfoSender;
 import com.atlassian.jira.cloud.jenkins.common.factory.JiraSenderFactory;
 import com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse;
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudPluginConfig;
-import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
+import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig2;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.CredentialsScope;
 import com.cloudbees.plugins.credentials.domains.Domain;
@@ -58,8 +58,8 @@ public class JiraSendBuildInfoStepTest {
 
         // setup Jira site config
         JiraCloudPluginConfig.get()
-                .setSites(
-                        ImmutableList.of(new JiraCloudSiteConfig(SITE, CLIENT_ID, CREDENTIAL_ID)));
+                .setSites2(
+                        ImmutableList.of(new JiraCloudSiteConfig2(SITE, CLIENT_ID, CREDENTIAL_ID)));
 
         // setup credentials
         CredentialsProvider.lookupStores(jenkinsRule.getInstance())

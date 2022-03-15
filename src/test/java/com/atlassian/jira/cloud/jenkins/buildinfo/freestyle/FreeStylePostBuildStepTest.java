@@ -1,16 +1,24 @@
 package com.atlassian.jira.cloud.jenkins.buildinfo.freestyle;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.io.PrintStream;
-import java.util.Collections;
-import java.util.UUID;
-
-import javax.inject.Inject;
-
+import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.BuildApiResponse;
+import com.atlassian.jira.cloud.jenkins.buildinfo.service.FreestyleJiraBuildInfoSenderImpl;
+import com.atlassian.jira.cloud.jenkins.buildinfo.service.JiraBuildInfoResponse;
+import com.atlassian.jira.cloud.jenkins.buildinfo.service.JiraBuildInfoSender;
+import com.atlassian.jira.cloud.jenkins.common.factory.JiraSenderFactory;
+import com.atlassian.jira.cloud.jenkins.config.JiraCloudPluginConfig;
+import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig2;
+import com.cloudbees.plugins.credentials.CredentialsProvider;
+import com.cloudbees.plugins.credentials.CredentialsScope;
+import com.cloudbees.plugins.credentials.domains.Domain;
+import com.cloudbees.plugins.credentials.impl.BaseStandardCredentials;
+import com.google.common.collect.ImmutableList;
+import hudson.FilePath;
+import hudson.Launcher;
+import hudson.model.AbstractBuild;
+import hudson.model.BuildListener;
+import hudson.model.FreeStyleProject;
+import hudson.model.TaskListener;
+import hudson.util.Secret;
 import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -19,26 +27,15 @@ import org.junit.Test;
 import org.jvnet.hudson.test.BuildWatcher;
 import org.jvnet.hudson.test.JenkinsRule;
 
-import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.BuildApiResponse;
-import com.atlassian.jira.cloud.jenkins.buildinfo.service.FreestyleJiraBuildInfoSenderImpl;
-import com.atlassian.jira.cloud.jenkins.buildinfo.service.JiraBuildInfoResponse;
-import com.atlassian.jira.cloud.jenkins.buildinfo.service.JiraBuildInfoSender;
-import com.atlassian.jira.cloud.jenkins.common.factory.JiraSenderFactory;
-import com.atlassian.jira.cloud.jenkins.config.JiraCloudPluginConfig;
-import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
-import com.cloudbees.plugins.credentials.CredentialsProvider;
-import com.cloudbees.plugins.credentials.CredentialsScope;
-import com.cloudbees.plugins.credentials.domains.Domain;
-import com.cloudbees.plugins.credentials.impl.BaseStandardCredentials;
-import com.google.common.collect.ImmutableList;
+import javax.inject.Inject;
+import java.io.PrintStream;
+import java.util.Collections;
+import java.util.UUID;
 
-import hudson.FilePath;
-import hudson.Launcher;
-import hudson.model.AbstractBuild;
-import hudson.model.BuildListener;
-import hudson.model.FreeStyleProject;
-import hudson.model.TaskListener;
-import hudson.util.Secret;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class FreeStylePostBuildStepTest {
 
@@ -47,11 +44,14 @@ public class FreeStylePostBuildStepTest {
     private static final String CLIENT_ID = UUID.randomUUID().toString();
     private static final String CREDENTIAL_ID = UUID.randomUUID().toString();
 
-    @ClassRule public static BuildWatcher buildWatcher = new BuildWatcher();
+    @ClassRule
+    public static BuildWatcher buildWatcher = new BuildWatcher();
 
-    @Rule public JenkinsRule jenkinsRule = new JenkinsRule();
+    @Rule
+    public JenkinsRule jenkinsRule = new JenkinsRule();
 
-    @Inject FreeStylePostBuildStep.DescriptorImpl descriptor;
+    @Inject
+    FreeStylePostBuildStep.DescriptorImpl descriptor;
 
     @Before
     public void setUp() throws Exception {
@@ -59,8 +59,8 @@ public class FreeStylePostBuildStepTest {
 
         // setup Jira site config
         JiraCloudPluginConfig.get()
-                .setSites(
-                        ImmutableList.of(new JiraCloudSiteConfig(SITE, CLIENT_ID, CREDENTIAL_ID)));
+                .setSites2(
+                        ImmutableList.of(new JiraCloudSiteConfig2(SITE, CLIENT_ID, CREDENTIAL_ID)));
 
         // setup credentials
         CredentialsProvider.lookupStores(jenkinsRule.getInstance())

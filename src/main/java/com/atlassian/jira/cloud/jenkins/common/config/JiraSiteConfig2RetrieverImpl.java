@@ -1,7 +1,6 @@
 package com.atlassian.jira.cloud.jenkins.common.config;
 
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudPluginConfig;
-import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig2;
 
 import javax.annotation.Nullable;
