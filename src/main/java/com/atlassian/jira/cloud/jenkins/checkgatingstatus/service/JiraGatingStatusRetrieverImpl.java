@@ -67,8 +67,6 @@ public class JiraGatingStatusRetrieverImpl implements JiraGatingStatusRetriever 
                     JiraCommonResponse.failureSiteNotFound(resolvedSiteConfig));
         }
 
-        final String cloudId = maybeCloudId.get();
-
         try {
             final GatingStatusResponse result =
                     gatingApi.getGatingStatus(
