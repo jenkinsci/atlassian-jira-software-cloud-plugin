@@ -22,6 +22,8 @@ import org.jenkinsci.plugins.workflow.steps.StepExecution;
 import org.jenkinsci.plugins.workflow.steps.SynchronousNonBlockingStepExecution;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import java.io.Serializable;
@@ -40,6 +42,7 @@ public class JiraCheckGatingStatusStep extends Step implements Serializable {
 
     private String site;
     private String environmentId;
+    private static final Logger logger = LoggerFactory.getLogger(JiraCheckGatingStatusStep.class);
 
     @DataBoundConstructor
     public JiraCheckGatingStatusStep(final String environmentId) {
@@ -124,7 +127,8 @@ public class JiraCheckGatingStatusStep extends Step implements Serializable {
             final JiraGatingStatusResponse response =
                     JiraSenderFactory.getInstance()
                             .getJiraGateStateRetriever()
-                            .getGatingStatus(step.getSite(), step.getEnvironmentId(), run);
+                            .getGatingStatus(
+                                    taskListener, step.getSite(), step.getEnvironmentId(), run);
 
             logResult(taskListener, response);
 
@@ -153,13 +157,12 @@ public class JiraCheckGatingStatusStep extends Step implements Serializable {
 
         private void logResult(
                 final TaskListener taskListener, final JiraSendInfoResponse response) {
-            taskListener
-                    .getLogger()
-                    .println(
-                            "checkGatingStatus: "
-                                    + response.getStatus()
-                                    + ": "
-                                    + response.getMessage());
+
+            String message =
+                    "checkGatingStatus: " + response.getStatus() + ": " + response.getMessage();
+
+            logger.info(message);
+            taskListener.getLogger().println(message);
         }
     }
 

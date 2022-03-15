@@ -8,6 +8,7 @@ import com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse;
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig2;
 import com.atlassian.jira.cloud.jenkins.tenantinfo.CloudIdResolver;
 import com.atlassian.jira.cloud.jenkins.util.SecretRetriever;
+import hudson.model.TaskListener;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.junit.Before;
@@ -38,16 +39,12 @@ public class JiraGatingStatusRetrieverImplTest {
     private static final JiraCloudSiteConfig2 JIRA_SITE_CONFIG =
             new JiraCloudSiteConfig2(SITE, "clientId", "credsId");
 
-    @Mock
-    private JiraSiteConfig2Retriever siteConfigRetriever;
-    @Mock
-    private SecretRetriever secretRetriever;
-    @Mock
-    private CloudIdResolver cloudIdResolver;
-    @Mock
-    private GatingStatusApi jiraApi;
-    @Mock
-    private WorkflowRun run;
+    @Mock private JiraSiteConfig2Retriever siteConfigRetriever;
+    @Mock private SecretRetriever secretRetriever;
+    @Mock private CloudIdResolver cloudIdResolver;
+    @Mock private GatingStatusApi jiraApi;
+    @Mock private WorkflowRun run;
+    @Mock private TaskListener taskListener;
 
     private JiraGatingStatusRetrieverImpl classUnderTest;
 
@@ -67,7 +64,7 @@ public class JiraGatingStatusRetrieverImplTest {
 
         // when
         final JiraGatingStatusResponse response =
-                classUnderTest.getGatingStatus(SITE, ENVIRONMENT_ID, run);
+                classUnderTest.getGatingStatus(taskListener, SITE, ENVIRONMENT_ID, run);
 
         // then
         assertThat(response.getStatus()).isEqualTo(FAILURE_SITE_CONFIG_NOT_FOUND);
@@ -80,7 +77,7 @@ public class JiraGatingStatusRetrieverImplTest {
 
         // when
         final JiraGatingStatusResponse response =
-                classUnderTest.getGatingStatus(SITE, ENVIRONMENT_ID, run);
+                classUnderTest.getGatingStatus(taskListener, SITE, ENVIRONMENT_ID, run);
 
         // then
         assertThat(response.getStatus()).isEqualTo(FAILURE_SECRET_NOT_FOUND);
@@ -93,7 +90,7 @@ public class JiraGatingStatusRetrieverImplTest {
 
         // when
         final JiraGatingStatusResponse response =
-                classUnderTest.getGatingStatus(SITE, ENVIRONMENT_ID, run);
+                classUnderTest.getGatingStatus(taskListener, SITE, ENVIRONMENT_ID, run);
 
         // then
         assertThat(response.getStatus()).isEqualTo(FAILURE_SITE_NOT_FOUND);
@@ -106,7 +103,7 @@ public class JiraGatingStatusRetrieverImplTest {
 
         // when
         final JiraGatingStatusResponse response =
-                classUnderTest.getGatingStatus(SITE, ENVIRONMENT_ID, run);
+                classUnderTest.getGatingStatus(taskListener, SITE, ENVIRONMENT_ID, run);
 
         // then
         assertThat(response.getStatus()).isEqualTo(JiraSendInfoResponse.Status.FAILURE_GATE_CHECK);
@@ -119,7 +116,7 @@ public class JiraGatingStatusRetrieverImplTest {
 
         // when
         final JiraGatingStatusResponse response =
-                classUnderTest.getGatingStatus(SITE, ENVIRONMENT_ID, run);
+                classUnderTest.getGatingStatus(taskListener, SITE, ENVIRONMENT_ID, run);
 
         // then
         assertThat(response.getStatus()).isEqualTo(JiraSendInfoResponse.Status.SUCCESS_GATE_CHECK);

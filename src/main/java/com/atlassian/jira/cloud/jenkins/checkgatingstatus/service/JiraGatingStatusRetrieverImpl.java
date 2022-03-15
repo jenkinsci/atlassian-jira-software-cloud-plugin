@@ -7,6 +7,7 @@ import com.atlassian.jira.cloud.jenkins.common.response.JiraCommonResponse;
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig2;
 import com.atlassian.jira.cloud.jenkins.tenantinfo.CloudIdResolver;
 import com.atlassian.jira.cloud.jenkins.util.SecretRetriever;
+import hudson.model.TaskListener;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,7 +39,10 @@ public class JiraGatingStatusRetrieverImpl implements JiraGatingStatusRetriever 
 
     @Override
     public JiraGatingStatusResponse getGatingStatus(
-            final String jiraSite, final String environmentId, final WorkflowRun run) {
+            final TaskListener taskListener,
+            final String jiraSite,
+            final String environmentId,
+            final WorkflowRun run) {
 
         final Optional<JiraCloudSiteConfig2> maybeSiteConfig =
                 siteConfigRetriever.getJiraSiteConfig(jiraSite);
@@ -67,18 +71,26 @@ public class JiraGatingStatusRetrieverImpl implements JiraGatingStatusRetriever 
                     JiraCommonResponse.failureSiteNotFound(resolvedSiteConfig));
         }
 
+        String deploymentId = Integer.toString(run.getNumber());
+        String pipelineId = run.getParent().getFullName();
+
         try {
             final GatingStatusResponse result =
                     gatingApi.getGatingStatus(
                             siteConfig.getWebhookUrl(),
                             maybeSecret.get(),
-                            Integer.toString(run.getNumber()),
-                            run.getParent().getFullName(),
+                            deploymentId,
+                            pipelineId,
                             environmentId);
 
             return JiraGatingStatusResponse.success(jiraSite, result);
         } catch (Exception e) {
-            logger.error("Error while retrieving gating status", e);
+            String message =
+                    String.format(
+                            "Error while retrieving gating status for jira site '%s', deployment ID '%s', pipelineId '%s', and environmentId '%s'",
+                            jiraSite, deploymentId, pipelineId, environmentId);
+            logger.error(message, e);
+            taskListener.error(message);
             final String errorMessage = e.getMessage();
             return JiraGatingStatusResponse.failure(jiraSite, errorMessage);
         }
