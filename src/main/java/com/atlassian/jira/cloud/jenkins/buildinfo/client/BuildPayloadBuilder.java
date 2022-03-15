@@ -53,7 +53,8 @@ public final class BuildPayloadBuilder {
 
             return new Builds(
                     JiraBuildInfo.builder()
-                            .withPipelineId(buildWrapper.getFullProjectName())
+                            .withPipelineId(
+                                    String.valueOf(buildWrapper.getFullProjectName().hashCode()))
                             .withBuildNumber(buildWrapper.getNumber())
                             .withDisplayName(buildWrapper.getFullProjectName())
                             .withUpdateSequenceNumber(Instant.now().getEpochSecond())

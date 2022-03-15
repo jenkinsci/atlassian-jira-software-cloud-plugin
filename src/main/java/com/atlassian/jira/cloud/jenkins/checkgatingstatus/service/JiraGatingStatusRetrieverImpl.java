@@ -72,7 +72,7 @@ public class JiraGatingStatusRetrieverImpl implements JiraGatingStatusRetriever 
         }
 
         String deploymentId = Integer.toString(run.getNumber());
-        String pipelineId = run.getParent().getFullName();
+        String pipelineId = String.valueOf(run.getParent().getFullName().hashCode());
 
         try {
             final GatingStatusResponse result =
