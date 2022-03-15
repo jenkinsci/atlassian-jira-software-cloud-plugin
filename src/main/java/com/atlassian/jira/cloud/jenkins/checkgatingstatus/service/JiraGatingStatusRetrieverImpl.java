@@ -74,7 +74,6 @@ public class JiraGatingStatusRetrieverImpl implements JiraGatingStatusRetriever 
                     gatingApi.getGatingStatus(
                             siteConfig.getWebhookUrl(),
                             maybeSecret.get(),
-                            cloudId,
                             Integer.toString(run.getNumber()),
                             run.getParent().getFullName(),
                             environmentId);
