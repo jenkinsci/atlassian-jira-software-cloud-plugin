@@ -37,7 +37,7 @@ import static java.util.Objects.requireNonNull;
  * This class encapsulates Jira Cloud site configuration to be used to send build information to
  * Jira.
  */
-public class JiraCloudSiteConfig2 extends AbstractDescribableImpl<JiraCloudSiteConfig2> {
+public class JiraCloudSiteConfig extends AbstractDescribableImpl<JiraCloudSiteConfig> {
 
     public static final String DEFAULT_SITE = "sitename.atlassian.net";
 
@@ -46,7 +46,7 @@ public class JiraCloudSiteConfig2 extends AbstractDescribableImpl<JiraCloudSiteC
     private final String credentialsId;
 
     @DataBoundConstructor
-    public JiraCloudSiteConfig2(
+    public JiraCloudSiteConfig(
             final String site, final String webhookUrl, final String credentialsId) {
         this.site = requireNonNull(site);
         this.webhookUrl = requireNonNull(webhookUrl);
@@ -74,7 +74,7 @@ public class JiraCloudSiteConfig2 extends AbstractDescribableImpl<JiraCloudSiteC
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        JiraCloudSiteConfig2 that = (JiraCloudSiteConfig2) o;
+        JiraCloudSiteConfig that = (JiraCloudSiteConfig) o;
         return Objects.equals(site, that.site)
                 && Objects.equals(webhookUrl, that.webhookUrl)
                 && Objects.equals(credentialsId, that.credentialsId);
@@ -87,7 +87,7 @@ public class JiraCloudSiteConfig2 extends AbstractDescribableImpl<JiraCloudSiteC
     }
 
     @Extension
-    public static class DescriptorImpl extends Descriptor<JiraCloudSiteConfig2> {
+    public static class DescriptorImpl extends Descriptor<JiraCloudSiteConfig> {
 
         private static Logger logger = LoggerFactory.getLogger(DescriptorImpl.class);
         private transient SecretRetriever secretRetriever;

@@ -3,9 +3,9 @@ package com.atlassian.jira.cloud.jenkins.checkgatingstatus.service;
 import com.atlassian.jira.cloud.jenkins.checkgatingstatus.client.GatingStatusApi;
 import com.atlassian.jira.cloud.jenkins.checkgatingstatus.client.model.GatingStatus;
 import com.atlassian.jira.cloud.jenkins.checkgatingstatus.client.model.GatingStatusResponse;
-import com.atlassian.jira.cloud.jenkins.common.config.JiraSiteConfig2Retriever;
+import com.atlassian.jira.cloud.jenkins.common.config.JiraSiteConfigRetriever;
 import com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse;
-import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig2;
+import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
 import com.atlassian.jira.cloud.jenkins.tenantinfo.CloudIdResolver;
 import com.atlassian.jira.cloud.jenkins.util.SecretRetriever;
 import hudson.model.TaskListener;
@@ -36,10 +36,10 @@ public class JiraGatingStatusRetrieverImplTest {
     public static final int BUILD_NUMBER = 1;
     private static final String SITE = "example.atlassian.com";
     private static final String CLOUD_ID = UUID.randomUUID().toString();
-    private static final JiraCloudSiteConfig2 JIRA_SITE_CONFIG =
-            new JiraCloudSiteConfig2(SITE, "clientId", "credsId");
+    private static final JiraCloudSiteConfig JIRA_SITE_CONFIG =
+            new JiraCloudSiteConfig(SITE, "clientId", "credsId");
 
-    @Mock private JiraSiteConfig2Retriever siteConfigRetriever;
+    @Mock private JiraSiteConfigRetriever siteConfigRetriever;
     @Mock private SecretRetriever secretRetriever;
     @Mock private CloudIdResolver cloudIdResolver;
     @Mock private GatingStatusApi jiraApi;

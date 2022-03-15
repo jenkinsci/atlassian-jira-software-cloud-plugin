@@ -8,7 +8,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 
-import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig2;
+import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.StaplerRequest;
@@ -111,9 +111,9 @@ public class FreeStylePostBuildStep extends Recorder implements Serializable, Si
         @SuppressWarnings("unused")
         public ListBoxModel doFillSiteItems() {
             ListBoxModel items = new ListBoxModel();
-            final List<JiraCloudSiteConfig2> siteList = globalConfig.getSites2();
+            final List<JiraCloudSiteConfig> siteList = globalConfig.getSites();
             items.add("All", null);
-            for (JiraCloudSiteConfig2 siteConfig : siteList) {
+            for (JiraCloudSiteConfig siteConfig : siteList) {
                 items.add(siteConfig.getSite(), siteConfig.getSite());
             }
 

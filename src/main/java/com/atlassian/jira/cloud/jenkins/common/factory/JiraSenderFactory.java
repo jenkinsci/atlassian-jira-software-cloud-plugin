@@ -7,8 +7,8 @@ import com.atlassian.jira.cloud.jenkins.buildinfo.service.MultibranchBuildInfoSe
 import com.atlassian.jira.cloud.jenkins.checkgatingstatus.client.GatingStatusApi;
 import com.atlassian.jira.cloud.jenkins.checkgatingstatus.service.JiraGatingStatusRetriever;
 import com.atlassian.jira.cloud.jenkins.checkgatingstatus.service.JiraGatingStatusRetrieverImpl;
-import com.atlassian.jira.cloud.jenkins.common.config.JiraSiteConfig2Retriever;
-import com.atlassian.jira.cloud.jenkins.common.config.JiraSiteConfig2RetrieverImpl;
+import com.atlassian.jira.cloud.jenkins.common.config.JiraSiteConfigRetriever;
+import com.atlassian.jira.cloud.jenkins.common.config.JiraSiteConfigRetrieverImpl;
 import com.atlassian.jira.cloud.jenkins.common.service.FreestyleIssueKeyExtractor;
 import com.atlassian.jira.cloud.jenkins.common.service.IssueKeyExtractor;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.DeploymentsApi;
@@ -42,7 +42,7 @@ public final class JiraSenderFactory {
         final OkHttpClient httpClient = httpClientProvider.httpClient();
         final ObjectMapper objectMapper = objectMapperProvider.objectMapper();
 
-        final JiraSiteConfig2Retriever siteConfig2Retriever = new JiraSiteConfig2RetrieverImpl();
+        final JiraSiteConfigRetriever siteConfig2Retriever = new JiraSiteConfigRetrieverImpl();
         final BranchNameIssueKeyExtractor branchNameIssueKeyExtractor =
                 new BranchNameIssueKeyExtractor();
         final FreestyleIssueKeyExtractor freestyleBranchNameIssueKeyExtractor =

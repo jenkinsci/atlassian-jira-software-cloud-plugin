@@ -9,7 +9,6 @@ import com.cloudbees.plugins.credentials.CredentialsStore;
 import com.cloudbees.plugins.credentials.domains.Domain;
 import hudson.util.FormValidation;
 import hudson.util.Secret;
-import com.atlassian.jira.cloud.jenkins.auth.AccessTokenRetriever;
 import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl;
 import org.junit.Before;
 import org.junit.Rule;
@@ -25,7 +24,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class JiraCloudSiteConfig2DescriptorTest {
+public class JiraCloudSiteConfigDescriptorTest {
 
     private static final String SITE = "example.atlassian.net";
     private static final String CLOUD_ID = UUID.randomUUID().toString();
@@ -34,22 +33,19 @@ public class JiraCloudSiteConfig2DescriptorTest {
 
     @Rule public JenkinsRule jRule = new JenkinsRule();
 
-    private AccessTokenRetriever accessTokenRetriever;
-
     private CloudIdResolver cloudIdResolver;
 
-    private JiraCloudSiteConfig2.DescriptorImpl classUnderTest;
+    private JiraCloudSiteConfig.DescriptorImpl classUnderTest;
 
     private PingApi pingApi;
 
     @Before
     public void setUp() {
-        accessTokenRetriever = mock(AccessTokenRetriever.class);
         cloudIdResolver = mock(CloudIdResolver.class);
         pingApi = mock(PingApi.class);
-        final JiraCloudSiteConfig2 siteConfig =
-                new JiraCloudSiteConfig2(SITE, WEBHOOK_URL, CREDENTIALS_ID);
-        classUnderTest = (JiraCloudSiteConfig2.DescriptorImpl) siteConfig.getDescriptor();
+        final JiraCloudSiteConfig siteConfig =
+                new JiraCloudSiteConfig(SITE, WEBHOOK_URL, CREDENTIALS_ID);
+        classUnderTest = (JiraCloudSiteConfig.DescriptorImpl) siteConfig.getDescriptor();
         classUnderTest.setCloudIdResolver(cloudIdResolver);
         classUnderTest.setPingApi(pingApi);
 
@@ -204,17 +200,12 @@ public class JiraCloudSiteConfig2DescriptorTest {
     }
 
     private void setupMocks() {
-        setupAccessTokenRetriever();
         setupCloudIdResolver();
         setupPingApi();
     }
 
     private void setupPingApi() {
         when(pingApi.sendPing(any(), any())).thenReturn(true);
-    }
-
-    private void setupAccessTokenRetriever() {
-        when(accessTokenRetriever.getAccessToken(any())).thenReturn(Optional.of("access_token"));
     }
 
     private void setupCloudIdResolver() {

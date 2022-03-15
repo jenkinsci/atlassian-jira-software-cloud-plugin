@@ -2,9 +2,9 @@ package com.atlassian.jira.cloud.jenkins.checkgatingstatus.service;
 
 import com.atlassian.jira.cloud.jenkins.checkgatingstatus.client.GatingStatusApi;
 import com.atlassian.jira.cloud.jenkins.checkgatingstatus.client.model.GatingStatusResponse;
-import com.atlassian.jira.cloud.jenkins.common.config.JiraSiteConfig2Retriever;
+import com.atlassian.jira.cloud.jenkins.common.config.JiraSiteConfigRetriever;
 import com.atlassian.jira.cloud.jenkins.common.response.JiraCommonResponse;
-import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig2;
+import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
 import com.atlassian.jira.cloud.jenkins.tenantinfo.CloudIdResolver;
 import com.atlassian.jira.cloud.jenkins.util.SecretRetriever;
 import hudson.model.TaskListener;
@@ -18,7 +18,7 @@ public class JiraGatingStatusRetrieverImpl implements JiraGatingStatusRetriever 
 
     private static final String HTTPS_PROTOCOL = "https://";
 
-    private final JiraSiteConfig2Retriever siteConfigRetriever;
+    private final JiraSiteConfigRetriever siteConfigRetriever;
     private final SecretRetriever secretRetriever;
     private final CloudIdResolver cloudIdResolver;
     private final GatingStatusApi gatingApi;
@@ -27,7 +27,7 @@ public class JiraGatingStatusRetrieverImpl implements JiraGatingStatusRetriever 
             LoggerFactory.getLogger(JiraGatingStatusRetrieverImpl.class);
 
     public JiraGatingStatusRetrieverImpl(
-            final JiraSiteConfig2Retriever siteConfigRetriever,
+            final JiraSiteConfigRetriever siteConfigRetriever,
             final SecretRetriever secretRetriever,
             final CloudIdResolver cloudIdResolver,
             final GatingStatusApi gatingApi) {
@@ -44,7 +44,7 @@ public class JiraGatingStatusRetrieverImpl implements JiraGatingStatusRetriever 
             final String environmentId,
             final WorkflowRun run) {
 
-        final Optional<JiraCloudSiteConfig2> maybeSiteConfig =
+        final Optional<JiraCloudSiteConfig> maybeSiteConfig =
                 siteConfigRetriever.getJiraSiteConfig(jiraSite);
 
         if (!maybeSiteConfig.isPresent()) {
@@ -54,7 +54,7 @@ public class JiraGatingStatusRetrieverImpl implements JiraGatingStatusRetriever 
 
         final String resolvedSiteConfig = maybeSiteConfig.get().getSite();
 
-        final JiraCloudSiteConfig2 siteConfig = maybeSiteConfig.get();
+        final JiraCloudSiteConfig siteConfig = maybeSiteConfig.get();
         final Optional<String> maybeSecret =
                 secretRetriever.getSecretFor(siteConfig.getCredentialsId());
 

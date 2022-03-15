@@ -1,11 +1,11 @@
 package com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig2
-import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig2
+import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig
 
 def f = namespace(lib.FormTagLib)
 def c = namespace(lib.CredentialsTagLib)
 
 f.entry(title: _("Site Name"), field: "site") {
-    f.textbox(default: JiraCloudSiteConfig2.DEFAULT_SITE)
+    f.textbox(default: JiraCloudSiteConfig.DEFAULT_SITE)
 }
 
 f.entry(title: _("Webhook URL"), field: "webhookUrl") {

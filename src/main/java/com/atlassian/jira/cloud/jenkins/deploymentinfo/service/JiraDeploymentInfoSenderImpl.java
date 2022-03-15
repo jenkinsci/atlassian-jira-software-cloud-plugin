@@ -1,11 +1,11 @@
 package com.atlassian.jira.cloud.jenkins.deploymentinfo.service;
 
 import com.atlassian.jira.cloud.jenkins.common.client.ApiUpdateFailedException;
-import com.atlassian.jira.cloud.jenkins.common.config.JiraSiteConfig2Retriever;
+import com.atlassian.jira.cloud.jenkins.common.config.JiraSiteConfigRetriever;
 import com.atlassian.jira.cloud.jenkins.common.response.JiraCommonResponse;
 import com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse;
 import com.atlassian.jira.cloud.jenkins.common.service.IssueKeyExtractor;
-import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig2;
+import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.DeploymentPayloadBuilder;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.DeploymentsApi;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Association;
@@ -52,7 +52,7 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
                             .map(Result::toString)
                             .orElseGet(Result.SUCCESS::toString);
 
-    private final JiraSiteConfig2Retriever siteConfigRetriever;
+    private final JiraSiteConfigRetriever siteConfigRetriever;
     private final SecretRetriever secretRetriever;
     private final CloudIdResolver cloudIdResolver;
     private final DeploymentsApi deploymentsApi;
@@ -60,7 +60,7 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
     private final IssueKeyExtractor issueKeyExtractor;
 
     public JiraDeploymentInfoSenderImpl(
-            final JiraSiteConfig2Retriever siteConfigRetriever,
+            final JiraSiteConfigRetriever siteConfigRetriever,
             final SecretRetriever secretRetriever,
             final CloudIdResolver cloudIdResolver,
             final DeploymentsApi jiraApi,
@@ -83,7 +83,7 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
                 responses.add(JiraDeploymentInfoResponse.failureGatingManyJiras());
             } else {
                 for (final String jiraSite : jiraSites) {
-                    final Optional<JiraCloudSiteConfig2> maybeSiteConfig =
+                    final Optional<JiraCloudSiteConfig> maybeSiteConfig =
                             getSiteConfigFor(jiraSite);
 
                     responses.add(
@@ -98,7 +98,7 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
                 }
             }
         } else {
-            final Optional<JiraCloudSiteConfig2> maybeSiteConfig =
+            final Optional<JiraCloudSiteConfig> maybeSiteConfig =
                     getSiteConfigFor(request.getSite());
             responses.add(
                     maybeSiteConfig
@@ -117,7 +117,7 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
      * @param request    - JiraBuildInfoRequest::site is ignored and jiraSite is used instead
      */
     private JiraSendInfoResponse sendDeploymentInfoToJiraSite(
-            @Nonnull final JiraCloudSiteConfig2 siteConfig,
+            @Nonnull final JiraCloudSiteConfig siteConfig,
             final JiraDeploymentInfoRequest request) {
         final WorkflowRun deployment = request.getDeployment();
         final Set<String> serviceIds = request.getServiceIds();
@@ -182,7 +182,7 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
         }
     }
 
-    private Optional<JiraCloudSiteConfig2> getSiteConfigFor(@Nullable final String jiraSite) {
+    private Optional<JiraCloudSiteConfig> getSiteConfigFor(@Nullable final String jiraSite) {
         return siteConfigRetriever.getJiraSiteConfig(jiraSite);
     }
 

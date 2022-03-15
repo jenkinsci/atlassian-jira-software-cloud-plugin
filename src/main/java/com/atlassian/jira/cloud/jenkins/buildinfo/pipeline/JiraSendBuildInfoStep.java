@@ -8,7 +8,7 @@ import java.util.Set;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 
-import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig2;
+import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.jenkinsci.plugins.workflow.steps.Step;
 import org.jenkinsci.plugins.workflow.steps.StepContext;
@@ -96,8 +96,8 @@ public class JiraSendBuildInfoStep extends Step implements Serializable {
         public ListBoxModel doFillSiteItems() {
             ListBoxModel items = new ListBoxModel();
             items.add("All", null);
-            final List<JiraCloudSiteConfig2> siteList = globalConfig.getSites2();
-            for (JiraCloudSiteConfig2 siteConfig : siteList) {
+            final List<JiraCloudSiteConfig> siteList = globalConfig.getSites();
+            for (JiraCloudSiteConfig siteConfig : siteList) {
                 items.add(siteConfig.getSite(), siteConfig.getSite());
             }
 

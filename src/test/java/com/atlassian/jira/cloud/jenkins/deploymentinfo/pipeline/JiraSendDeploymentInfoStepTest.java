@@ -3,7 +3,7 @@ package com.atlassian.jira.cloud.jenkins.deploymentinfo.pipeline;
 import com.atlassian.jira.cloud.jenkins.common.factory.JiraSenderFactory;
 import com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse;
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudPluginConfig;
-import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig2;
+import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.DeploymentApiResponse;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.service.JiraDeploymentInfoResponse;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.service.JiraDeploymentInfoSender;
@@ -13,7 +13,6 @@ import com.cloudbees.plugins.credentials.domains.Domain;
 import com.cloudbees.plugins.credentials.impl.BaseStandardCredentials;
 import com.google.common.collect.ImmutableList;
 import hudson.model.Node;
-import hudson.model.Result;
 import hudson.model.TaskListener;
 import hudson.util.Secret;
 import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl;
@@ -61,8 +60,8 @@ public class JiraSendDeploymentInfoStepTest {
 
         // setup Jira site config
         JiraCloudPluginConfig.get()
-                .setSites2(
-                        ImmutableList.of(new JiraCloudSiteConfig2(SITE, CLIENT_ID, CREDENTIAL_ID)));
+                .setSites(
+                        ImmutableList.of(new JiraCloudSiteConfig(SITE, CLIENT_ID, CREDENTIAL_ID)));
 
         // setup credentials
         CredentialsProvider.lookupStores(jenkinsRule.getInstance())

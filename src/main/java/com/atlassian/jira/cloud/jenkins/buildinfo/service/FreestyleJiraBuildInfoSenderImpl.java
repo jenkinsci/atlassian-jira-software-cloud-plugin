@@ -3,7 +3,7 @@ package com.atlassian.jira.cloud.jenkins.buildinfo.service;
 import com.atlassian.jira.cloud.jenkins.buildinfo.client.BuildPayloadBuilder;
 import com.atlassian.jira.cloud.jenkins.buildinfo.client.BuildsApi;
 import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.Builds;
-import com.atlassian.jira.cloud.jenkins.common.config.JiraSiteConfig2Retriever;
+import com.atlassian.jira.cloud.jenkins.common.config.JiraSiteConfigRetriever;
 import com.atlassian.jira.cloud.jenkins.common.model.IssueKey;
 import com.atlassian.jira.cloud.jenkins.common.service.FreestyleIssueKeyExtractor;
 import com.atlassian.jira.cloud.jenkins.tenantinfo.CloudIdResolver;
@@ -25,7 +25,7 @@ public class FreestyleJiraBuildInfoSenderImpl extends JiraBuildInfoSenderImpl {
     private final FreestyleIssueKeyExtractor changeLogIssueKeyExtractor;
 
     public FreestyleJiraBuildInfoSenderImpl(
-            final JiraSiteConfig2Retriever siteConfigRetriever,
+            final JiraSiteConfigRetriever siteConfigRetriever,
             final SecretRetriever secretRetriever,
             final FreestyleIssueKeyExtractor issueKeyExtractor,
             final CloudIdResolver cloudIdResolver,
