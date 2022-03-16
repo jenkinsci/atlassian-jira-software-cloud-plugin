@@ -24,7 +24,7 @@ public class JiraCloudPluginConfig extends GlobalConfiguration {
 
     public static final String FIELD_NAME_AUTO_BUILDS = "autoBuilds";
     public static final String FIELD_NAME_AUTO_DEPLOYMENTS = "autoDeployments";
-    public static final String FIELD_NAME_SITES = "sites2";
+    public static final String FIELD_NAME_SITES = "sites";
     public static final String FIELD_NAME_AUTO_BUILDS_REGEX = "autoBuildsRegex";
     public static final String FIELD_NAME_AUTO_DEPLOYMENTS_REGEX = "autoDeploymentsRegex";
 
