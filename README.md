@@ -10,7 +10,7 @@ You can also use this information to [search across issues using the Jira Query 
 
 ## Prerequisites
 
-To integrate Jenkins with Jira, please make sure you fulfill these prerequisites:
+Check the following things before you connect Jenkins to Jira Software Cloud:
 
 - You're a site administrator of your Jira Cloud site.
 - You're an admin in Jenkins and you can install, update, and delete plugins.
@@ -22,17 +22,17 @@ To integrate Jenkins with Jira, please make sure you fulfill these prerequisites
 
 Log in to your Jenkins server and navigate to the Plugin Manager.
 
-Select the 'Available' tab and search for 'Atlassian Jira Software Cloud' as the plugin name then install it.
+Select the 'Available' tab and search for 'Atlassian Jira Software Cloud', then install it.
 
 The open-source plugin is hosted at GitHub. [You can check it out here](https://github.com/jenkinsci/atlassian-jira-software-cloud-plugin).
 
 ### Install the "Jenkins for Jira" app in Jira
 
-You can install the "Jenkins for Jira" app directly into your Jira site by using the [direct installation link](https://developer.atlassian.com/console/install/21696c93-1a1d-4dd0-bac0-dfed80a62aba?signature=0959fc868cbcef86a68217b573a595eda2966abfdfad3dbb13edcec9ef9ff5fd&product=jira).
+You can install the "Jenkins for Jira" app into your Jira site by using the [direct installation link](https://developer.atlassian.com/console/install/21696c93-1a1d-4dd0-bac0-dfed80a62aba?signature=0959fc868cbcef86a68217b573a595eda2966abfdfad3dbb13edcec9ef9ff5fd&product=jira).
 
-Alternatively, you can install the app via the Jira Marketplace from your Jira site:
+Alternatively, you can install the app via the Jira Marketplace:
 
-1. Go to **Apps > Explore more apps**.
+1. Open Jira and go to **Apps > Explore more apps**.
 1. Type "Jenkins for Jira" into the search box.
 1. Click on the "Jenkins for Jira by Atlassian" app (if it doesn't show up, you might have to remove the "Top trending" filter).
 1. Click on "Get app".
@@ -53,8 +53,8 @@ After installing the "Jenkins for Jira" app into your Jira site, you can create 
 
 With the webhook URL and secret, you can now create a connection between Jenkins and Jira.
 
-1. In Jenkins, go to **Manage Jenkins > Configure System** screen and scroll to the Jira Software Cloud integration section.
-1. Select **Add Jira Cloud Site > Jira Cloud Site**. The Site name, Webhook URL, and Secret fields display.
+1. In Jenkins, go to **Manage Jenkins > Configure System** and scroll to the Jira Software Cloud integration section.
+1. Select **Add Jira Cloud Site > Jira Cloud Site**. New fields will appear for your site name, webhook URL, and secret.
 1. Enter the following details:
    - Site name: The URL for your Jira Cloud site, for example yourcompany.atlassian.net.
    - Webhook URL: The webhook URL you copied from the Jenkins app in Jira earlier.
@@ -68,19 +68,19 @@ With the webhook URL and secret, you can now create a connection between Jenkins
 
 ## Use the Jira cloud integration with Jenkins
 
-The main use case of this plugin is to send build and deployment events to Jira so that they are visible in Jira's issue view, deployments view, and other features. 
+This plugin will send build and deployment events to Jira so that they’re visible in your Jira issues, on the deployments timeline, and in the releases hub.
 
-The plugin will look for Jira issue keys in the name of the branch for which a pipeline is run. If it finds issue keys, it will send build and deployment events to Jira to make them visible in Jira's issue and deployment views.
+To send information from Jenkins to Jira, your team must include Jira issue keys (e.g. FUSE-123) in their commit messages (for deployment information) and branch names (for build information). Whenever a pipeline runs in Jenkins, the plugin will look for Jira issue keys in the branch name and commit messages. If it finds issue keys, it will send build and deployment information to Jira. If it doesn’t find issue keys, the Jenkins plugin won’t send anything to Jira.
 
 ### Sending builds automatically
 
-In **Manage Jenkins > Configure System** you can configure the plugin to automatically send builds events without having to add anything to your Jenkinsfiles:
+To automatically send build events without having to add anything to your `Jenkinsfile`, go to **Manage Jenkins > Configure System** and enable the checkbox “Sends builds automatically”.
 
 ![Sending builds automatically](docs/images/auto-builds.png)
 
-If you enable the checkbox "Send builds automatically", the plugin will send an "in progress" build event to Jira once a pipeline run has started and a "success" or "failure" build event once the pipeline has finished successfully or stopped due to an error.
+When you enable this, the plugin will send an "in progress" build event to Jira once a pipeline run has started and a "success" or "failure" build event once the pipeline has finished successfully or stopped due to an error.
 
-If you additionally specify a regular expression for builds (optional), the plugin will only send a build event to Jira once a build step with a matching name has been finished.
+If you also specify a regular expression for builds, the plugin will only send a build event to Jira once a build step with a matching name has been finished.
 
 The regular expression `^build$` would match the `build` stage in the following `Jenkinsfile`, for example:
 
@@ -101,13 +101,13 @@ Whenever the pipeline in this Jenkinsfile runs, it will send build events to all
 
 ### Sending deployments automatically
 
-In **Manage Jenkins > Configure System** you can configure the plugin to automatically send deployment events without having to add anything to your Jenkinsfiles:
+To automatically send deployment events without having to add anything to your `Jenkinsfile`, go to **Manage Jenkins > Configure System** and enable the checkbox “Sends deployments automatically”.
 
 ![Sending deployments automatically](docs/images/auto-deployments.png)
 
-If you enable the checkbox "Send deployments automatically", the plugin will send an "in progress" deployment event to Jira once a build step with a name matching the specified regular expression has started, and a "success" or "failure" deployment event once that build step has finished.
+When you enable this, the plugin will send an "in progress" deployment event to Jira once a build step with a name matching the specified regular expression has started, and a "success" or "failure" deployment event once that build step has finished.
 
-For this to work, the deployment steps in your Jenkinsfile have to contain the environment name in their name. The regular expression must contain the fragment `(?<envName>.*)` to match the environment name so that the plugin can extract the environment name from the build step names.
+For this to work, the deployment steps in your `Jenkinsfile` must contain the environment name in their name. The regular expression must contain the fragment `(?<envName>.*)` to match the environment name so that the plugin can extract the environment name from the build step names.
 
 Let's look at an example `Jenkinsfile`:
 
@@ -160,7 +160,7 @@ pipeline {
 
 This will send a "success" or "failure" build event to all configured Jira Cloud sites after the `Build` stage has finished successfully or with an error. 
 
-By default, the branch name to extract Jira issue keys from is retrieved from the Jenkins API, however you can specify it yourself. 
+The Jenkins plugin will automatically extract Jira issue keys from the branch name.
 
 You can also specify a Jira site URL to instruct the plugin to send the build event to only this Jira site instead of to all configured Jira sites:
 
@@ -222,15 +222,15 @@ pipeline {
 
 This will send a "success" or "failure" deployment event to all configured Jira sites at the end of the stages `Deploy - Staging` and `Deploy - Production`. 
 
-You **must** provide the parameters `environmentId`, `environmentName`, and `environmentType`.
+You **must** provide the parameters `environmentId`, `environmentName`, and `environmentType`. The `environmentType` must be one of the following: `unmapped`, `development`, `testing`, `staging`, `production`.
 
 You can also provide the parameter `site` to specify to send the deployment events to a single Jira site instead of all configured Jira sites. 
 
-Also, you can specify a branch with the `branch` parameter to define the branch from which to extract Jira issue keys to connect the deployments with.
+When multiple Jira sites are connected to a Jenkins server, the `site`
+parameter is required for `jiraSendDeploymentInfo` with `enableGating:true`.
+More details about Deployment Gating can be found [here](https://support.atlassian.com/jira-service-management-cloud/docs/use-deployment-gating-with-jenkins/).
 
-When multiple Jira sites are connected to a Jenkins server, the `site` 
-    parameter is required for `jiraSendDeploymentInfo` with `enableGating:true`.
-   More details about Deployment Gating can be found [here](https://support.atlassian.com/jira-service-management-cloud/docs/use-deployment-gating-with-jenkins/).
+Also, you can specify a branch with the `branch` parameter to define the branch from which to extract Jira issue keys to connect the deployments with.
 
 ### Example of a complete `Jenkinsfile`
 
