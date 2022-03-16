@@ -113,7 +113,7 @@ public class DeploymentPayloadBuilderTest extends BaseUnitTest {
         assertThat(jiraDeploymentInfo.getEnvironment().getDisplayName()).isEqualTo("prod-east-1");
         assertThat(jiraDeploymentInfo.getEnvironment().getType()).isEqualTo("production");
         assertThat(jiraDeploymentInfo.getPipeline().getId())
-                .isEqualTo(runWrapper.getFullProjectName());
+                .isEqualTo(String.valueOf(runWrapper.getFullProjectName().hashCode()));
         assertThat(jiraDeploymentInfo.getPipeline().getDisplayName())
                 .isEqualTo(runWrapper.getFullProjectName());
         assertThat(jiraDeploymentInfo.getPipeline().getUrl())
