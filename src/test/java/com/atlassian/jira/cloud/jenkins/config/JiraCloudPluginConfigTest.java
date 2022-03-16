@@ -35,12 +35,12 @@ public class JiraCloudPluginConfigTest {
                                     + "    \"sites\": [\n"
                                     + "        {\n"
                                     + "            \"site\": \"mysite1.atlassian.net\",\n"
-                                    + "            \"clientId\": \"myClientId1\",\n"
+                                    + "            \"webhookUrl\": \"https://webhook.url?jenkins_server_uuid=foo\",\n"
                                     + "            \"credentialsId\": \"myCreds1\"\n"
                                     + "        },\n"
                                     + "        {\n"
                                     + "            \"site\": \"mysite2.atlassian.net\",\n"
-                                    + "            \"clientId\": \"\", "
+                                    + "            \"webhookUrl\": \"https://webhook2.url?jenkins_server_uuid=foo\", "
                                     + "            \"credentialsId\": \"myCreds2\"\n"
                                     + "        }\n"
                                     + "    ]\n"
@@ -53,7 +53,7 @@ public class JiraCloudPluginConfigTest {
                                     + "    \"sites\": \n"
                                     + "        {\n"
                                     + "            \"site\": \"mysite1.atlassian.net\",\n"
-                                    + "            \"clientId\": \"myClientId1\",\n"
+                                    + "            \"webhookUrl\": \"https://webhook.url?jenkins_server_uuid=foo\",\n"
                                     + "            \"credentialsId\": \"myCreds1\"\n"
                                     + "        }"
                                     + "}");
@@ -85,7 +85,8 @@ public class JiraCloudPluginConfigTest {
                                     + "    } "
                                     + "}");
 
-    @Rule public JenkinsRule jRule = new JenkinsRule();
+    @Rule
+    public JenkinsRule jRule = new JenkinsRule();
 
     @Test
     public void testDoesNotGetSiteConfig_whenSiteIsNotConfigured() {
@@ -130,7 +131,7 @@ public class JiraCloudPluginConfigTest {
         // given
         JiraCloudSiteConfig siteConfig1 = new JiraCloudSiteConfig(SITE, CLIENT_ID, CREDENTIALS_ID);
         JiraCloudSiteConfig siteConfig2 =
-                new JiraCloudSiteConfig("foobar.atlassian.net", "clientId", "credsId");
+                new JiraCloudSiteConfig("foobar.atlassian.net", "https://webhook.url?jenkins_server_uuid=foo", "credsId");
         JiraCloudPluginConfig.get().setSites(ImmutableList.of(siteConfig1, siteConfig2));
 
         // when
@@ -153,7 +154,7 @@ public class JiraCloudPluginConfigTest {
         assertThat(loadedConfig.getSites().get(0))
                 .isEqualTo(
                         new JiraCloudSiteConfig(
-                                "mysite1.atlassian.net", "myClientId1", "myCreds1"));
+                                "mysite1.atlassian.net", "https://webhook.url?jenkins_server_uuid=foo", "myCreds1"));
     }
 
     @Test
@@ -169,7 +170,7 @@ public class JiraCloudPluginConfigTest {
         assertThat(loadedConfig.getSites().get(0))
                 .isEqualTo(
                         new JiraCloudSiteConfig(
-                                "mysite1.atlassian.net", "myClientId1", "myCreds1"));
+                                "mysite1.atlassian.net", "https://webhook.url?jenkins_server_uuid=foo", "myCreds1"));
     }
 
     @Test

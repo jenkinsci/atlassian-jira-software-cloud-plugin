@@ -1,13 +1,12 @@
 package com.atlassian.jira.cloud.jenkins.deploymentinfo.service;
 
-import com.atlassian.jira.cloud.jenkins.auth.AccessTokenRetriever;
-import com.atlassian.jira.cloud.jenkins.common.client.JiraApi;
-import com.atlassian.jira.cloud.jenkins.common.client.PostUpdateResult;
+import com.atlassian.jira.cloud.jenkins.common.client.ApiUpdateFailedException;
 import com.atlassian.jira.cloud.jenkins.common.config.JiraSiteConfigRetriever;
 import com.atlassian.jira.cloud.jenkins.common.model.ApiErrorResponse;
 import com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse;
 import com.atlassian.jira.cloud.jenkins.common.service.IssueKeyExtractor;
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
+import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.DeploymentsApi;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Association;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.AssociationType;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Command;
@@ -23,7 +22,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import hudson.AbortException;
 import hudson.model.Job;
-import hudson.model.Result;
 import hudson.model.Run;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.jenkinsci.plugins.workflow.support.steps.build.RunWrapper;
@@ -42,19 +40,11 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
-import static com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse.Status.FAILURE_SECRET_NOT_FOUND;
-import static com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse.Status.FAILURE_SITE_CONFIG_NOT_FOUND;
-import static com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse.Status.FAILURE_SITE_NOT_FOUND;
-import static com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse.Status.SKIPPED_ISSUE_KEYS_NOT_FOUND_AND_SERVICE_IDS_ARE_EMPTY;
+import static com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse.Status.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class JiraDeploymentInfoSenderImplTest {
@@ -69,9 +59,11 @@ public class JiraDeploymentInfoSenderImplTest {
     public static final String PIPELINE_ID = UUID.randomUUID().toString();
     public static final int BUILD_NUMBER = 1;
     private static final JiraCloudSiteConfig JIRA_SITE_CONFIG =
-            new JiraCloudSiteConfig(SITE, "clientId", "credsId");
+            new JiraCloudSiteConfig(
+                    SITE, "https://webhook.url?jenkins_server_uuid=foo", "credsId");
     private static final JiraCloudSiteConfig JIRA_SITE_CONFIG2 =
-            new JiraCloudSiteConfig(SITE2, "clientId2", "credsId2");
+            new JiraCloudSiteConfig(
+                    SITE2, "https://webhook.url?jenkins_server_uuid=bar", "credsId2");
 
     @Mock private JiraSiteConfigRetriever siteConfigRetriever;
 
@@ -79,9 +71,7 @@ public class JiraDeploymentInfoSenderImplTest {
 
     @Mock private CloudIdResolver cloudIdResolver;
 
-    @Mock private AccessTokenRetriever accessTokenRetriever;
-
-    @Mock private JiraApi deploymentsApi;
+    @Mock private DeploymentsApi deploymentsApi;
 
     @Mock private IssueKeyExtractor issueKeyExtractor;
 
@@ -96,7 +86,6 @@ public class JiraDeploymentInfoSenderImplTest {
                         siteConfigRetriever,
                         secretRetriever,
                         cloudIdResolver,
-                        accessTokenRetriever,
                         deploymentsApi,
                         issueKeyExtractor,
                         runWrapperProvider);
@@ -162,20 +151,6 @@ public class JiraDeploymentInfoSenderImplTest {
     }
 
     @Test
-    public void testSendDeploymentInfo_whenAccessTokenFailure() {
-        // given
-        when(accessTokenRetriever.getAccessToken(any())).thenReturn(Optional.empty());
-
-        // when
-        final JiraSendInfoResponse response =
-                classUnderTest.sendDeploymentInfo(createRequest()).get(0);
-
-        // then
-        assertThat(response.getStatus())
-                .isEqualTo(JiraSendInfoResponse.Status.FAILURE_ACCESS_TOKEN);
-    }
-
-    @Test
     public void testSendDeploymentInfo_whenApiResponseFailure() {
         // given
         setupDeploymentsApiFailure();
@@ -218,7 +193,7 @@ public class JiraDeploymentInfoSenderImplTest {
                         .get(0);
 
         // then
-        verifyZeroInteractions(issueKeyExtractor);
+        verifyNoInteractions(issueKeyExtractor);
         assertThat(response.getStatus())
                 .isEqualTo(JiraSendInfoResponse.Status.SUCCESS_DEPLOYMENT_ACCEPTED);
         final String message = response.getMessage();
@@ -334,7 +309,7 @@ public class JiraDeploymentInfoSenderImplTest {
         assertThat(response.getStatus())
                 .isEqualTo(JiraSendInfoResponse.Status.SUCCESS_DEPLOYMENT_ACCEPTED);
         verify(deploymentsApi)
-                .postUpdate(any(), any(), any(), deploymentsArgumentCaptor.capture(), any());
+                .sendDeploymentAsJwt(any(), deploymentsArgumentCaptor.capture(), any());
         final JiraDeploymentInfo jiraDeploymentInfo =
                 deploymentsArgumentCaptor.getValue().getDeployments().get(0);
         assertThat(jiraDeploymentInfo.getCommands())
@@ -360,8 +335,10 @@ public class JiraDeploymentInfoSenderImplTest {
             final String message = response.getMessage();
             assertThat(message).isNotBlank();
         }
-        verify(deploymentsApi, times(1)).postUpdate(eq(CLOUD_ID), any(), any(), any(), any());
-        verify(deploymentsApi, times(1)).postUpdate(eq(CLOUD_ID2), any(), any(), any(), any());
+        verify(deploymentsApi, times(1))
+                .sendDeploymentAsJwt(eq(JIRA_SITE_CONFIG.getWebhookUrl()), any(), any());
+        verify(deploymentsApi, times(1))
+                .sendDeploymentAsJwt(eq(JIRA_SITE_CONFIG2.getWebhookUrl()), any(), any());
     }
 
     @Test
@@ -377,7 +354,7 @@ public class JiraDeploymentInfoSenderImplTest {
         assertThat(responses).hasSize(1);
         assertThat(responses.get(0).getStatus())
                 .isEqualTo(JiraSendInfoResponse.Status.FAILURE_DEPLOYMENT_GATING_MANY_JIRAS);
-        verify(deploymentsApi, times(0)).postUpdate(any(), any(), any(), any(), any());
+        verify(deploymentsApi, times(0)).sendDeploymentAsJwt(any(), any(), any());
     }
 
     @Test
@@ -450,7 +427,6 @@ public class JiraDeploymentInfoSenderImplTest {
         setupSecretRetriever();
         setupCloudIdResolver();
         setupChangeLogExtractor();
-        setupAccessTokenRetriever();
         setupRunWrapperProvider();
     }
 
@@ -468,10 +444,6 @@ public class JiraDeploymentInfoSenderImplTest {
     private void setupCloudIdResolver() {
         when(cloudIdResolver.getCloudId(eq("https://" + SITE))).thenReturn(Optional.of(CLOUD_ID));
         when(cloudIdResolver.getCloudId(eq("https://" + SITE2))).thenReturn(Optional.of(CLOUD_ID2));
-    }
-
-    private void setupAccessTokenRetriever() {
-        when(accessTokenRetriever.getAccessToken(any())).thenReturn(Optional.of("access-token"));
     }
 
     private void setupChangeLogExtractor() {
@@ -506,8 +478,8 @@ public class JiraDeploymentInfoSenderImplTest {
     }
 
     private void setupDeploymentsApiFailure() {
-        when(deploymentsApi.postUpdate(any(), any(), any(), any(), any()))
-                .thenReturn(new PostUpdateResult<>("Error"));
+        when(deploymentsApi.sendDeploymentAsJwt(any(), any(), any()))
+                .thenThrow(new ApiUpdateFailedException("Error"));
     }
 
     private void setupDeploymentsApiDeploymentAccepted() {
@@ -518,8 +490,8 @@ public class JiraDeploymentInfoSenderImplTest {
                         ImmutableList.of(deploymentKeyResponse),
                         Collections.emptyList(),
                         Collections.emptyList());
-        when(deploymentsApi.postUpdate(any(), any(), any(), any(), any()))
-                .thenReturn(new PostUpdateResult<>(deploymentApiResponse));
+        when(deploymentsApi.sendDeploymentAsJwt(any(), any(), any()))
+                .thenReturn(deploymentApiResponse);
     }
 
     private void setupDeploymentsApiDeploymentRejected() {
@@ -535,8 +507,8 @@ public class JiraDeploymentInfoSenderImplTest {
                         Collections.emptyList(),
                         ImmutableList.of(deploymentResponse),
                         Collections.emptyList());
-        when(deploymentsApi.postUpdate(any(), any(), any(), any(), any()))
-                .thenReturn(new PostUpdateResult<>(deploymentApiResponse));
+        when(deploymentsApi.sendDeploymentAsJwt(any(), any(), any()))
+                .thenReturn(deploymentApiResponse);
     }
 
     private void setupDeploymentApiUnknownIssueKeys() {
@@ -549,8 +521,8 @@ public class JiraDeploymentInfoSenderImplTest {
                                         .withAssociationType(AssociationType.ISSUE_KEYS)
                                         .withValues(ImmutableSet.of("TEST-123"))
                                         .build()));
-        when(deploymentsApi.postUpdate(any(), any(), any(), any(), any()))
-                .thenReturn(new PostUpdateResult<>(deploymentApiResponse));
+        when(deploymentsApi.sendDeploymentAsJwt(any(), any(), any()))
+                .thenReturn(deploymentApiResponse);
     }
 
     private static WorkflowRun mockWorkflowRun() {

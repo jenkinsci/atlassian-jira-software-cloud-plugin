@@ -1,5 +1,6 @@
 package com.atlassian.jira.cloud.jenkins.config;
 
+import com.atlassian.jira.cloud.jenkins.ping.PingApi;
 import com.atlassian.jira.cloud.jenkins.tenantinfo.CloudIdResolver;
 import com.cloudbees.plugins.credentials.Credentials;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
@@ -8,7 +9,6 @@ import com.cloudbees.plugins.credentials.CredentialsStore;
 import com.cloudbees.plugins.credentials.domains.Domain;
 import hudson.util.FormValidation;
 import hudson.util.Secret;
-import com.atlassian.jira.cloud.jenkins.auth.AccessTokenRetriever;
 import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl;
 import org.junit.Before;
 import org.junit.Rule;
@@ -20,6 +20,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -27,26 +28,26 @@ public class JiraCloudSiteConfigDescriptorTest {
 
     private static final String SITE = "example.atlassian.net";
     private static final String CLOUD_ID = UUID.randomUUID().toString();
-    private static final String CLIENT_ID = "clientId";
+    private static final String WEBHOOK_URL = "https://webhook.url?jenkins_server_uuid=foo";
     private static final String CREDENTIALS_ID = "credsId";
 
     @Rule public JenkinsRule jRule = new JenkinsRule();
-
-    private AccessTokenRetriever accessTokenRetriever;
 
     private CloudIdResolver cloudIdResolver;
 
     private JiraCloudSiteConfig.DescriptorImpl classUnderTest;
 
+    private PingApi pingApi;
+
     @Before
     public void setUp() {
-        accessTokenRetriever = mock(AccessTokenRetriever.class);
         cloudIdResolver = mock(CloudIdResolver.class);
+        pingApi = mock(PingApi.class);
         final JiraCloudSiteConfig siteConfig =
-                new JiraCloudSiteConfig(SITE, CLIENT_ID, CREDENTIALS_ID);
+                new JiraCloudSiteConfig(SITE, WEBHOOK_URL, CREDENTIALS_ID);
         classUnderTest = (JiraCloudSiteConfig.DescriptorImpl) siteConfig.getDescriptor();
-        classUnderTest.setAccessTokenRetriever(accessTokenRetriever);
         classUnderTest.setCloudIdResolver(cloudIdResolver);
+        classUnderTest.setPingApi(pingApi);
 
         setupMocks();
     }
@@ -58,7 +59,7 @@ public class JiraCloudSiteConfigDescriptorTest {
 
         // when
         final FormValidation result =
-                classUnderTest.doTestConnection(SITE, CLIENT_ID, CREDENTIALS_ID);
+                classUnderTest.doTestConnection(SITE, WEBHOOK_URL, CREDENTIALS_ID);
 
         // then
         assertThat(result.kind).isEqualTo(FormValidation.Kind.OK);
@@ -73,7 +74,7 @@ public class JiraCloudSiteConfigDescriptorTest {
 
         // when
         final FormValidation result =
-                classUnderTest.doTestConnection(site, CLIENT_ID, CREDENTIALS_ID);
+                classUnderTest.doTestConnection(site, WEBHOOK_URL, CREDENTIALS_ID);
 
         // then
         assertThat(result.kind).isEqualTo(FormValidation.Kind.ERROR);
@@ -87,7 +88,7 @@ public class JiraCloudSiteConfigDescriptorTest {
 
         // when
         final FormValidation result =
-                classUnderTest.doTestConnection(SITE, CLIENT_ID, CREDENTIALS_ID);
+                classUnderTest.doTestConnection(SITE, WEBHOOK_URL, CREDENTIALS_ID);
 
         // then
         assertThat(result.kind).isEqualTo(FormValidation.Kind.OK);
@@ -97,7 +98,7 @@ public class JiraCloudSiteConfigDescriptorTest {
     public void testFailTestConnection_whenCredentialsNotFound() {
         // when
         final FormValidation result =
-                classUnderTest.doTestConnection(SITE, CLIENT_ID, CREDENTIALS_ID);
+                classUnderTest.doTestConnection(SITE, WEBHOOK_URL, CREDENTIALS_ID);
 
         // then
         assertThat(result.kind).isEqualTo(FormValidation.Kind.ERROR);
@@ -105,17 +106,16 @@ public class JiraCloudSiteConfigDescriptorTest {
     }
 
     @Test
-    public void testFailTestConnection_whenTokenRetrievalFails() throws Exception {
-        // given
-        setupCredentials(CREDENTIALS_ID, "secret");
-        setupCloudIdResolver();
-        when(accessTokenRetriever.getAccessToken(any())).thenReturn(Optional.empty());
+    public void testFailTestConnection_whenPingFailed() {
+        given(pingApi.sendPing(any(), any())).willReturn(false);
 
         // when
         final FormValidation result =
-                classUnderTest.doTestConnection(SITE, CLIENT_ID, CREDENTIALS_ID);
+                classUnderTest.doTestConnection(SITE, WEBHOOK_URL, CREDENTIALS_ID);
+
+        // then
         assertThat(result.kind).isEqualTo(FormValidation.Kind.ERROR);
-        assertThat(result.getMessage()).isEqualTo("Failed to validate site credentials");
+        assertThat(result.getMessage()).isEqualTo("Failed to retrieve secret");
     }
 
     @Test
@@ -132,11 +132,61 @@ public class JiraCloudSiteConfigDescriptorTest {
         // when
         final FormValidation result = classUnderTest.doCheckSite("hdfsjqkwjqkwj");
 
-        // than
+        // then
         assertThat(result.kind).isEqualTo(FormValidation.Kind.ERROR);
         assertThat(result.getMessage())
                 .isEqualTo(
                         "Site name is invalid. Paste a valid site name, e.g. sitename.atlassian.net.");
+    }
+
+    @Test
+    public void testWebhookValidation_whenValidWebhookUrl() {
+        // when
+        final FormValidation result = classUnderTest.doCheckWebhookUrl(WEBHOOK_URL);
+
+        // then
+        assertThat(result.kind).isEqualTo(FormValidation.Kind.OK);
+    }
+
+    @Test
+    public void testSiteValidation_whenEmptyWebhookUrl() {
+        // when
+        final FormValidation result = classUnderTest.doCheckWebhookUrl("");
+
+        // then
+        assertThat(result.kind).isEqualTo(FormValidation.Kind.ERROR);
+        assertThat(result.getMessage()).contains("Webhook URL can’t be blank");
+    }
+
+    @Test
+    public void testSiteValidation_whenWebhookUrlWithoutQueryParam() {
+        // when
+        final FormValidation result = classUnderTest.doCheckWebhookUrl("https://webhook.url");
+
+        // then
+        assertThat(result.kind).isEqualTo(FormValidation.Kind.ERROR);
+        assertThat(result.getMessage()).contains("Webhook URL needs to contain query parameter");
+    }
+
+    @Test
+    public void testSiteValidation_whenWebhookUrlWithWrongQueryParam() {
+        // when
+        final FormValidation result =
+                classUnderTest.doCheckWebhookUrl("https://webhook.url?jenkins_uuid=foo");
+
+        // then
+        assertThat(result.kind).isEqualTo(FormValidation.Kind.ERROR);
+        assertThat(result.getMessage()).contains("Webhook URL needs to contain query parameter");
+    }
+
+    @Test
+    public void testSiteValidation_whenInvalidWebhookUrl() {
+        // when
+        final FormValidation result = classUnderTest.doCheckWebhookUrl("abc");
+
+        // then
+        assertThat(result.kind).isEqualTo(FormValidation.Kind.ERROR);
+        assertThat(result.getMessage()).contains("Webhook URL is not a valid URL");
     }
 
     private void setupCredentials(String credentialId, String secret) throws Exception {
@@ -150,12 +200,12 @@ public class JiraCloudSiteConfigDescriptorTest {
     }
 
     private void setupMocks() {
-        setupAccessTokenRetriever();
         setupCloudIdResolver();
+        setupPingApi();
     }
 
-    private void setupAccessTokenRetriever() {
-        when(accessTokenRetriever.getAccessToken(any())).thenReturn(Optional.of("access_token"));
+    private void setupPingApi() {
+        when(pingApi.sendPing(any(), any())).thenReturn(true);
     }
 
     private void setupCloudIdResolver() {

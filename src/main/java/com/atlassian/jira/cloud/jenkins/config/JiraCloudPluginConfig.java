@@ -60,6 +60,7 @@ public class JiraCloudPluginConfig extends GlobalConfiguration {
     public boolean configure(final StaplerRequest req, final JSONObject json) throws FormException {
         try {
             setSites(Collections.emptyList());
+
             if (json.containsKey(FIELD_NAME_SITES)) {
 
                 Object sites = json.get(FIELD_NAME_SITES);

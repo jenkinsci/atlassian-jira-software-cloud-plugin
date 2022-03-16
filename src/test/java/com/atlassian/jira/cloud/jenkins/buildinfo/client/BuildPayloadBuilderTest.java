@@ -31,10 +31,10 @@ public class BuildPayloadBuilderTest extends BaseUnitTest {
                 BuildPayloadBuilder.getBuildPayload(
                         request.getJiraState(), runWrapper, ImmutableSet.of(ISSUE_KEY));
 
-        final JiraBuildInfo buildInfo = buildPayload.getBuilds().get(0);
+        final JiraBuildInfo buildInfo = buildPayload.getBuild();
         // then
         assertThat(buildPayload.getProviderMetadata().getProduct()).isEqualTo("jenkins");
-        assertThat(buildInfo.getPipelineId()).isEqualTo(runWrapper.getFullProjectName());
+        assertThat(buildInfo.getPipelineId()).isEqualTo(String.valueOf(runWrapper.getFullProjectName().hashCode()));
         assertThat(buildInfo.getBuildNumber()).isEqualTo(runWrapper.getNumber());
         assertThat(buildInfo.getDisplayName()).isEqualTo(runWrapper.getFullProjectName());
         assertThat(buildInfo.getUrl()).isEqualTo(runWrapper.getAbsoluteUrl());
@@ -58,11 +58,11 @@ public class BuildPayloadBuilderTest extends BaseUnitTest {
                 BuildPayloadBuilder.getBuildPayload(
                         request.getJiraState(), runWrapper, ImmutableSet.of(ISSUE_KEY));
 
-        final JiraBuildInfo buildInfo = buildPayload.getBuilds().get(0);
+        final JiraBuildInfo buildInfo = buildPayload.getBuild();
 
         // then
         assertThat(buildPayload.getProviderMetadata().getProduct()).isEqualTo("jenkins");
-        assertThat(buildInfo.getPipelineId()).isEqualTo(runWrapper.getFullProjectName());
+        assertThat(buildInfo.getPipelineId()).isEqualTo(String.valueOf(runWrapper.getFullProjectName().hashCode()));
         assertThat(buildInfo.getBuildNumber()).isEqualTo(runWrapper.getNumber());
         assertThat(buildInfo.getDisplayName()).isEqualTo(runWrapper.getFullProjectName());
         assertThat(buildInfo.getUrl()).isEqualTo(runWrapper.getAbsoluteUrl());

@@ -1,17 +1,16 @@
 package com.atlassian.jira.cloud.jenkins.checkgatingstatus.service;
 
-import com.atlassian.jira.cloud.jenkins.auth.AccessTokenRetriever;
+import com.atlassian.jira.cloud.jenkins.checkgatingstatus.client.GatingStatusApi;
 import com.atlassian.jira.cloud.jenkins.checkgatingstatus.client.model.GatingStatusResponse;
-import com.atlassian.jira.cloud.jenkins.common.client.JiraApi;
-import com.atlassian.jira.cloud.jenkins.common.client.PostUpdateResult;
 import com.atlassian.jira.cloud.jenkins.common.config.JiraSiteConfigRetriever;
-import com.atlassian.jira.cloud.jenkins.common.model.AppCredential;
 import com.atlassian.jira.cloud.jenkins.common.response.JiraCommonResponse;
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
 import com.atlassian.jira.cloud.jenkins.tenantinfo.CloudIdResolver;
 import com.atlassian.jira.cloud.jenkins.util.SecretRetriever;
-import com.google.common.collect.ImmutableMap;
+import hudson.model.TaskListener;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
 
@@ -22,26 +21,28 @@ public class JiraGatingStatusRetrieverImpl implements JiraGatingStatusRetriever 
     private final JiraSiteConfigRetriever siteConfigRetriever;
     private final SecretRetriever secretRetriever;
     private final CloudIdResolver cloudIdResolver;
-    private final AccessTokenRetriever accessTokenRetriever;
-    private final JiraApi gatingApi;
+    private final GatingStatusApi gatingApi;
+
+    private static final Logger logger =
+            LoggerFactory.getLogger(JiraGatingStatusRetrieverImpl.class);
 
     public JiraGatingStatusRetrieverImpl(
             final JiraSiteConfigRetriever siteConfigRetriever,
             final SecretRetriever secretRetriever,
             final CloudIdResolver cloudIdResolver,
-            final AccessTokenRetriever accessTokenRetriever,
-            final JiraApi gatingApi) {
+            final GatingStatusApi gatingApi) {
         this.siteConfigRetriever = siteConfigRetriever;
         this.secretRetriever = secretRetriever;
         this.cloudIdResolver = cloudIdResolver;
-        this.accessTokenRetriever = accessTokenRetriever;
         this.gatingApi = gatingApi;
     }
 
     @Override
-    public JiraGatingStatusResponse getGatingStatus(final GatingStatusRequest request) {
-        final String jiraSite = request.getSite();
-        final WorkflowRun run = request.getRun();
+    public JiraGatingStatusResponse getGatingStatus(
+            final TaskListener taskListener,
+            final String jiraSite,
+            final String environmentId,
+            final WorkflowRun run) {
 
         final Optional<JiraCloudSiteConfig> maybeSiteConfig =
                 siteConfigRetriever.getJiraSiteConfig(jiraSite);
@@ -70,39 +71,28 @@ public class JiraGatingStatusRetrieverImpl implements JiraGatingStatusRetriever 
                     JiraCommonResponse.failureSiteNotFound(resolvedSiteConfig));
         }
 
-        final String cloudId = maybeCloudId.get();
+        String deploymentId = Integer.toString(run.getNumber());
+        String pipelineId = String.valueOf(run.getParent().getFullName().hashCode());
 
-        final AppCredential appCredential =
-                new AppCredential(siteConfig.getClientId(), maybeSecret.get());
-        final Optional<String> maybeAccessToken =
-                accessTokenRetriever.getAccessToken(appCredential);
+        try {
+            final GatingStatusResponse result =
+                    gatingApi.getGatingStatus(
+                            siteConfig.getWebhookUrl(),
+                            maybeSecret.get(),
+                            deploymentId,
+                            pipelineId,
+                            environmentId);
 
-        if (!maybeAccessToken.isPresent()) {
-            return JiraGatingStatusResponse.of(
-                    JiraCommonResponse.failureAccessToken(resolvedSiteConfig));
-        }
-
-        final ImmutableMap<String, String> pathParams =
-                ImmutableMap.<String, String>builder()
-                        .put("cloudId", cloudId)
-                        .put("deploymentId", Integer.toString(run.getNumber()))
-                        .put("pipelineId", run.getParent().getFullName())
-                        .put("environmentId", request.getEnvironmentId())
-                        .build();
-
-        final PostUpdateResult<GatingStatusResponse> result =
-                gatingApi.getResult(
-                        maybeAccessToken.get(),
-                        pathParams,
-                        siteConfig.getClientId(),
-                        GatingStatusResponse.class);
-
-        if (result.getResponseEntity().isPresent()) {
-            return JiraGatingStatusResponse.success(
-                    request.getSite(), result.getResponseEntity().get());
-        } else {
-            final String errorMessage = result.getErrorMessage().orElse("");
-            return JiraGatingStatusResponse.failure(request.getSite(), errorMessage);
+            return JiraGatingStatusResponse.success(jiraSite, result);
+        } catch (Exception e) {
+            String message =
+                    String.format(
+                            "Error while retrieving gating status for jira site '%s', deployment ID '%s', pipelineId '%s', and environmentId '%s'",
+                            jiraSite, deploymentId, pipelineId, environmentId);
+            logger.error(message, e);
+            taskListener.error(message);
+            final String errorMessage = e.getMessage();
+            return JiraGatingStatusResponse.failure(jiraSite, errorMessage);
         }
     }
 }

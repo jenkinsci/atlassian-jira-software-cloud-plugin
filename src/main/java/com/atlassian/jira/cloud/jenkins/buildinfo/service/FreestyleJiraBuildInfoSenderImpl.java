@@ -1,18 +1,8 @@
 package com.atlassian.jira.cloud.jenkins.buildinfo.service;
 
-import static java.util.Objects.requireNonNull;
-
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.apache.commons.lang.StringUtils;
-import org.jenkinsci.plugins.workflow.support.steps.build.RunWrapper;
-
-import com.atlassian.jira.cloud.jenkins.auth.AccessTokenRetriever;
 import com.atlassian.jira.cloud.jenkins.buildinfo.client.BuildPayloadBuilder;
+import com.atlassian.jira.cloud.jenkins.buildinfo.client.BuildsApi;
 import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.Builds;
-import com.atlassian.jira.cloud.jenkins.common.client.JiraApi;
 import com.atlassian.jira.cloud.jenkins.common.config.JiraSiteConfigRetriever;
 import com.atlassian.jira.cloud.jenkins.common.model.IssueKey;
 import com.atlassian.jira.cloud.jenkins.common.service.FreestyleIssueKeyExtractor;
@@ -20,6 +10,14 @@ import com.atlassian.jira.cloud.jenkins.tenantinfo.CloudIdResolver;
 import com.atlassian.jira.cloud.jenkins.util.IssueKeyStringExtractor;
 import com.atlassian.jira.cloud.jenkins.util.RunWrapperProvider;
 import com.atlassian.jira.cloud.jenkins.util.SecretRetriever;
+import org.apache.commons.lang.StringUtils;
+import org.jenkinsci.plugins.workflow.support.steps.build.RunWrapper;
+
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static java.util.Objects.requireNonNull;
 
 public class FreestyleJiraBuildInfoSenderImpl extends JiraBuildInfoSenderImpl {
 
@@ -31,17 +29,10 @@ public class FreestyleJiraBuildInfoSenderImpl extends JiraBuildInfoSenderImpl {
             final SecretRetriever secretRetriever,
             final FreestyleIssueKeyExtractor issueKeyExtractor,
             final CloudIdResolver cloudIdResolver,
-            final AccessTokenRetriever accessTokenRetriever,
-            final JiraApi buildsApi,
+            final BuildsApi buildsApi,
             final RunWrapperProvider runWrapperProvider,
             final FreestyleIssueKeyExtractor changeLogIssueKeyExtractor) {
-        super(
-                siteConfigRetriever,
-                secretRetriever,
-                cloudIdResolver,
-                accessTokenRetriever,
-                buildsApi,
-                runWrapperProvider);
+        super(siteConfigRetriever, secretRetriever, cloudIdResolver, buildsApi, runWrapperProvider);
         this.issueKeyExtractor = requireNonNull(issueKeyExtractor);
         this.changeLogIssueKeyExtractor = requireNonNull(changeLogIssueKeyExtractor);
     }

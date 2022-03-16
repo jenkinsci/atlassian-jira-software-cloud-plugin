@@ -1,15 +1,14 @@
 package com.atlassian.jira.cloud.jenkins.checkgatingstatus.service;
 
-import com.atlassian.jira.cloud.jenkins.auth.AccessTokenRetriever;
-import com.atlassian.jira.cloud.jenkins.checkgatingstatus.client.model.GatingStatusResponse;
+import com.atlassian.jira.cloud.jenkins.checkgatingstatus.client.GatingStatusApi;
 import com.atlassian.jira.cloud.jenkins.checkgatingstatus.client.model.GatingStatus;
-import com.atlassian.jira.cloud.jenkins.common.client.JiraApi;
-import com.atlassian.jira.cloud.jenkins.common.client.PostUpdateResult;
+import com.atlassian.jira.cloud.jenkins.checkgatingstatus.client.model.GatingStatusResponse;
 import com.atlassian.jira.cloud.jenkins.common.config.JiraSiteConfigRetriever;
 import com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse;
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
 import com.atlassian.jira.cloud.jenkins.tenantinfo.CloudIdResolver;
 import com.atlassian.jira.cloud.jenkins.util.SecretRetriever;
+import hudson.model.TaskListener;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.junit.Before;
@@ -23,9 +22,7 @@ import java.util.Collections;
 import java.util.Optional;
 import java.util.UUID;
 
-import static com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse.Status.FAILURE_SECRET_NOT_FOUND;
-import static com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse.Status.FAILURE_SITE_CONFIG_NOT_FOUND;
-import static com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse.Status.FAILURE_SITE_NOT_FOUND;
+import static com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse.Status.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -45,9 +42,9 @@ public class JiraGatingStatusRetrieverImplTest {
     @Mock private JiraSiteConfigRetriever siteConfigRetriever;
     @Mock private SecretRetriever secretRetriever;
     @Mock private CloudIdResolver cloudIdResolver;
-    @Mock private AccessTokenRetriever accessTokenRetriever;
-    @Mock private JiraApi jiraApi;
+    @Mock private GatingStatusApi jiraApi;
     @Mock private WorkflowRun run;
+    @Mock private TaskListener taskListener;
 
     private JiraGatingStatusRetrieverImpl classUnderTest;
 
@@ -55,11 +52,7 @@ public class JiraGatingStatusRetrieverImplTest {
     public void before() throws Exception {
         classUnderTest =
                 new JiraGatingStatusRetrieverImpl(
-                        siteConfigRetriever,
-                        secretRetriever,
-                        cloudIdResolver,
-                        accessTokenRetriever,
-                        jiraApi);
+                        siteConfigRetriever, secretRetriever, cloudIdResolver, jiraApi);
 
         setupMocks();
     }
@@ -70,7 +63,8 @@ public class JiraGatingStatusRetrieverImplTest {
         when(siteConfigRetriever.getJiraSiteConfig(any())).thenReturn(Optional.empty());
 
         // when
-        final JiraGatingStatusResponse response = classUnderTest.getGatingStatus(createRequest());
+        final JiraGatingStatusResponse response =
+                classUnderTest.getGatingStatus(taskListener, SITE, ENVIRONMENT_ID, run);
 
         // then
         assertThat(response.getStatus()).isEqualTo(FAILURE_SITE_CONFIG_NOT_FOUND);
@@ -82,7 +76,8 @@ public class JiraGatingStatusRetrieverImplTest {
         when(secretRetriever.getSecretFor(any())).thenReturn(Optional.empty());
 
         // when
-        final JiraGatingStatusResponse response = classUnderTest.getGatingStatus(createRequest());
+        final JiraGatingStatusResponse response =
+                classUnderTest.getGatingStatus(taskListener, SITE, ENVIRONMENT_ID, run);
 
         // then
         assertThat(response.getStatus()).isEqualTo(FAILURE_SECRET_NOT_FOUND);
@@ -94,23 +89,11 @@ public class JiraGatingStatusRetrieverImplTest {
         when(cloudIdResolver.getCloudId(any())).thenReturn(Optional.empty());
 
         // when
-        final JiraGatingStatusResponse response = classUnderTest.getGatingStatus(createRequest());
+        final JiraGatingStatusResponse response =
+                classUnderTest.getGatingStatus(taskListener, SITE, ENVIRONMENT_ID, run);
 
         // then
         assertThat(response.getStatus()).isEqualTo(FAILURE_SITE_NOT_FOUND);
-    }
-
-    @Test
-    public void testGetGateState_whenAccessTokenFailure() {
-        // given
-        when(accessTokenRetriever.getAccessToken(any())).thenReturn(Optional.empty());
-
-        // when
-        final JiraGatingStatusResponse response = classUnderTest.getGatingStatus(createRequest());
-
-        // then
-        assertThat(response.getStatus())
-                .isEqualTo(JiraSendInfoResponse.Status.FAILURE_ACCESS_TOKEN);
     }
 
     @Test
@@ -119,7 +102,8 @@ public class JiraGatingStatusRetrieverImplTest {
         setupApiFailure();
 
         // when
-        final JiraGatingStatusResponse response = classUnderTest.getGatingStatus(createRequest());
+        final JiraGatingStatusResponse response =
+                classUnderTest.getGatingStatus(taskListener, SITE, ENVIRONMENT_ID, run);
 
         // then
         assertThat(response.getStatus()).isEqualTo(JiraSendInfoResponse.Status.FAILURE_GATE_CHECK);
@@ -131,21 +115,17 @@ public class JiraGatingStatusRetrieverImplTest {
         setupApiSuccess();
 
         // when
-        final JiraGatingStatusResponse response = classUnderTest.getGatingStatus(createRequest());
+        final JiraGatingStatusResponse response =
+                classUnderTest.getGatingStatus(taskListener, SITE, ENVIRONMENT_ID, run);
 
         // then
         assertThat(response.getStatus()).isEqualTo(JiraSendInfoResponse.Status.SUCCESS_GATE_CHECK);
-    }
-
-    private GatingStatusRequest createRequest() {
-        return new GatingStatusRequest(SITE, ENVIRONMENT_ID, run);
     }
 
     private void setupMocks() {
         setupSiteConfigRetriever();
         setupSecretRetriever();
         setupCloudIdResolver();
-        setupAccessTokenRetriever();
         setupRun();
     }
 
@@ -162,10 +142,6 @@ public class JiraGatingStatusRetrieverImplTest {
         when(cloudIdResolver.getCloudId(any())).thenReturn(Optional.of(CLOUD_ID));
     }
 
-    private void setupAccessTokenRetriever() {
-        when(accessTokenRetriever.getAccessToken(any())).thenReturn(Optional.of("access-token"));
-    }
-
     private void setupRun() {
         final WorkflowJob workflowJob = mock(WorkflowJob.class);
         when(run.getNumber()).thenReturn(BUILD_NUMBER);
@@ -174,8 +150,8 @@ public class JiraGatingStatusRetrieverImplTest {
     }
 
     private void setupApiFailure() {
-        when(jiraApi.getResult(any(), any(), any(), any()))
-                .thenReturn(new PostUpdateResult<>("Error"));
+        when(jiraApi.getGatingStatus(any(), any(), any(), any(), any()))
+                .thenThrow(new IllegalStateException("BWAAAH!"));
     }
 
     private void setupApiSuccess() {
@@ -187,7 +163,7 @@ public class JiraGatingStatusRetrieverImplTest {
                         PIPELINE_ID,
                         ENVIRONMENT_ID,
                         BUILD_NUMBER);
-        when(jiraApi.getResult(any(), any(), any(), any()))
-                .thenReturn(new PostUpdateResult<>(gatingStatusResponse));
+        when(jiraApi.getGatingStatus(any(), any(), any(), any(), any()))
+                .thenReturn(gatingStatusResponse);
     }
 }

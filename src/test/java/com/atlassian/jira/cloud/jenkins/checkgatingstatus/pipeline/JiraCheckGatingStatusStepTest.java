@@ -44,9 +44,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class JiraCheckGatingStatusStepTest {
     private static final String SITE = "example.atlassian.net";
@@ -56,11 +54,14 @@ public class JiraCheckGatingStatusStepTest {
     private static final String PIPELINE_ID = UUID.randomUUID().toString();
     private static final Integer DEPLOYMENT_NUMBER = 123;
 
-    @ClassRule public static BuildWatcher buildWatcher = new BuildWatcher();
+    @ClassRule
+    public static BuildWatcher buildWatcher = new BuildWatcher();
 
-    @Rule public JenkinsRule jenkinsRule = new JenkinsRule();
+    @Rule
+    public JenkinsRule jenkinsRule = new JenkinsRule();
 
-    @Inject JiraCheckGatingStatusStep.DescriptorImpl descriptor;
+    @Inject
+    JiraCheckGatingStatusStep.DescriptorImpl descriptor;
 
     private JiraGatingStatusRetriever mockRetriever;
 
@@ -135,7 +136,8 @@ public class JiraCheckGatingStatusStepTest {
                         DEPLOYMENT_NUMBER);
         final JiraGatingStatusResponse gateStatusResponse =
                 JiraGatingStatusResponse.success(SITE, apiResponse);
-        when(mockRetriever.getGatingStatus(any())).thenReturn(gateStatusResponse);
+        when(mockRetriever.getGatingStatus(any(), any(), any(), any()))
+                .thenReturn(gateStatusResponse);
         when(mockTaskListener.getLogger()).thenReturn(mock(PrintStream.class));
         when(mockWorkflowRun.getExecutor()).thenReturn(executor);
 
@@ -179,7 +181,8 @@ public class JiraCheckGatingStatusStepTest {
                         DEPLOYMENT_NUMBER);
         final JiraGatingStatusResponse gateStatusResponse =
                 JiraGatingStatusResponse.success(SITE, apiResponse);
-        when(mockRetriever.getGatingStatus(any())).thenReturn(gateStatusResponse);
+        when(mockRetriever.getGatingStatus(any(), any(), any(), any()))
+                .thenReturn(gateStatusResponse);
 
         // when
         final Boolean response = start.run();
@@ -223,7 +226,8 @@ public class JiraCheckGatingStatusStepTest {
                         DEPLOYMENT_NUMBER);
         final JiraGatingStatusResponse gateStatusResponse =
                 JiraGatingStatusResponse.success(SITE, apiResponse);
-        when(mockRetriever.getGatingStatus(any())).thenReturn(gateStatusResponse);
+        when(mockRetriever.getGatingStatus(any(), any(), any(), any()))
+                .thenReturn(gateStatusResponse);
 
         // when
         final Boolean response = start.run();
@@ -235,6 +239,7 @@ public class JiraCheckGatingStatusStepTest {
         final List<CauseOfInterruption> allValues = causeCaptor.getAllValues();
         assertThat(allValues).hasSize(1);
         final CauseOfInterruption causeOfInterruption = allValues.get(0);
-        assertThat(causeOfInterruption.getShortDescription()).isEqualTo("The deployment was prevented by Jira Service Desk.");
+        assertThat(causeOfInterruption.getShortDescription())
+                .isEqualTo("The deployment was prevented by Jira Service Desk.");
     }
 }

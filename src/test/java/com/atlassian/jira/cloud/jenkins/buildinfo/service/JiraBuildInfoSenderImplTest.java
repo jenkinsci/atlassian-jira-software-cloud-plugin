@@ -1,11 +1,10 @@
 package com.atlassian.jira.cloud.jenkins.buildinfo.service;
 
-import com.atlassian.jira.cloud.jenkins.auth.AccessTokenRetriever;
+import com.atlassian.jira.cloud.jenkins.buildinfo.client.BuildsApi;
 import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.BuildApiResponse;
 import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.BuildKeyResponse;
 import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.RejectedBuildResponse;
-import com.atlassian.jira.cloud.jenkins.common.client.JiraApi;
-import com.atlassian.jira.cloud.jenkins.common.client.PostUpdateResult;
+import com.atlassian.jira.cloud.jenkins.common.client.ApiUpdateFailedException;
 import com.atlassian.jira.cloud.jenkins.common.config.JiraSiteConfigRetriever;
 import com.atlassian.jira.cloud.jenkins.common.model.ApiErrorResponse;
 import com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse;
@@ -17,10 +16,8 @@ import com.atlassian.jira.cloud.jenkins.util.SecretRetriever;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import hudson.AbortException;
-import hudson.model.Result;
 import hudson.model.Run;
 import hudson.scm.ChangeLogSet;
-
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.jenkinsci.plugins.workflow.support.steps.build.RunWrapper;
 import org.junit.Before;
@@ -34,18 +31,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse.Status.FAILURE_SECRET_NOT_FOUND;
-import static com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse.Status.FAILURE_SITE_CONFIG_NOT_FOUND;
-import static com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse.Status.FAILURE_SITE_NOT_FOUND;
-import static com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse.Status.SKIPPED_ISSUE_KEYS_NOT_FOUND;
+import static com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse.Status.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class JiraBuildInfoSenderImplTest {
@@ -58,10 +48,12 @@ public class JiraBuildInfoSenderImplTest {
     public static final String PIPELINE_ID = "my-pipeline-id";
     public static final int BUILD_NUMBER = 1;
     private static final JiraCloudSiteConfig JIRA_SITE_CONFIG =
-            new JiraCloudSiteConfig(SITE, "clientId", "credsId");
+            new JiraCloudSiteConfig(
+                    SITE, "https://webhook.url?jenkins_server_uuid=foo", "credsId");
 
     private static final JiraCloudSiteConfig JIRA_SITE_CONFIG2 =
-            new JiraCloudSiteConfig(SITE2, "clientId2", "credsId2");
+            new JiraCloudSiteConfig(
+                    SITE2, "https://webhook.url?jenkins_server_uuid=bar", "credsId2");
 
     @Mock private JiraSiteConfigRetriever siteConfigRetriever;
 
@@ -71,9 +63,7 @@ public class JiraBuildInfoSenderImplTest {
 
     @Mock private CloudIdResolver cloudIdResolver;
 
-    @Mock private AccessTokenRetriever accessTokenRetriever;
-
-    @Mock private JiraApi buildsApi;
+    @Mock private BuildsApi buildsApi;
 
     @Mock private RunWrapperProvider runWrapperProvider;
 
@@ -87,7 +77,6 @@ public class JiraBuildInfoSenderImplTest {
                         secretRetriever,
                         issueKeyExtractor,
                         cloudIdResolver,
-                        accessTokenRetriever,
                         buildsApi,
                         runWrapperProvider);
 
@@ -146,20 +135,6 @@ public class JiraBuildInfoSenderImplTest {
 
         // then
         assertThat(response.getStatus()).isEqualTo(FAILURE_SITE_NOT_FOUND);
-    }
-
-    @Test
-    public void testSendBuildInfo_whenAccessTokenFailure() {
-        // given
-        when(accessTokenRetriever.getAccessToken(any())).thenReturn(Optional.empty());
-
-        // when
-        final JiraSendInfoResponse response =
-                classUnderTest.sendBuildInfo(createOneJiraRequest()).get(0);
-
-        // then
-        assertThat(response.getStatus())
-                .isEqualTo(JiraSendInfoResponse.Status.FAILURE_ACCESS_TOKEN);
     }
 
     @Test
@@ -298,8 +273,10 @@ public class JiraBuildInfoSenderImplTest {
             final String message = response.getMessage();
             assertThat(message).isNotBlank();
         }
-        verify(buildsApi, times(1)).postUpdate(eq(CLOUD_ID), any(), any(), any(), any());
-        verify(buildsApi, times(1)).postUpdate(eq(CLOUD_ID2), any(), any(), any(), any());
+        verify(buildsApi, times(1))
+                .sendBuildAsJwt(eq(JIRA_SITE_CONFIG.getWebhookUrl()), any(), any());
+        verify(buildsApi, times(1))
+                .sendBuildAsJwt(eq(JIRA_SITE_CONFIG2.getWebhookUrl()), any(), any());
     }
 
     private JiraBuildInfoRequest createOneJiraRequest() {
@@ -315,7 +292,6 @@ public class JiraBuildInfoSenderImplTest {
         setupSecretRetriever();
         setupIssueKeyExtractor();
         setupCloudIdResolver();
-        setupAccessTokenRetriever();
         setupRunWrapperProvider();
     }
 
@@ -337,10 +313,6 @@ public class JiraBuildInfoSenderImplTest {
     private void setupCloudIdResolver() {
         when(cloudIdResolver.getCloudId(eq("https://" + SITE))).thenReturn(Optional.of(CLOUD_ID));
         when(cloudIdResolver.getCloudId(eq("https://" + SITE2))).thenReturn(Optional.of(CLOUD_ID2));
-    }
-
-    private void setupAccessTokenRetriever() {
-        when(accessTokenRetriever.getAccessToken(any())).thenReturn(Optional.of("access-token"));
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
@@ -365,8 +337,8 @@ public class JiraBuildInfoSenderImplTest {
     }
 
     private void setupBuildsApiFailure() {
-        when(buildsApi.postUpdate(any(), any(), any(), any(), any()))
-                .thenReturn(new PostUpdateResult<>("Error"));
+        when(buildsApi.sendBuildAsJwt(any(), any(), any()))
+                .thenThrow(new ApiUpdateFailedException("Error"));
     }
 
     private void setupBuildsApiBuildAccepted() {
@@ -376,8 +348,7 @@ public class JiraBuildInfoSenderImplTest {
                         ImmutableList.of(buildKeyResponse),
                         Collections.emptyList(),
                         Collections.emptyList());
-        when(buildsApi.postUpdate(any(), any(), any(), any(), any()))
-                .thenReturn(new PostUpdateResult<>(buildApiResponse));
+        when(buildsApi.sendBuildAsJwt(any(), any(), any())).thenReturn(buildApiResponse);
     }
 
     private void setupBuildApiBuildRejected() {
@@ -391,8 +362,7 @@ public class JiraBuildInfoSenderImplTest {
                         Collections.emptyList(),
                         ImmutableList.of(buildResponse),
                         Collections.emptyList());
-        when(buildsApi.postUpdate(any(), any(), any(), any(), any()))
-                .thenReturn(new PostUpdateResult<>(buildApiResponse));
+        when(buildsApi.sendBuildAsJwt(any(), any(), any())).thenReturn(buildApiResponse);
     }
 
     private void setupBuildApiUnknownIssueKeys() {
@@ -401,8 +371,7 @@ public class JiraBuildInfoSenderImplTest {
                         Collections.emptyList(),
                         Collections.emptyList(),
                         ImmutableList.of("TEST-123"));
-        when(buildsApi.postUpdate(any(), any(), any(), any(), any()))
-                .thenReturn(new PostUpdateResult<>(buildApiResponse));
+        when(buildsApi.sendBuildAsJwt(any(), any(), any())).thenReturn(buildApiResponse);
     }
 
     private static WorkflowRun mockWorkflowRun() {

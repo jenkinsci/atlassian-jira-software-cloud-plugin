@@ -1,35 +1,10 @@
 package com.atlassian.jira.cloud.jenkins.buildinfo.service;
 
-import static com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse.Status.FAILURE_SECRET_NOT_FOUND;
-import static com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse.Status.FAILURE_SITE_CONFIG_NOT_FOUND;
-import static com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse.Status.FAILURE_SITE_NOT_FOUND;
-import static com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse.Status.SKIPPED_ISSUE_KEYS_NOT_FOUND;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.util.Collections;
-import java.util.Optional;
-import java.util.UUID;
-
-import hudson.model.Result;
-import hudson.model.Run;
-import org.jenkinsci.plugins.workflow.support.steps.build.RunWrapper;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
-
-import com.atlassian.jira.cloud.jenkins.auth.AccessTokenRetriever;
+import com.atlassian.jira.cloud.jenkins.buildinfo.client.BuildsApi;
 import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.BuildApiResponse;
 import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.BuildKeyResponse;
 import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.RejectedBuildResponse;
-import com.atlassian.jira.cloud.jenkins.common.client.JiraApi;
-import com.atlassian.jira.cloud.jenkins.common.client.PostUpdateResult;
+import com.atlassian.jira.cloud.jenkins.common.client.ApiUpdateFailedException;
 import com.atlassian.jira.cloud.jenkins.common.config.JiraSiteConfigRetriever;
 import com.atlassian.jira.cloud.jenkins.common.model.ApiErrorResponse;
 import com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse;
@@ -42,10 +17,25 @@ import com.atlassian.jira.cloud.jenkins.util.RunWrapperProvider;
 import com.atlassian.jira.cloud.jenkins.util.SecretRetriever;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-
 import hudson.AbortException;
 import hudson.model.AbstractBuild;
+import hudson.model.Run;
 import hudson.scm.ChangeLogSet;
+import org.jenkinsci.plugins.workflow.support.steps.build.RunWrapper;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
+
+import java.util.Collections;
+import java.util.Optional;
+import java.util.UUID;
+
+import static com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse.Status.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class FreestyleJiraBuildInfoSenderImplTest {
@@ -55,7 +45,8 @@ public class FreestyleJiraBuildInfoSenderImplTest {
     public static final String PIPELINE_ID = UUID.randomUUID().toString();
     public static final int BUILD_NUMBER = 1;
     private static final JiraCloudSiteConfig JIRA_SITE_CONFIG =
-            new JiraCloudSiteConfig(SITE, "clientId", "credsId");
+            new JiraCloudSiteConfig(
+                    SITE, "https://webhook.url?jenkins_server_uuid=foo", "credsId");
 
     @Mock private JiraSiteConfigRetriever siteConfigRetriever;
 
@@ -67,9 +58,7 @@ public class FreestyleJiraBuildInfoSenderImplTest {
 
     @Mock private CloudIdResolver cloudIdResolver;
 
-    @Mock private AccessTokenRetriever accessTokenRetriever;
-
-    @Mock private JiraApi buildsApi;
+    @Mock private BuildsApi buildsApi;
 
     @Mock private RunWrapperProvider runWrapperProvider;
 
@@ -85,7 +74,6 @@ public class FreestyleJiraBuildInfoSenderImplTest {
                         secretRetriever,
                         freestyleIssueKeyExtractor,
                         cloudIdResolver,
-                        accessTokenRetriever,
                         buildsApi,
                         runWrapperProvider,
                         freestyleChangeLogIssueKeyExtractor);
@@ -141,19 +129,6 @@ public class FreestyleJiraBuildInfoSenderImplTest {
 
         // then
         assertThat(response.getStatus()).isEqualTo(FAILURE_SITE_NOT_FOUND);
-    }
-
-    @Test
-    public void testSendBuildInfo_whenAccessTokenFailure() {
-        // given
-        when(accessTokenRetriever.getAccessToken(any())).thenReturn(Optional.empty());
-
-        // when
-        final JiraSendInfoResponse response = classUnderTest.sendBuildInfo(createRequest()).get(0);
-
-        // then
-        assertThat(response.getStatus())
-                .isEqualTo(JiraSendInfoResponse.Status.FAILURE_ACCESS_TOKEN);
     }
 
     @Test
@@ -275,8 +250,7 @@ public class FreestyleJiraBuildInfoSenderImplTest {
                         Collections.emptyList(),
                         Collections.emptyList(),
                         ImmutableList.of("TEST-123"));
-        when(buildsApi.postUpdate(any(), any(), any(), any(), any()))
-                .thenReturn(new PostUpdateResult<>(buildApiResponse));
+        when(buildsApi.sendBuildAsJwt(any(), any(), any())).thenReturn(buildApiResponse);
     }
 
     private void setupMocks() {
@@ -284,7 +258,6 @@ public class FreestyleJiraBuildInfoSenderImplTest {
         setupSecretRetriever();
         setupIssueKeyExtractor();
         setupCloudIdResolver();
-        setupAccessTokenRetriever();
         setupRunWrapperProvider();
     }
 
@@ -304,10 +277,6 @@ public class FreestyleJiraBuildInfoSenderImplTest {
 
     private void setupCloudIdResolver() {
         when(cloudIdResolver.getCloudId(any())).thenReturn(Optional.of(CLOUD_ID));
-    }
-
-    private void setupAccessTokenRetriever() {
-        when(accessTokenRetriever.getAccessToken(any())).thenReturn(Optional.of("access-token"));
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
@@ -332,8 +301,8 @@ public class FreestyleJiraBuildInfoSenderImplTest {
     }
 
     private void setupBuildsApiFailure() {
-        when(buildsApi.postUpdate(any(), any(), any(), any(), any()))
-                .thenReturn(new PostUpdateResult<>("Error"));
+        when(buildsApi.sendBuildAsJwt(any(), any(), any()))
+                .thenThrow(new ApiUpdateFailedException("Error"));
     }
 
     private FreestyleBuildInfoRequest createRequest() {
@@ -351,8 +320,7 @@ public class FreestyleJiraBuildInfoSenderImplTest {
                         ImmutableList.of(buildKeyResponse),
                         Collections.emptyList(),
                         Collections.emptyList());
-        when(buildsApi.postUpdate(any(), any(), any(), any(), any()))
-                .thenReturn(new PostUpdateResult<>(buildApiResponse));
+        when(buildsApi.sendBuildAsJwt(any(), any(), any())).thenReturn(buildApiResponse);
     }
 
     private void setupBuildApiBuildRejected() {
@@ -366,8 +334,7 @@ public class FreestyleJiraBuildInfoSenderImplTest {
                         Collections.emptyList(),
                         ImmutableList.of(buildResponse),
                         Collections.emptyList());
-        when(buildsApi.postUpdate(any(), any(), any(), any(), any()))
-                .thenReturn(new PostUpdateResult<>(buildApiResponse));
+        when(buildsApi.sendBuildAsJwt(any(), any(), any())).thenReturn(buildApiResponse);
     }
 
     private AbstractBuild changeSetFreestyle() {

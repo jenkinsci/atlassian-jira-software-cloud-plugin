@@ -20,6 +20,8 @@ import org.jenkinsci.plugins.workflow.steps.StepExecution;
 import org.jenkinsci.plugins.workflow.steps.SynchronousNonBlockingStepExecution;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import java.io.Serializable;
@@ -35,6 +37,7 @@ import java.util.Set;
 public class JiraSendDeploymentInfoStep extends Step implements Serializable {
 
     private static final long serialVersionUID = 1L;
+    private static final Logger logger = LoggerFactory.getLogger(JiraSendDeploymentInfoStep.class);
 
     private String site;
     private String environmentId;
@@ -135,7 +138,8 @@ public class JiraSendDeploymentInfoStep extends Step implements Serializable {
     @Extension
     public static class DescriptorImpl extends StepDescriptor {
 
-        @Inject private transient JiraCloudPluginConfig globalConfig;
+        @Inject
+        private transient JiraCloudPluginConfig globalConfig;
 
         @Override
         public Set<Class<?>> getRequiredContext() {
@@ -225,15 +229,15 @@ public class JiraSendDeploymentInfoStep extends Step implements Serializable {
 
         private void logResult(
                 final TaskListener taskListener, final JiraSendInfoResponse response) {
-            taskListener
-                    .getLogger()
-                    .println(
-                            "jiraSendDeploymentInfo("
-                                    + response.getJiraSite()
-                                    + "): "
-                                    + response.getStatus()
-                                    + ": "
-                                    + response.getMessage());
+            String message =
+                    "jiraSendDeploymentInfo("
+                            + response.getJiraSite()
+                            + "): "
+                            + response.getStatus()
+                            + ": "
+                            + response.getMessage();
+            logger.info(message);
+            taskListener.getLogger().println(message);
         }
     }
 }

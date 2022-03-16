@@ -1,0 +1,51 @@
+{
+  "requestType": "event",
+  "eventType": "build",
+  "pipelineName": "pipelineName",
+  "status": "successful",
+  "lastUpdated": "2022-02-24T05:24:36.767Z",
+  "payload": {
+    "properties": {
+      "source": "jenkins"
+    },
+    "providerMetadata": {
+      "product": "jenkins"
+    },
+    "builds": [
+      {
+        "pipelineId": "pipelineId",
+        "buildNumber": 12,
+        "updateSequenceNumber": 12,
+        "displayName": "pipelineName",
+        "description": "description",
+        "label": "label",
+        "url": "https://url.com",
+        "state": "successful",
+        "lastUpdated": "2022-02-24T05:24:36.767Z",
+        "issueKeys": [
+          "JEN-25"
+        ],
+        "references": [
+          {
+            "commit": {
+              "id": "cafebabe",
+              "repositoryUri": "https://repo.url"
+            },
+            "ref": {
+              "name": "refname",
+              "uri": "https:ref.uri"
+            }
+          }
+        ],
+        "testInfo": {
+          "totalNumber": 0,
+          "numberPassed": 0,
+          "numberFailed": 0,
+          "numberSkipped": 0
+        },
+        "schemaVersion": "1.0"
+      }
+    ]
+  },
+  "pipelineId": "pipelineId"
+}

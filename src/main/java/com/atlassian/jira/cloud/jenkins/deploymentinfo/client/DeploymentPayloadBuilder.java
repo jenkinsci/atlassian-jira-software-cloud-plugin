@@ -57,9 +57,11 @@ public final class DeploymentPayloadBuilder {
         final Optional<? extends Run<?, ?>> build = Optional.ofNullable(runWrapper.getRawBuild());
 
         return Pipeline.builder()
-                .withId(runWrapper.getFullProjectName())
+                .withId(String.valueOf(runWrapper.getFullProjectName().hashCode()))
                 .withDisplayName(runWrapper.getFullProjectName())
-                .withUrl(build.map(b -> b.getParent().getAbsoluteUrl()).orElse(runWrapper.getAbsoluteUrl()))
+                .withUrl(
+                        build.map(b -> b.getParent().getAbsoluteUrl())
+                                .orElse(runWrapper.getAbsoluteUrl()))
                 .build();
     }
 }
