@@ -22,15 +22,6 @@ f.section(title: "Jira Software Cloud Integration") {
                 addCaption: _("Add Jira Cloud Site"))
     }
 
-    f.entry(title: _("Jira Cloud Sites (new)"),
-            help: descriptor.getHelpFile()) {
-
-        f.repeatableHeteroProperty(
-                field: instance.FIELD_NAME_SITES2,
-                hasHeader: "true",
-                addCaption: _("Add Jira Cloud Site (new)"))
-    }
-
     f.optionalBlock(
             title: _("Send builds automatically"),
             name: instance.FIELD_NAME_AUTO_BUILDS,

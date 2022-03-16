@@ -1,16 +1,14 @@
-package com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig
-
+package com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig2
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig
 
 def f = namespace(lib.FormTagLib)
 def c = namespace(lib.CredentialsTagLib)
 
-
 f.entry(title: _("Site Name"), field: "site") {
     f.textbox(default: JiraCloudSiteConfig.DEFAULT_SITE)
 }
 
-f.entry(title: _("Client ID"), field: "clientId") {
+f.entry(title: _("Webhook URL"), field: "webhookUrl") {
     f.textbox()
 }
 
@@ -23,7 +21,7 @@ f.block() {
             title: _("Test settings"),
             progress: _("Testing..."),
             method: "testConnection",
-            with: "site,clientId,credentialsId"
+            with: "site,webhookUrl,credentialsId"
     )
 }
 

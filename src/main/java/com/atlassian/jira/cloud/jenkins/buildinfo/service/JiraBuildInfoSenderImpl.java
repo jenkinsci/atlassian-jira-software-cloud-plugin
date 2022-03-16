@@ -4,10 +4,10 @@ import com.atlassian.jira.cloud.jenkins.buildinfo.client.BuildsApi;
 import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.BuildApiResponse;
 import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.Builds;
 import com.atlassian.jira.cloud.jenkins.common.client.ApiUpdateFailedException;
-import com.atlassian.jira.cloud.jenkins.common.config.JiraSiteConfig2Retriever;
+import com.atlassian.jira.cloud.jenkins.common.config.JiraSiteConfigRetriever;
 import com.atlassian.jira.cloud.jenkins.common.response.JiraCommonResponse;
 import com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse;
-import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig2;
+import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
 import com.atlassian.jira.cloud.jenkins.tenantinfo.CloudIdResolver;
 import com.atlassian.jira.cloud.jenkins.util.Constants;
 import com.atlassian.jira.cloud.jenkins.util.RunWrapperProvider;
@@ -28,7 +28,7 @@ import static java.util.Objects.requireNonNull;
  */
 public abstract class JiraBuildInfoSenderImpl implements JiraBuildInfoSender {
 
-    private final JiraSiteConfig2Retriever siteConfigRetriever;
+    private final JiraSiteConfigRetriever siteConfigRetriever;
     private final SecretRetriever secretRetriever;
 
     private final CloudIdResolver cloudIdResolver;
@@ -36,7 +36,7 @@ public abstract class JiraBuildInfoSenderImpl implements JiraBuildInfoSender {
     protected final RunWrapperProvider runWrapperProvider;
 
     public JiraBuildInfoSenderImpl(
-            final JiraSiteConfig2Retriever siteConfigRetriever,
+            final JiraSiteConfigRetriever siteConfigRetriever,
             final SecretRetriever secretRetriever,
             final CloudIdResolver cloudIdResolver,
             final BuildsApi buildsApi,
@@ -54,7 +54,7 @@ public abstract class JiraBuildInfoSenderImpl implements JiraBuildInfoSender {
         if (request.getSite() == null) {
             List<String> jiraSites = siteConfigRetriever.getAllJiraSites();
             for (final String jiraSite : jiraSites) {
-                final Optional<JiraCloudSiteConfig2> maybeSiteConfig = getSiteConfigFor(jiraSite);
+                final Optional<JiraCloudSiteConfig> maybeSiteConfig = getSiteConfigFor(jiraSite);
 
                 responses.add(
                         maybeSiteConfig
@@ -62,7 +62,7 @@ public abstract class JiraBuildInfoSenderImpl implements JiraBuildInfoSender {
                                 .orElse(JiraCommonResponse.failureSiteConfigNotFound(jiraSite)));
             }
         } else {
-            final Optional<JiraCloudSiteConfig2> maybeSiteConfig =
+            final Optional<JiraCloudSiteConfig> maybeSiteConfig =
                     getSiteConfigFor(request.getSite());
             responses.add(
                     maybeSiteConfig
@@ -81,7 +81,7 @@ public abstract class JiraBuildInfoSenderImpl implements JiraBuildInfoSender {
      * @param request - JiraBuildInfoRequest::site is ignored and jiraSite is used instead
      */
     public JiraSendInfoResponse sendBuildInfoToJiraSite(
-            @Nonnull final JiraCloudSiteConfig2 siteConfig,
+            @Nonnull final JiraCloudSiteConfig siteConfig,
             @Nonnull final JiraBuildInfoRequest request) {
 
         final String jiraSite = siteConfig.getSite();
@@ -116,7 +116,7 @@ public abstract class JiraBuildInfoSenderImpl implements JiraBuildInfoSender {
 
     protected abstract Set<String> getIssueKeys(final JiraBuildInfoRequest request);
 
-    private Optional<JiraCloudSiteConfig2> getSiteConfigFor(@Nullable final String jiraSite) {
+    private Optional<JiraCloudSiteConfig> getSiteConfigFor(@Nullable final String jiraSite) {
         return siteConfigRetriever.getJiraSiteConfig(jiraSite);
     }
 

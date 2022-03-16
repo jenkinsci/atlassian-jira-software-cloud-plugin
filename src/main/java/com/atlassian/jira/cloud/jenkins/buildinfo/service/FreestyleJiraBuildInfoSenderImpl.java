@@ -1,20 +1,8 @@
 package com.atlassian.jira.cloud.jenkins.buildinfo.service;
 
-import static java.util.Objects.requireNonNull;
-
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import com.atlassian.jira.cloud.jenkins.buildinfo.client.BuildsApi;
-import com.atlassian.jira.cloud.jenkins.common.config.JiraSiteConfig2Retriever;
-import org.apache.commons.lang.StringUtils;
-import org.jenkinsci.plugins.workflow.support.steps.build.RunWrapper;
-
-import com.atlassian.jira.cloud.jenkins.auth.AccessTokenRetriever;
 import com.atlassian.jira.cloud.jenkins.buildinfo.client.BuildPayloadBuilder;
+import com.atlassian.jira.cloud.jenkins.buildinfo.client.BuildsApi;
 import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.Builds;
-import com.atlassian.jira.cloud.jenkins.common.client.JiraApi;
 import com.atlassian.jira.cloud.jenkins.common.config.JiraSiteConfigRetriever;
 import com.atlassian.jira.cloud.jenkins.common.model.IssueKey;
 import com.atlassian.jira.cloud.jenkins.common.service.FreestyleIssueKeyExtractor;
@@ -22,6 +10,14 @@ import com.atlassian.jira.cloud.jenkins.tenantinfo.CloudIdResolver;
 import com.atlassian.jira.cloud.jenkins.util.IssueKeyStringExtractor;
 import com.atlassian.jira.cloud.jenkins.util.RunWrapperProvider;
 import com.atlassian.jira.cloud.jenkins.util.SecretRetriever;
+import org.apache.commons.lang.StringUtils;
+import org.jenkinsci.plugins.workflow.support.steps.build.RunWrapper;
+
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static java.util.Objects.requireNonNull;
 
 public class FreestyleJiraBuildInfoSenderImpl extends JiraBuildInfoSenderImpl {
 
@@ -29,7 +25,7 @@ public class FreestyleJiraBuildInfoSenderImpl extends JiraBuildInfoSenderImpl {
     private final FreestyleIssueKeyExtractor changeLogIssueKeyExtractor;
 
     public FreestyleJiraBuildInfoSenderImpl(
-            final JiraSiteConfig2Retriever siteConfigRetriever,
+            final JiraSiteConfigRetriever siteConfigRetriever,
             final SecretRetriever secretRetriever,
             final FreestyleIssueKeyExtractor issueKeyExtractor,
             final CloudIdResolver cloudIdResolver,

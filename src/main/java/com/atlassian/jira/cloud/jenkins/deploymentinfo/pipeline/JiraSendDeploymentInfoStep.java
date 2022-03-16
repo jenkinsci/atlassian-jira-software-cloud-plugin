@@ -138,7 +138,8 @@ public class JiraSendDeploymentInfoStep extends Step implements Serializable {
     @Extension
     public static class DescriptorImpl extends StepDescriptor {
 
-        @Inject private transient JiraCloudPluginConfig globalConfig;
+        @Inject
+        private transient JiraCloudPluginConfig globalConfig;
 
         @Override
         public Set<Class<?>> getRequiredContext() {

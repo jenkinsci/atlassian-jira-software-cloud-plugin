@@ -5,11 +5,11 @@ import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.BuildApiResponse;
 import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.BuildKeyResponse;
 import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.RejectedBuildResponse;
 import com.atlassian.jira.cloud.jenkins.common.client.ApiUpdateFailedException;
-import com.atlassian.jira.cloud.jenkins.common.config.JiraSiteConfig2Retriever;
+import com.atlassian.jira.cloud.jenkins.common.config.JiraSiteConfigRetriever;
 import com.atlassian.jira.cloud.jenkins.common.model.ApiErrorResponse;
 import com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse;
 import com.atlassian.jira.cloud.jenkins.common.service.FreestyleIssueKeyExtractor;
-import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig2;
+import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.service.FreestyleChangeLogIssueKeyExtractor;
 import com.atlassian.jira.cloud.jenkins.tenantinfo.CloudIdResolver;
 import com.atlassian.jira.cloud.jenkins.util.FreestyleBranchNameIssueKeyExtractor;
@@ -44,11 +44,11 @@ public class FreestyleJiraBuildInfoSenderImplTest {
     private static final String CLOUD_ID = UUID.randomUUID().toString();
     public static final String PIPELINE_ID = UUID.randomUUID().toString();
     public static final int BUILD_NUMBER = 1;
-    private static final JiraCloudSiteConfig2 JIRA_SITE_CONFIG =
-            new JiraCloudSiteConfig2(
+    private static final JiraCloudSiteConfig JIRA_SITE_CONFIG =
+            new JiraCloudSiteConfig(
                     SITE, "https://webhook.url?jenkins_server_uuid=foo", "credsId");
 
-    @Mock private JiraSiteConfig2Retriever siteConfigRetriever;
+    @Mock private JiraSiteConfigRetriever siteConfigRetriever;
 
     @Mock private SecretRetriever secretRetriever;
 

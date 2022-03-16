@@ -44,9 +44,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class JiraCheckGatingStatusStepTest {
     private static final String SITE = "example.atlassian.net";
@@ -56,11 +54,14 @@ public class JiraCheckGatingStatusStepTest {
     private static final String PIPELINE_ID = UUID.randomUUID().toString();
     private static final Integer DEPLOYMENT_NUMBER = 123;
 
-    @ClassRule public static BuildWatcher buildWatcher = new BuildWatcher();
+    @ClassRule
+    public static BuildWatcher buildWatcher = new BuildWatcher();
 
-    @Rule public JenkinsRule jenkinsRule = new JenkinsRule();
+    @Rule
+    public JenkinsRule jenkinsRule = new JenkinsRule();
 
-    @Inject JiraCheckGatingStatusStep.DescriptorImpl descriptor;
+    @Inject
+    JiraCheckGatingStatusStep.DescriptorImpl descriptor;
 
     private JiraGatingStatusRetriever mockRetriever;
 
