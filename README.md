@@ -8,6 +8,8 @@ This gives your entire team additional visibility and context on every issue det
 
 You can also use this information to [search across issues using the Jira Query Language (JQL)](https://confluence.atlassian.com/jirasoftwarecloud/advanced-searching-developer-reference-967312910.html), easily answering questions like “which issues in the current sprint have been deployed to production”. You can even add these as quick filters on your boards!
 
+> :warning: Since version 2.0.0, this plugin no longer supports sending builds and deployments to Jira via OAuth credentials. Instead, go to **Apps > Manage Apps** in Jira, search for the "Jenkins for Jira by Atlassian" app and install it. The app helps you through establishing the connection between your Jenkins server and Jira. 
+
 ## Prerequisites
 
 Check the following things before you connect Jenkins to Jira Software Cloud:
