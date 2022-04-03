@@ -35,7 +35,7 @@
     </properties>
     <name>Atlassian Jira Software Cloud</name>
     <description>Atlassian Jira Software Cloud Jenkins Integration</description>
-    <url>https://wiki.jenkins.io/display/JENKINS/Atlassian+Jira+Software+Cloud+Plugin</url>
+    <url>https://github.com/jenkinsci/atlassian-jira-software-cloud-plugin</url>
 
     <licenses>
         <license>
