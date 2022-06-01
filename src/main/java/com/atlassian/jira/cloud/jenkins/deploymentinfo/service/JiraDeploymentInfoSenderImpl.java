@@ -209,15 +209,15 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
 
     private JiraSendInfoResponse handleDeploymentApiResponse(
             final String jiraSite, final DeploymentApiResponse response) {
-        if (!response.getAcceptedDeployments().isEmpty()) {
+        if (response.getAcceptedDeployments() != null && !response.getAcceptedDeployments().isEmpty()) {
             return JiraDeploymentInfoResponse.successDeploymentAccepted(jiraSite, response);
         }
 
-        if (!response.getUnknownAssociations().isEmpty()) {
+        if (response.getUnknownAssociations() != null && !response.getUnknownAssociations().isEmpty()) {
             return JiraDeploymentInfoResponse.failureUnknownAssociations(jiraSite, response);
         }
 
-        if (!response.getRejectedDeployments().isEmpty()) {
+        if (response.getRejectedDeployments() != null && !response.getRejectedDeployments().isEmpty()) {
             return JiraDeploymentInfoResponse.failureDeploymentRejected(jiraSite, response);
         }
 

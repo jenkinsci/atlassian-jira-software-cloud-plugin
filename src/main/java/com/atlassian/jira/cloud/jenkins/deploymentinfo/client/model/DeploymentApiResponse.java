@@ -3,6 +3,7 @@ package com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -21,9 +22,10 @@ public class DeploymentApiResponse {
     @JsonCreator
     public DeploymentApiResponse(
             @JsonProperty("acceptedDeployments")
-                    final List<DeploymentKeyResponse> acceptedDeployments,
+            @Nullable final List<DeploymentKeyResponse> acceptedDeployments,
             @JsonProperty("rejectedDeployments")
-                    final List<RejectedDeploymentResponse> rejectedDeployments,
+            @Nullable final List<RejectedDeploymentResponse> rejectedDeployments,
+            @Nullable
             @JsonProperty("unknownAssociations") final List<Association> unknownAssociations) {
         this.acceptedDeployments =
                 Optional.ofNullable(acceptedDeployments).orElse(Collections.emptyList());
@@ -33,14 +35,17 @@ public class DeploymentApiResponse {
                 Optional.ofNullable(unknownAssociations).orElse(Collections.emptyList());
     }
 
+    @Nullable
     public List<DeploymentKeyResponse> getAcceptedDeployments() {
         return acceptedDeployments;
     }
 
+    @Nullable
     public List<RejectedDeploymentResponse> getRejectedDeployments() {
         return rejectedDeployments;
     }
 
+    @Nullable
     public List<Association> getUnknownAssociations() {
         return unknownAssociations;
     }
