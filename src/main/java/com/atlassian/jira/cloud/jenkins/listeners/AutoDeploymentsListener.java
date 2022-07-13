@@ -1,14 +1,13 @@
 package com.atlassian.jira.cloud.jenkins.listeners;
 
 import com.atlassian.jira.cloud.jenkins.common.service.IssueKeyExtractor;
-import com.atlassian.jira.cloud.jenkins.util.PipelineLogger;
+import com.atlassian.jira.cloud.jenkins.logging.PipelineLogger;
 import org.jenkinsci.plugins.workflow.cps.nodes.StepStartNode;
 import org.jenkinsci.plugins.workflow.graph.FlowNode;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.PrintStream;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;

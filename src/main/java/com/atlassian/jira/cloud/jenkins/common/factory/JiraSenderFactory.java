@@ -21,14 +21,12 @@ import com.atlassian.jira.cloud.jenkins.provider.ObjectMapperProvider;
 import com.atlassian.jira.cloud.jenkins.tenantinfo.CloudIdResolver;
 import com.atlassian.jira.cloud.jenkins.util.BranchNameIssueKeyExtractor;
 import com.atlassian.jira.cloud.jenkins.util.FreestyleBranchNameIssueKeyExtractor;
-import com.atlassian.jira.cloud.jenkins.util.PipelineLogger;
+import com.atlassian.jira.cloud.jenkins.logging.PipelineLogger;
 import com.atlassian.jira.cloud.jenkins.util.RunWrapperProviderImpl;
 import com.atlassian.jira.cloud.jenkins.util.SecretRetriever;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import okhttp3.OkHttpClient;
-
-import java.io.PrintStream;
 
 public final class JiraSenderFactory {
 

@@ -1,6 +1,6 @@
 package com.atlassian.jira.cloud.jenkins.common.client;
 
-import com.atlassian.jira.cloud.jenkins.util.PipelineLogger;
+import com.atlassian.jira.cloud.jenkins.logging.PipelineLogger;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.fasterxml.jackson.core.JsonProcessingException;

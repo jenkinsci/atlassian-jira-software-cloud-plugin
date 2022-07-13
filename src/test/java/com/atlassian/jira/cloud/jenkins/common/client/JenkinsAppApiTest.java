@@ -5,11 +5,10 @@ import com.atlassian.jira.cloud.jenkins.checkgatingstatus.client.GatingStatusApi
 import com.atlassian.jira.cloud.jenkins.checkgatingstatus.client.model.GatingStatusRequest;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.DeploymentsApi;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.DeploymentApiResponse;
-import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Pipeline;
 import com.atlassian.jira.cloud.jenkins.ping.JenkinsAppPingRequest;
 import com.atlassian.jira.cloud.jenkins.ping.PingApi;
 import com.atlassian.jira.cloud.jenkins.provider.ObjectMapperProvider;
-import com.atlassian.jira.cloud.jenkins.util.PipelineLogger;
+import com.atlassian.jira.cloud.jenkins.logging.PipelineLogger;
 import com.auth0.jwt.JWT;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.Call;
@@ -26,9 +25,7 @@ import org.skyscreamer.jsonassert.JSONCompareMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Calendar;

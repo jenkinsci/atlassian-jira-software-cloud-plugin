@@ -1,7 +1,6 @@
 package com.atlassian.jira.cloud.jenkins.ping;
 
 import com.atlassian.jira.cloud.jenkins.common.client.JenkinsAppApi;
-import com.atlassian.jira.cloud.jenkins.util.PipelineLogger;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.OkHttpClient;
 

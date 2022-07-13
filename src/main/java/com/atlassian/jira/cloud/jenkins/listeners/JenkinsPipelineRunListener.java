@@ -5,7 +5,7 @@ import com.atlassian.jira.cloud.jenkins.config.JiraCloudPluginConfig;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.service.ChangeLogIssueKeyExtractor;
 import com.atlassian.jira.cloud.jenkins.util.BranchNameIssueKeyExtractor;
 import com.atlassian.jira.cloud.jenkins.util.CompoundIssueKeyExtractor;
-import com.atlassian.jira.cloud.jenkins.util.PipelineLogger;
+import com.atlassian.jira.cloud.jenkins.logging.PipelineLogger;
 import hudson.Extension;
 import hudson.model.Run;
 import hudson.model.TaskListener;
@@ -13,8 +13,6 @@ import hudson.model.listeners.RunListener;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Arrays;
 
 @Extension
 public class JenkinsPipelineRunListener extends RunListener<Run> {

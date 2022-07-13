@@ -3,11 +3,9 @@ package com.atlassian.jira.cloud.jenkins.checkgatingstatus.client;
 import com.atlassian.jira.cloud.jenkins.checkgatingstatus.client.model.GatingStatusRequest;
 import com.atlassian.jira.cloud.jenkins.checkgatingstatus.client.model.GatingStatusResponse;
 import com.atlassian.jira.cloud.jenkins.common.client.JenkinsAppApi;
-import com.atlassian.jira.cloud.jenkins.util.PipelineLogger;
+import com.atlassian.jira.cloud.jenkins.logging.PipelineLogger;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.OkHttpClient;
-
-import java.io.PrintStream;
 
 public class GatingStatusApi extends JenkinsAppApi<GatingStatusResponse> {
 

@@ -1,4 +1,4 @@
-package com.atlassian.jira.cloud.jenkins.util;
+package com.atlassian.jira.cloud.jenkins.logging;
 
 import hudson.model.TaskListener;
 

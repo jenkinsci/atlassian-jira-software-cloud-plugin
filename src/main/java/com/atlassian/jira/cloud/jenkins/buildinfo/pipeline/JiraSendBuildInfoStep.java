@@ -9,7 +9,7 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
-import com.atlassian.jira.cloud.jenkins.util.PipelineLogger;
+import com.atlassian.jira.cloud.jenkins.logging.PipelineLogger;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.jenkinsci.plugins.workflow.steps.Step;
 import org.jenkinsci.plugins.workflow.steps.StepContext;
