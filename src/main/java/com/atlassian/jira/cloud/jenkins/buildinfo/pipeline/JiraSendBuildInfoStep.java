@@ -9,6 +9,7 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
+import com.atlassian.jira.cloud.jenkins.logging.PipelineLogger;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.jenkinsci.plugins.workflow.steps.Step;
 import org.jenkinsci.plugins.workflow.steps.StepContext;
@@ -120,13 +121,16 @@ public class JiraSendBuildInfoStep extends Step implements Serializable {
         protected List<JiraSendInfoResponse> run() throws Exception {
             final TaskListener taskListener = getContext().get(TaskListener.class);
             final WorkflowRun workflowRun = getContext().get(WorkflowRun.class);
+            final PipelineLogger pipelineLogger = new PipelineLogger(taskListener.getLogger());
 
             final JiraBuildInfoRequest request =
                     new MultibranchBuildInfoRequest(
                             step.getSite(), step.getBranch(), workflowRun, Optional.empty());
 
             final List<JiraSendInfoResponse> allResponses =
-                    JiraSenderFactory.getInstance().getJiraBuildInfoSender().sendBuildInfo(request);
+                    JiraSenderFactory.getInstance(pipelineLogger)
+                            .getJiraBuildInfoSender()
+                            .sendBuildInfo(request);
 
             allResponses.forEach(response -> logResult(taskListener, response));
 

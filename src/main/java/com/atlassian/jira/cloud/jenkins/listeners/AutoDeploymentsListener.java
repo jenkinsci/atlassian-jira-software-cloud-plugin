@@ -1,13 +1,13 @@
 package com.atlassian.jira.cloud.jenkins.listeners;
 
 import com.atlassian.jira.cloud.jenkins.common.service.IssueKeyExtractor;
+import com.atlassian.jira.cloud.jenkins.logging.PipelineLogger;
 import org.jenkinsci.plugins.workflow.cps.nodes.StepStartNode;
 import org.jenkinsci.plugins.workflow.graph.FlowNode;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.PrintStream;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -18,7 +18,7 @@ public class AutoDeploymentsListener implements SinglePipelineListener {
     private final String autoDeploymentsRegex;
     private final List<SinglePipelineSingleDeploymentListener> deploymentListeners =
             new LinkedList<>();
-    private final PrintStream pipelineLogger;
+    private final PipelineLogger pipelineLogger;
     private final IssueKeyExtractor issueKeyExtractor;
 
     private static final Logger systemLogger =
@@ -26,7 +26,7 @@ public class AutoDeploymentsListener implements SinglePipelineListener {
 
     public AutoDeploymentsListener(
             final WorkflowRun run,
-            final PrintStream logger,
+            final PipelineLogger logger,
             final String autoDeploymentsRegex,
             final IssueKeyExtractor issueKeyExtractor) {
         this.build = run;
@@ -55,7 +55,7 @@ public class AutoDeploymentsListener implements SinglePipelineListener {
                 }
             } catch (final IllegalArgumentException ex) {
                 final String message = ex.getClass().getSimpleName() + ": " + ex.getMessage();
-                pipelineLogger.println("[WARN] " + message);
+                pipelineLogger.warn(message);
                 systemLogger.warn(message, ex);
             }
         }
@@ -64,7 +64,7 @@ public class AutoDeploymentsListener implements SinglePipelineListener {
     }
 
     private void registerDeploymentListener(final FlowNode flowNode, final String envName) {
-        pipelineLogger.println("[INFO] deployment node was determined, envName=" + envName);
+        pipelineLogger.info("deployment node was determined, envName=" + envName);
         deploymentListeners.add(
                 new SinglePipelineSingleDeploymentListener(
                         build, pipelineLogger, flowNode.getId(), envName, issueKeyExtractor));

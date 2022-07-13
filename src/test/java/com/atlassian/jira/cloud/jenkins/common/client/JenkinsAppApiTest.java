@@ -8,6 +8,7 @@ import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.DeploymentAp
 import com.atlassian.jira.cloud.jenkins.ping.JenkinsAppPingRequest;
 import com.atlassian.jira.cloud.jenkins.ping.PingApi;
 import com.atlassian.jira.cloud.jenkins.provider.ObjectMapperProvider;
+import com.atlassian.jira.cloud.jenkins.logging.PipelineLogger;
 import com.auth0.jwt.JWT;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.Call;
@@ -47,7 +48,7 @@ public class JenkinsAppApiTest {
         OkHttpClient client = mockHttpClient();
         ObjectMapperProvider objectMapperProvider = new ObjectMapperProvider();
         ObjectMapper objectMapper = objectMapperProvider.objectMapper();
-        BuildsApi buildsApi = new BuildsApi(client, objectMapper);
+        BuildsApi buildsApi = new BuildsApi(client, objectMapper, PipelineLogger.noopInstance());
 
         String jwt =
                 buildsApi.wrapInJwt(
@@ -69,7 +70,8 @@ public class JenkinsAppApiTest {
         OkHttpClient client = mockHttpClient();
         ObjectMapperProvider objectMapperProvider = new ObjectMapperProvider();
         ObjectMapper objectMapper = objectMapperProvider.objectMapper();
-        DeploymentsApi deploymentsApi = new DeploymentsApi(client, objectMapper);
+        DeploymentsApi deploymentsApi =
+                new DeploymentsApi(client, objectMapper, PipelineLogger.noopInstance());
 
         String jwt =
                 deploymentsApi.wrapInJwt(
@@ -108,11 +110,14 @@ public class JenkinsAppApiTest {
         OkHttpClient client = mockHttpClient();
         ObjectMapperProvider objectMapperProvider = new ObjectMapperProvider();
         ObjectMapper objectMapper = objectMapperProvider.objectMapper();
-        GatingStatusApi gatingStatusApi = new GatingStatusApi(client, objectMapper);
+        GatingStatusApi gatingStatusApi =
+                new GatingStatusApi(client, objectMapper, PipelineLogger.noopInstance());
 
         String jwt =
                 gatingStatusApi.wrapInJwt(
-                        new GatingStatusRequest("4711", "0815", "prod"), "this is a secret", farFuture.getTime());
+                        new GatingStatusRequest("4711", "0815", "prod"),
+                        "this is a secret",
+                        farFuture.getTime());
 
         logger.info("Here's your JWT: {}", jwt);
     }
@@ -124,7 +129,7 @@ public class JenkinsAppApiTest {
         OkHttpClient client = mockHttpClient();
         ObjectMapperProvider objectMapperProvider = new ObjectMapperProvider();
         ObjectMapper objectMapper = objectMapperProvider.objectMapper();
-        BuildsApi buildsApi = new BuildsApi(client, objectMapper);
+        BuildsApi buildsApi = new BuildsApi(client, objectMapper, PipelineLogger.noopInstance());
 
         // when
         buildsApi.sendBuildAsJwt("https://webhook.url", builds(lastUpdated), "this is a secret");
@@ -148,7 +153,8 @@ public class JenkinsAppApiTest {
         OkHttpClient client = mockHttpClient();
         ObjectMapperProvider objectMapperProvider = new ObjectMapperProvider();
         ObjectMapper objectMapper = objectMapperProvider.objectMapper();
-        DeploymentsApi deploymentsApi = new DeploymentsApi(client, objectMapper);
+        DeploymentsApi deploymentsApi =
+                new DeploymentsApi(client, objectMapper, PipelineLogger.noopInstance());
 
         // when
         DeploymentApiResponse response =

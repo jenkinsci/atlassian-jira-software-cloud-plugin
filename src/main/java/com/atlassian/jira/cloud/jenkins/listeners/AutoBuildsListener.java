@@ -5,9 +5,8 @@ import com.atlassian.jira.cloud.jenkins.common.factory.JiraSenderFactory;
 import com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse;
 import com.atlassian.jira.cloud.jenkins.common.service.IssueKeyExtractor;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.State;
-import com.atlassian.jira.cloud.jenkins.deploymentinfo.service.ChangeLogIssueKeyExtractor;
-import com.atlassian.jira.cloud.jenkins.util.BranchNameIssueKeyExtractor;
 import com.atlassian.jira.cloud.jenkins.util.JenkinsToJiraStatus;
+import com.atlassian.jira.cloud.jenkins.logging.PipelineLogger;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.jenkinsci.plugins.workflow.cps.nodes.StepEndNode;
 import org.jenkinsci.plugins.workflow.cps.nodes.StepStartNode;
@@ -17,14 +16,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.PrintStream;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
-import java.util.stream.Collectors;
 
 /**
  * This class should listen to the events from Jenkins pipeline and send 2 builds: one in
@@ -43,7 +38,7 @@ public class AutoBuildsListener implements SinglePipelineListener {
     private final String autoBuildsRegex;
 
     private final IssueKeyExtractor issueKeyExtractor;
-    private final PrintStream pipelineLogger;
+    private final PipelineLogger pipelineLogger;
 
     private boolean inProgressSent = false;
     private boolean finalResultSent = false;
@@ -55,7 +50,7 @@ public class AutoBuildsListener implements SinglePipelineListener {
 
     public AutoBuildsListener(
             final WorkflowRun run,
-            final PrintStream logger,
+            final PipelineLogger logger,
             final String autoBuildsRegex,
             final IssueKeyExtractor issueKeyExtractor) {
         this.build = run;
@@ -98,8 +93,8 @@ public class AutoBuildsListener implements SinglePipelineListener {
         final StepEndNode endNode = flowNode instanceof StepEndNode ? (StepEndNode) flowNode : null;
 
         if (startNode != null && matchesRegex(autoBuildsRegex, startNode.getDisplayName())) {
-            pipelineLogger.println(
-                    "[INFO] build start node was determined: "
+            pipelineLogger.info(
+                    "build start node was determined: "
                             + startNode.getId()
                             + " "
                             + startNode.getDisplayName());
@@ -107,8 +102,8 @@ public class AutoBuildsListener implements SinglePipelineListener {
         } else if (endNode != null
                 && !startFlowNodeId.isEmpty()
                 && startFlowNodeId.equals(endNode.getStartNode().getId())) {
-            pipelineLogger.println(
-                    "[INFO] build end node was determined: "
+            pipelineLogger.info(
+                    "build end node was determined: "
                             + endNode.getId()
                             + " "
                             + endNode.getDisplayName());
@@ -156,7 +151,7 @@ public class AutoBuildsListener implements SinglePipelineListener {
             return Pattern.compile(autoBuildsRegex).matcher(displayName).matches();
         } catch (final PatternSyntaxException exception) {
             final String message = "PatternSyntaxException: " + exception.getMessage();
-            pipelineLogger.println("[WARN] " + message);
+            pipelineLogger.warn(message);
             systemLogger.warn(message, exception);
             return false;
         }
@@ -181,7 +176,7 @@ public class AutoBuildsListener implements SinglePipelineListener {
                 final String message =
                         String.format(
                                 "cannot determine status from endFlowNode '%s'", endFlowNodeId);
-                pipelineLogger.println("[WARN] " + message);
+                pipelineLogger.warn(message);
                 systemLogger.warn(message);
                 return false;
             }
@@ -191,7 +186,7 @@ public class AutoBuildsListener implements SinglePipelineListener {
             return state != State.IN_PROGRESS;
         } catch (final IOException e) {
             final String message = "cannot determine status: " + e.getMessage();
-            pipelineLogger.println("[WARN] " + message);
+            pipelineLogger.warn(message);
             systemLogger.warn(message, e);
             return false;
         }
@@ -216,7 +211,7 @@ public class AutoBuildsListener implements SinglePipelineListener {
                     final String message =
                             String.format(
                                     "cannot determine status from endFlowNode '%s'", endFlowNodeId);
-                    pipelineLogger.println("[WARN] " + message);
+                    pipelineLogger.warn(message);
                     systemLogger.warn(message);
                     return;
                 }
@@ -235,14 +230,14 @@ public class AutoBuildsListener implements SinglePipelineListener {
                                 + maybeStatusNodeId.get()
                                 + ", data to Jira is not sent! "
                                 + e.getMessage();
-                pipelineLogger.println("[WARN] " + message);
+                pipelineLogger.warn(message);
                 systemLogger.warn(message, e);
                 return;
             }
         }
 
         final List<JiraSendInfoResponse> allResponses =
-                JiraSenderFactory.getInstance()
+                JiraSenderFactory.getInstance(pipelineLogger)
                         .getJiraBuildInfoSender()
                         .sendBuildInfo(
                                 new MultibranchBuildInfoRequest(null, "", build, maybeStatusNode));
@@ -251,10 +246,10 @@ public class AutoBuildsListener implements SinglePipelineListener {
                     final String message = response.getStatus() + ": " + response.getMessage();
                     if (response.getStatus().isFailure) {
                         systemLogger.warn(message);
-                        pipelineLogger.println("[WARN] " + message);
+                        pipelineLogger.warn(message);
                     } else {
                         systemLogger.info(message);
-                        pipelineLogger.println("[INFO] " + message);
+                        pipelineLogger.info(message);
                     }
                 });
     }
