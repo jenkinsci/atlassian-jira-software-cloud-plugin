@@ -46,7 +46,7 @@ public abstract class JenkinsAppApi<ResponseEntity> {
     public JenkinsAppApi(final OkHttpClient httpClient, final ObjectMapper objectMapper) {
         this.httpClient = Objects.requireNonNull(httpClient);
         this.objectMapper = Objects.requireNonNull(objectMapper);
-        this.pipelineLogger = null;
+        this.pipelineLogger = PipelineLogger.noopInstance();
     }
 
     protected ResponseEntity sendRequest(
@@ -162,9 +162,7 @@ public abstract class JenkinsAppApi<ResponseEntity> {
             final JenkinsAppRequest request, final String secret, final Date expiryDate)
             throws JsonProcessingException {
         final String body = objectMapper.writeValueAsString(request);
-        if (pipelineLogger != null) {
-            pipelineLogger.info(String.format("sending request to Jenkins app in Jira: %s", body));
-        }
+        pipelineLogger.info(String.format("sending request to Jenkins app in Jira: %s", body));
         Algorithm algorithm = Algorithm.HMAC256(secret);
         return JWT.create()
                 .withIssuer("jenkins-plugin")
