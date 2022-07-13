@@ -5,6 +5,7 @@ import com.atlassian.jira.cloud.jenkins.config.JiraCloudPluginConfig;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.service.ChangeLogIssueKeyExtractor;
 import com.atlassian.jira.cloud.jenkins.util.BranchNameIssueKeyExtractor;
 import com.atlassian.jira.cloud.jenkins.util.CompoundIssueKeyExtractor;
+import com.atlassian.jira.cloud.jenkins.util.PipelineLogger;
 import hudson.Extension;
 import hudson.model.Run;
 import hudson.model.TaskListener;
@@ -59,7 +60,7 @@ public class JenkinsPipelineRunListener extends RunListener<Run> {
                     workflowRun.getUrl(),
                     new AutoBuildsListener(
                             workflowRun,
-                            taskListener.getLogger(),
+                            new PipelineLogger(taskListener.getLogger()),
                             config.getAutoBuildsRegex(),
                             this.issueKeyExtractor));
         }
@@ -69,7 +70,7 @@ public class JenkinsPipelineRunListener extends RunListener<Run> {
                     workflowRun.getUrl(),
                     new AutoDeploymentsListener(
                             workflowRun,
-                            taskListener.getLogger(),
+                            new PipelineLogger(taskListener.getLogger()),
                             config.getAutoDeploymentsRegex(),
                             this.issueKeyExtractor));
         }
@@ -79,11 +80,13 @@ public class JenkinsPipelineRunListener extends RunListener<Run> {
     public void onCompleted(final Run r, final TaskListener taskListener) {
         if (r instanceof WorkflowRun) {
             final WorkflowRun workflowRun = (WorkflowRun) r;
-            singlePipelineListenerRegistry.find(workflowRun.getUrl())
-                    .map(listeners -> {
-                        listeners.forEach(SinglePipelineListener::onCompleted);
-                        return true;
-                    });
+            singlePipelineListenerRegistry
+                    .find(workflowRun.getUrl())
+                    .map(
+                            listeners -> {
+                                listeners.forEach(SinglePipelineListener::onCompleted);
+                                return true;
+                            });
             singlePipelineListenerRegistry.unregister(workflowRun.getUrl());
         } else {
             final String message =

@@ -1,6 +1,7 @@
 package com.atlassian.jira.cloud.jenkins.ping;
 
 import com.atlassian.jira.cloud.jenkins.common.client.JenkinsAppApi;
+import com.atlassian.jira.cloud.jenkins.util.PipelineLogger;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.OkHttpClient;
 
@@ -9,8 +10,11 @@ import javax.inject.Inject;
 public class PingApi extends JenkinsAppApi<PingResponse> {
 
     @Inject
-    public PingApi(final OkHttpClient httpClient, final ObjectMapper objectMapper) {
-        super(httpClient, objectMapper);
+    public PingApi(
+            final OkHttpClient httpClient,
+            final ObjectMapper objectMapper,
+            final PipelineLogger pipelineLogger) {
+        super(httpClient, objectMapper, pipelineLogger);
     }
 
     /**

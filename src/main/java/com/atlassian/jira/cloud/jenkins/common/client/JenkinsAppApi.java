@@ -1,5 +1,6 @@
 package com.atlassian.jira.cloud.jenkins.common.client;
 
+import com.atlassian.jira.cloud.jenkins.util.PipelineLogger;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -18,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Inject;
 import java.io.IOException;
 import java.io.NotSerializableException;
+import java.io.PrintStream;
 import java.time.Instant;
 import java.util.Date;
 import java.util.Objects;
@@ -32,12 +34,17 @@ public abstract class JenkinsAppApi<ResponseEntity> {
     private final OkHttpClient httpClient;
     private final ObjectMapper objectMapper;
     private static final int JWT_EXPIRY_SECONDS = 5 * 60;
-    private static final Logger logger = LoggerFactory.getLogger(JenkinsAppApi.class);
+
+    private final PipelineLogger pipelineLogger;
 
     @Inject
-    public JenkinsAppApi(final OkHttpClient httpClient, final ObjectMapper objectMapper) {
+    public JenkinsAppApi(
+            final OkHttpClient httpClient,
+            final ObjectMapper objectMapper,
+            final PipelineLogger pipelineLogger) {
         this.httpClient = Objects.requireNonNull(httpClient);
         this.objectMapper = Objects.requireNonNull(objectMapper);
+        this.pipelineLogger = pipelineLogger;
     }
 
     protected ResponseEntity sendRequest(
@@ -153,7 +160,7 @@ public abstract class JenkinsAppApi<ResponseEntity> {
             final JenkinsAppRequest request, final String secret, final Date expiryDate)
             throws JsonProcessingException {
         final String body = objectMapper.writeValueAsString(request);
-        logger.info(String.format("wrapping request in JWT: %s", body));
+        pipelineLogger.info(String.format("sending request to Jenkins app in Jira: %s", body));
         Algorithm algorithm = Algorithm.HMAC256(secret);
         return JWT.create()
                 .withIssuer("jenkins-plugin")

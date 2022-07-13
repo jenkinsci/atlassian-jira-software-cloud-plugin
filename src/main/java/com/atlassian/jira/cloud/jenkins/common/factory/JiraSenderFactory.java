@@ -21,11 +21,14 @@ import com.atlassian.jira.cloud.jenkins.provider.ObjectMapperProvider;
 import com.atlassian.jira.cloud.jenkins.tenantinfo.CloudIdResolver;
 import com.atlassian.jira.cloud.jenkins.util.BranchNameIssueKeyExtractor;
 import com.atlassian.jira.cloud.jenkins.util.FreestyleBranchNameIssueKeyExtractor;
+import com.atlassian.jira.cloud.jenkins.util.PipelineLogger;
 import com.atlassian.jira.cloud.jenkins.util.RunWrapperProviderImpl;
 import com.atlassian.jira.cloud.jenkins.util.SecretRetriever;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import okhttp3.OkHttpClient;
+
+import java.io.PrintStream;
 
 public final class JiraSenderFactory {
 
@@ -36,7 +39,7 @@ public final class JiraSenderFactory {
     private JiraGatingStatusRetriever jiraGatingStatusRetriever;
     private JiraBuildInfoSender freestyleBuildInfoSender;
 
-    private JiraSenderFactory() {
+    private JiraSenderFactory(final PipelineLogger pipelineLogger) {
         final ObjectMapperProvider objectMapperProvider = new ObjectMapperProvider();
         final HttpClientProvider httpClientProvider = new HttpClientProvider();
         final OkHttpClient httpClient = httpClientProvider.httpClient();
@@ -52,9 +55,11 @@ public final class JiraSenderFactory {
         final IssueKeyExtractor changeLogIssueKeyExtractor = new ChangeLogIssueKeyExtractor();
         final SecretRetriever secretRetriever = new SecretRetriever();
         final CloudIdResolver cloudIdResolver = new CloudIdResolver(httpClient, objectMapper);
-        final BuildsApi buildsApi = new BuildsApi(httpClient, objectMapper);
-        final DeploymentsApi deploymentsApi = new DeploymentsApi(httpClient, objectMapper);
-        final GatingStatusApi gatingStatusApi = new GatingStatusApi(httpClient, objectMapper);
+        final BuildsApi buildsApi = new BuildsApi(httpClient, objectMapper, pipelineLogger);
+        final DeploymentsApi deploymentsApi =
+                new DeploymentsApi(httpClient, objectMapper, pipelineLogger);
+        final GatingStatusApi gatingStatusApi =
+                new GatingStatusApi(httpClient, objectMapper, pipelineLogger);
 
         this.jiraBuildInfoSender =
                 new MultibranchBuildInfoSenderImpl(
@@ -89,9 +94,9 @@ public final class JiraSenderFactory {
                         siteConfig2Retriever, secretRetriever, cloudIdResolver, gatingStatusApi);
     }
 
-    public static synchronized JiraSenderFactory getInstance() {
+    public static synchronized JiraSenderFactory getInstance(final PipelineLogger pipelineLogger) {
         if (INSTANCE == null) {
-            INSTANCE = new JiraSenderFactory();
+            INSTANCE = new JiraSenderFactory(pipelineLogger);
         }
 
         return INSTANCE;

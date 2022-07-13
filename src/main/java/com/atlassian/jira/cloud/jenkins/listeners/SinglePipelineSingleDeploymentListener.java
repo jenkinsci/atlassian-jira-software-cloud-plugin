@@ -8,6 +8,7 @@ import com.atlassian.jira.cloud.jenkins.deploymentinfo.service.ChangeLogIssueKey
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.service.JiraDeploymentInfoRequest;
 import com.atlassian.jira.cloud.jenkins.util.BranchNameIssueKeyExtractor;
 import com.atlassian.jira.cloud.jenkins.util.JenkinsToJiraStatus;
+import com.atlassian.jira.cloud.jenkins.util.PipelineLogger;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.jenkinsci.plugins.workflow.cps.nodes.StepEndNode;
 import org.jenkinsci.plugins.workflow.graph.FlowNode;
@@ -31,7 +32,7 @@ public class SinglePipelineSingleDeploymentListener implements SinglePipelineLis
 
     private final WorkflowRun build;
     private final String environmentName;
-    private final PrintStream pipelineLogger;
+    private final PipelineLogger pipelineLogger;
 
     private boolean inProgressSent = false;
     private boolean finalResultSent = false;
@@ -43,7 +44,7 @@ public class SinglePipelineSingleDeploymentListener implements SinglePipelineLis
 
     public SinglePipelineSingleDeploymentListener(
             final WorkflowRun build,
-            final PrintStream pipelineLogger,
+            final PipelineLogger pipelineLogger,
             final String startFlowNodeId,
             final String environmentName,
             final IssueKeyExtractor issueKeyExtractor) {
@@ -172,13 +173,13 @@ public class SinglePipelineSingleDeploymentListener implements SinglePipelineLis
                             } catch (final IOException e) {
                                 final String message =
                                         "cannot find node " + nodeId + ": " + e.getMessage();
-                                pipelineLogger.println("[WARN] " + message);
+                                pipelineLogger.warn(message);
                                 systemLogger.warn(message, e);
                                 return null;
                             }
                         });
         final List<JiraSendInfoResponse> allResponses =
-                JiraSenderFactory.getInstance()
+                JiraSenderFactory.getInstance(pipelineLogger)
                         .getJiraDeploymentInfoSender()
                         .sendDeploymentInfo(
                                 new JiraDeploymentInfoRequest(
@@ -201,10 +202,10 @@ public class SinglePipelineSingleDeploymentListener implements SinglePipelineLis
                     final String message = response.getStatus() + ": " + response.getMessage();
                     if (response.getStatus().isFailure) {
                         systemLogger.warn(message);
-                        pipelineLogger.println("[WARN] " + message);
+                        pipelineLogger.warn(message);
                     } else {
                         systemLogger.info(message);
-                        pipelineLogger.println("[INFO] " + message);
+                        pipelineLogger.info(message);
                     }
                 });
     }
@@ -223,7 +224,7 @@ public class SinglePipelineSingleDeploymentListener implements SinglePipelineLis
                 final String message =
                         String.format(
                                 "cannot determine status from endFlowNode '%s'", endFlowNodeId);
-                pipelineLogger.println("[WARN] " + message);
+                pipelineLogger.warn(message);
                 systemLogger.warn(message);
                 return false;
             }
@@ -233,7 +234,7 @@ public class SinglePipelineSingleDeploymentListener implements SinglePipelineLis
             return state != State.IN_PROGRESS;
         } catch (final IOException e) {
             final String message = "cannot determine status: " + e.getMessage();
-            pipelineLogger.println("[WARN] " + message);
+            pipelineLogger.warn(message);
             systemLogger.warn(message, e);
             return false;
         }

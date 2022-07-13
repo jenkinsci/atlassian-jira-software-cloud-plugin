@@ -7,6 +7,7 @@ import com.atlassian.jira.cloud.jenkins.common.factory.JiraSenderFactory;
 import com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse;
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudPluginConfig;
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
+import com.atlassian.jira.cloud.jenkins.util.PipelineLogger;
 import com.google.common.collect.ImmutableSet;
 import hudson.AbortException;
 import hudson.Extension;
@@ -123,9 +124,10 @@ public class JiraCheckGatingStatusStep extends Step implements Serializable {
         protected Boolean run() throws Exception {
             final TaskListener taskListener = requireNonNull(getContext().get(TaskListener.class));
             final WorkflowRun run = requireNonNull(getContext().get(WorkflowRun.class));
+            final PipelineLogger pipelineLogger = new PipelineLogger(taskListener.getLogger());
 
             final JiraGatingStatusResponse response =
-                    JiraSenderFactory.getInstance()
+                    JiraSenderFactory.getInstance(pipelineLogger)
                             .getJiraGateStateRetriever()
                             .getGatingStatus(
                                     taskListener, step.getSite(), step.getEnvironmentId(), run);

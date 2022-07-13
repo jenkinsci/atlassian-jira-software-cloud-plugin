@@ -9,6 +9,7 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
+import com.atlassian.jira.cloud.jenkins.util.PipelineLogger;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.StaplerRequest;
@@ -70,9 +71,13 @@ public class FreeStylePostBuildStep extends Recorder implements Serializable, Si
             final AbstractBuild<?, ?> build, final Launcher launcher, final BuildListener listener)
             throws InterruptedException, IOException {
 
+        final PipelineLogger pipelineLogger = new PipelineLogger(listener.getLogger());
+
         final FreestyleBuildInfoRequest request =
                 new FreestyleBuildInfoRequest(this.getSite(), this.branch, build);
-        JiraSenderFactory.getInstance().getFreestyleBuildInfoSender().sendBuildInfo(request);
+        JiraSenderFactory.getInstance(pipelineLogger)
+                .getFreestyleBuildInfoSender()
+                .sendBuildInfo(request);
         return super.perform(build, launcher, listener);
     }
 

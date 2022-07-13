@@ -1,6 +1,7 @@
 package com.atlassian.jira.cloud.jenkins.listeners;
 
 import com.atlassian.jira.cloud.jenkins.common.service.IssueKeyExtractor;
+import com.atlassian.jira.cloud.jenkins.util.PipelineLogger;
 import org.jenkinsci.plugins.workflow.cps.nodes.StepStartNode;
 import org.jenkinsci.plugins.workflow.graph.FlowNode;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
@@ -18,7 +19,7 @@ public class AutoDeploymentsListener implements SinglePipelineListener {
     private final String autoDeploymentsRegex;
     private final List<SinglePipelineSingleDeploymentListener> deploymentListeners =
             new LinkedList<>();
-    private final PrintStream pipelineLogger;
+    private final PipelineLogger pipelineLogger;
     private final IssueKeyExtractor issueKeyExtractor;
 
     private static final Logger systemLogger =
@@ -26,7 +27,7 @@ public class AutoDeploymentsListener implements SinglePipelineListener {
 
     public AutoDeploymentsListener(
             final WorkflowRun run,
-            final PrintStream logger,
+            final PipelineLogger logger,
             final String autoDeploymentsRegex,
             final IssueKeyExtractor issueKeyExtractor) {
         this.build = run;
@@ -55,7 +56,7 @@ public class AutoDeploymentsListener implements SinglePipelineListener {
                 }
             } catch (final IllegalArgumentException ex) {
                 final String message = ex.getClass().getSimpleName() + ": " + ex.getMessage();
-                pipelineLogger.println("[WARN] " + message);
+                pipelineLogger.warn(message);
                 systemLogger.warn(message, ex);
             }
         }
@@ -64,7 +65,7 @@ public class AutoDeploymentsListener implements SinglePipelineListener {
     }
 
     private void registerDeploymentListener(final FlowNode flowNode, final String envName) {
-        pipelineLogger.println("[INFO] deployment node was determined, envName=" + envName);
+        pipelineLogger.info("deployment node was determined, envName=" + envName);
         deploymentListeners.add(
                 new SinglePipelineSingleDeploymentListener(
                         build, pipelineLogger, flowNode.getId(), envName, issueKeyExtractor));

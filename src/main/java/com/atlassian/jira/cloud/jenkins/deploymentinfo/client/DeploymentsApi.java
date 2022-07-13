@@ -6,14 +6,20 @@ import com.atlassian.jira.cloud.jenkins.common.client.JenkinsAppEventRequest;
 import com.atlassian.jira.cloud.jenkins.common.client.JenkinsAppRequest;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.DeploymentApiResponse;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Deployments;
+import com.atlassian.jira.cloud.jenkins.util.PipelineLogger;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.OkHttpClient;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.PrintStream;
+
 public class DeploymentsApi extends JenkinsAppApi<DeploymentApiResponse> {
 
-    public DeploymentsApi(final OkHttpClient httpClient, final ObjectMapper objectMapper) {
-        super(httpClient, objectMapper);
+    public DeploymentsApi(
+            final OkHttpClient httpClient,
+            final ObjectMapper objectMapper,
+            final PipelineLogger pipelineLogger) {
+        super(httpClient, objectMapper, pipelineLogger);
     }
 
     public DeploymentApiResponse sendDeploymentAsJwt(

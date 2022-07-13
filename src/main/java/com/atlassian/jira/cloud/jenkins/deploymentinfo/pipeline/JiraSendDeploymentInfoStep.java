@@ -7,6 +7,7 @@ import com.atlassian.jira.cloud.jenkins.config.JiraCloudPluginConfig;
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.State;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.service.JiraDeploymentInfoRequest;
+import com.atlassian.jira.cloud.jenkins.util.PipelineLogger;
 import com.google.common.collect.ImmutableSet;
 import hudson.Extension;
 import hudson.model.Run;
@@ -138,8 +139,7 @@ public class JiraSendDeploymentInfoStep extends Step implements Serializable {
     @Extension
     public static class DescriptorImpl extends StepDescriptor {
 
-        @Inject
-        private transient JiraCloudPluginConfig globalConfig;
+        @Inject private transient JiraCloudPluginConfig globalConfig;
 
         @Override
         public Set<Class<?>> getRequiredContext() {
@@ -206,6 +206,7 @@ public class JiraSendDeploymentInfoStep extends Step implements Serializable {
             final WorkflowRun workflowRun = getContext().get(WorkflowRun.class);
             final Set<String> serviceIds = ImmutableSet.copyOf(step.getServiceIds());
             final Set<String> issueKeys = ImmutableSet.copyOf(step.getIssueKeys());
+            final PipelineLogger pipelineLogger = new PipelineLogger(taskListener.getLogger());
 
             final JiraDeploymentInfoRequest request =
                     new JiraDeploymentInfoRequest(
@@ -219,7 +220,7 @@ public class JiraSendDeploymentInfoStep extends Step implements Serializable {
                             issueKeys,
                             workflowRun);
             final List<JiraSendInfoResponse> responses =
-                    JiraSenderFactory.getInstance()
+                    JiraSenderFactory.getInstance(pipelineLogger)
                             .getJiraDeploymentInfoSender()
                             .sendDeploymentInfo(request);
 

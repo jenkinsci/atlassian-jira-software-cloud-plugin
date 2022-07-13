@@ -6,14 +6,20 @@ import com.atlassian.jira.cloud.jenkins.common.client.ApiUpdateFailedException;
 import com.atlassian.jira.cloud.jenkins.common.client.JenkinsAppApi;
 import com.atlassian.jira.cloud.jenkins.common.client.JenkinsAppEventRequest;
 import com.atlassian.jira.cloud.jenkins.common.client.JenkinsAppRequest;
+import com.atlassian.jira.cloud.jenkins.util.PipelineLogger;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.OkHttpClient;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.PrintStream;
+
 public class BuildsApi extends JenkinsAppApi<BuildApiResponse> {
 
-    public BuildsApi(final OkHttpClient httpClient, final ObjectMapper objectMapper) {
-        super(httpClient, objectMapper);
+    public BuildsApi(
+            final OkHttpClient httpClient,
+            final ObjectMapper objectMapper,
+            final PipelineLogger pipelineLogger) {
+        super(httpClient, objectMapper, pipelineLogger);
     }
 
     public BuildApiResponse sendBuildAsJwt(
