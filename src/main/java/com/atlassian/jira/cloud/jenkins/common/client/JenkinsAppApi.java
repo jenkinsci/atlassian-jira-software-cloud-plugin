@@ -13,20 +13,16 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import java.io.IOException;
 import java.io.NotSerializableException;
-import java.io.PrintStream;
 import java.time.Instant;
 import java.util.Date;
 import java.util.Objects;
 
 public abstract class JenkinsAppApi<ResponseEntity> {
 
-    private static final Logger log = LoggerFactory.getLogger(JenkinsAppApi.class);
     private static final MediaType JSON_CONTENT_TYPE =
             MediaType.get("application/json; charset=utf-8");
     private static final MediaType JWT_CONTENT_TYPE = MediaType.get("application/jwt");
@@ -37,7 +33,6 @@ public abstract class JenkinsAppApi<ResponseEntity> {
 
     private final PipelineLogger pipelineLogger;
 
-    @Inject
     public JenkinsAppApi(
             final OkHttpClient httpClient,
             final ObjectMapper objectMapper,
@@ -45,6 +40,13 @@ public abstract class JenkinsAppApi<ResponseEntity> {
         this.httpClient = Objects.requireNonNull(httpClient);
         this.objectMapper = Objects.requireNonNull(objectMapper);
         this.pipelineLogger = pipelineLogger;
+    }
+
+    @Inject
+    public JenkinsAppApi(final OkHttpClient httpClient, final ObjectMapper objectMapper) {
+        this.httpClient = Objects.requireNonNull(httpClient);
+        this.objectMapper = Objects.requireNonNull(objectMapper);
+        this.pipelineLogger = null;
     }
 
     protected ResponseEntity sendRequest(
@@ -119,7 +121,7 @@ public abstract class JenkinsAppApi<ResponseEntity> {
             String responseBodyString = null;
             if (responseBody != null) {
                 responseBodyString = responseBody.string();
-                log.error(
+                pipelineLogger.error(
                         String.format(
                                 "HTTP status %d when calling Jenkins app in Jira: %s",
                                 response.code(), responseBodyString));
@@ -160,7 +162,9 @@ public abstract class JenkinsAppApi<ResponseEntity> {
             final JenkinsAppRequest request, final String secret, final Date expiryDate)
             throws JsonProcessingException {
         final String body = objectMapper.writeValueAsString(request);
-        pipelineLogger.info(String.format("sending request to Jenkins app in Jira: %s", body));
+        if (pipelineLogger != null) {
+            pipelineLogger.info(String.format("sending request to Jenkins app in Jira: %s", body));
+        }
         Algorithm algorithm = Algorithm.HMAC256(secret);
         return JWT.create()
                 .withIssuer("jenkins-plugin")

@@ -96,7 +96,7 @@ public class JenkinsAppApiTest {
         OkHttpClient client = mockHttpClient();
         ObjectMapperProvider objectMapperProvider = new ObjectMapperProvider();
         ObjectMapper objectMapper = objectMapperProvider.objectMapper();
-        PingApi pingApi = new PingApi(client, objectMapper, PipelineLogger.noopInstance());
+        PingApi pingApi = new PingApi(client, objectMapper);
 
         String jwt =
                 pingApi.wrapInJwt(
@@ -182,7 +182,7 @@ public class JenkinsAppApiTest {
         OkHttpClient client = mockHttpClient();
         ObjectMapperProvider objectMapperProvider = new ObjectMapperProvider();
         ObjectMapper objectMapper = objectMapperProvider.objectMapper();
-        PingApi pingApi = new PingApi(client, objectMapper, PipelineLogger.noopInstance());
+        PingApi pingApi = new PingApi(client, objectMapper);
 
         // when
         pingApi.sendPing("https://webhook.url", "this is a secret");

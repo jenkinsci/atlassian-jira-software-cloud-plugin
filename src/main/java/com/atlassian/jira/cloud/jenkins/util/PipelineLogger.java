@@ -50,6 +50,10 @@ public class PipelineLogger {
     }
 
     public void info(final String message) {
-        printStream.println("[ATLASSIAN CLOUD PLUGIN] [INFO]" + message);
+        printStream.println("[ATLASSIAN CLOUD PLUGIN] [INFO] " + message);
+    }
+
+    public void error(final String message) {
+        printStream.println("[ATLASSIAN CLOUD PLUGIN] [ERROR] " + message);
     }
 }

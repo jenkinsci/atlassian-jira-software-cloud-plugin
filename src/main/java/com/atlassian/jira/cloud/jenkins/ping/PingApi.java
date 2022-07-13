@@ -10,11 +10,8 @@ import javax.inject.Inject;
 public class PingApi extends JenkinsAppApi<PingResponse> {
 
     @Inject
-    public PingApi(
-            final OkHttpClient httpClient,
-            final ObjectMapper objectMapper,
-            final PipelineLogger pipelineLogger) {
-        super(httpClient, objectMapper, pipelineLogger);
+    public PingApi(final OkHttpClient httpClient, final ObjectMapper objectMapper) {
+        super(httpClient, objectMapper);
     }
 
     /**
