@@ -30,9 +30,7 @@ The open-source plugin is hosted at GitHub. [You can check it out here](https://
 
 ### Install the "Jenkins for Jira" app in Jira
 
-You can install the "Jenkins for Jira" app into your Jira site by using the [direct installation link](https://developer.atlassian.com/console/install/21696c93-1a1d-4dd0-bac0-dfed80a62aba?signature=0959fc868cbcef86a68217b573a595eda2966abfdfad3dbb13edcec9ef9ff5fd&product=jira).
-
-Alternatively, you can install the app via the Jira Marketplace:
+You can install the "Jenkins for Jira" app into your Jira site via the Jira Marketplace:
 
 1. Open Jira and go to **Apps > Explore more apps**.
 1. Type "Jenkins for Jira" into the search box.
