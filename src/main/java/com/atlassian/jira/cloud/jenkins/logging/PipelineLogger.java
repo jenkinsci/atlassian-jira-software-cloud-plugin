@@ -66,6 +66,6 @@ public class PipelineLogger {
     }
 
     public void debug(final String message) {
-        printStream.printf("[ATLASSIAN CLOUD PLUGIN] [TRACE] %s%n", message);
+        printStream.printf("[ATLASSIAN CLOUD PLUGIN] [DEBUG] %s%n", message);
     }
 }

@@ -123,25 +123,41 @@ public class AutoBuildsListener implements SinglePipelineListener {
         }
 
         if (autoBuildsRegex.trim().isEmpty()) {
+            pipelineLogger.debug("Pipeline step regex for builds is empty!");
             if (isOnCompleted) {
+                pipelineLogger.debug("Sending final build event (isOnCompleted == true))");
                 finalResultSent = true;
                 sendBuildStatusToJira(Optional.empty());
             } else if (!inProgressSent) {
+                pipelineLogger.debug(
+                        "Sending in-progress build event (isOnCompleted == false, inProgressSent == false))");
                 inProgressSent = true;
                 sendBuildStatusToJira(Optional.empty());
+            } else {
+                pipelineLogger.debug(
+                        "Not sending any build event (isOnCompleted == false, inProgressSent == true))");
             }
         } else {
+            pipelineLogger.debug(
+                    String.format(
+                            "Pipeline step regex for builds is set to '%s'", autoBuildsRegex));
             if (isOnCompleted) {
+                pipelineLogger.debug("Sending final build event (isOnCompleted == true))");
                 finalResultSent = true;
                 sendBuildStatusToJira(Optional.empty());
-
             } else if (canDetermineFinalResultOfEndNode()) {
+                pipelineLogger.debug(
+                        "Sending final build event (isOnCompleted == false, canDetermineFinalResultOfEndNode() == true))");
                 finalResultSent = true;
                 sendBuildStatusToJira(Optional.of(endFlowNodeId));
-
             } else if (!startFlowNodeId.isEmpty() && !inProgressSent) {
+                pipelineLogger.debug(
+                        "Sending in-progress build event (isOnCompleted == false, canDetermineFinalResultOfEndNode() == false, inProgressSent == false))");
                 inProgressSent = true;
                 sendBuildStatusToJira(Optional.empty());
+            } else {
+                pipelineLogger.debug(
+                        "Not sending any build event (isOnCompleted == false, canDetermineFinalResultOfEndNode() == false, inProgressSent == true)))");
             }
         }
     }
