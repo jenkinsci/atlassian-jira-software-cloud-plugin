@@ -10,6 +10,7 @@ import com.atlassian.jira.cloud.jenkins.common.model.ApiErrorResponse;
 import com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse;
 import com.atlassian.jira.cloud.jenkins.common.service.IssueKeyExtractor;
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
+import com.atlassian.jira.cloud.jenkins.logging.PipelineLogger;
 import com.atlassian.jira.cloud.jenkins.tenantinfo.CloudIdResolver;
 import com.atlassian.jira.cloud.jenkins.util.RunWrapperProvider;
 import com.atlassian.jira.cloud.jenkins.util.SecretRetriever;
@@ -48,8 +49,7 @@ public class JiraBuildInfoSenderImplTest {
     public static final String PIPELINE_ID = "my-pipeline-id";
     public static final int BUILD_NUMBER = 1;
     private static final JiraCloudSiteConfig JIRA_SITE_CONFIG =
-            new JiraCloudSiteConfig(
-                    SITE, "https://webhook.url?jenkins_server_uuid=foo", "credsId");
+            new JiraCloudSiteConfig(SITE, "https://webhook.url?jenkins_server_uuid=foo", "credsId");
 
     private static final JiraCloudSiteConfig JIRA_SITE_CONFIG2 =
             new JiraCloudSiteConfig(
@@ -90,7 +90,9 @@ public class JiraBuildInfoSenderImplTest {
 
         // when
         final JiraSendInfoResponse response =
-                classUnderTest.sendBuildInfo(createOneJiraRequest()).get(0);
+                classUnderTest
+                        .sendBuildInfo(createOneJiraRequest(), PipelineLogger.noopInstance())
+                        .get(0);
 
         // then
         assertThat(response.getStatus()).isEqualTo(FAILURE_SITE_CONFIG_NOT_FOUND);
@@ -103,7 +105,9 @@ public class JiraBuildInfoSenderImplTest {
 
         // when
         final JiraSendInfoResponse response =
-                classUnderTest.sendBuildInfo(createOneJiraRequest()).get(0);
+                classUnderTest
+                        .sendBuildInfo(createOneJiraRequest(), PipelineLogger.noopInstance())
+                        .get(0);
 
         // then
         assertThat(response.getStatus()).isEqualTo(FAILURE_SECRET_NOT_FOUND);
@@ -112,11 +116,13 @@ public class JiraBuildInfoSenderImplTest {
     @Test
     public void testSendBuildInfo_whenIssueKeysNotFound() {
         // given
-        when(issueKeyExtractor.extractIssueKeys(any())).thenReturn(Collections.emptySet());
+        when(issueKeyExtractor.extractIssueKeys(any(), any())).thenReturn(Collections.emptySet());
 
         // when
         final JiraSendInfoResponse response =
-                classUnderTest.sendBuildInfo(createOneJiraRequest()).get(0);
+                classUnderTest
+                        .sendBuildInfo(createOneJiraRequest(), PipelineLogger.noopInstance())
+                        .get(0);
 
         // then
         assertThat(response.getStatus()).isEqualTo(SKIPPED_ISSUE_KEYS_NOT_FOUND);
@@ -131,7 +137,9 @@ public class JiraBuildInfoSenderImplTest {
 
         // when
         final JiraSendInfoResponse response =
-                classUnderTest.sendBuildInfo(createOneJiraRequest()).get(0);
+                classUnderTest
+                        .sendBuildInfo(createOneJiraRequest(), PipelineLogger.noopInstance())
+                        .get(0);
 
         // then
         assertThat(response.getStatus()).isEqualTo(FAILURE_SITE_NOT_FOUND);
@@ -144,7 +152,9 @@ public class JiraBuildInfoSenderImplTest {
 
         // when
         final JiraSendInfoResponse response =
-                classUnderTest.sendBuildInfo(createOneJiraRequest()).get(0);
+                classUnderTest
+                        .sendBuildInfo(createOneJiraRequest(), PipelineLogger.noopInstance())
+                        .get(0);
 
         // then
         assertThat(response.getStatus())
@@ -158,7 +168,9 @@ public class JiraBuildInfoSenderImplTest {
 
         // when
         final JiraSendInfoResponse response =
-                classUnderTest.sendBuildInfo(createOneJiraRequest()).get(0);
+                classUnderTest
+                        .sendBuildInfo(createOneJiraRequest(), PipelineLogger.noopInstance())
+                        .get(0);
 
         // then
         assertThat(response.getStatus())
@@ -174,7 +186,9 @@ public class JiraBuildInfoSenderImplTest {
 
         // when
         final JiraSendInfoResponse response =
-                classUnderTest.sendBuildInfo(createOneJiraRequest()).get(0);
+                classUnderTest
+                        .sendBuildInfo(createOneJiraRequest(), PipelineLogger.noopInstance())
+                        .get(0);
 
         // then
         assertThat(response.getStatus())
@@ -193,9 +207,11 @@ public class JiraBuildInfoSenderImplTest {
 
         // when
         final JiraSendInfoResponse response =
-                classUnderTest.sendBuildInfo(jiraBuildInfoRequest).get(0);
+                classUnderTest
+                        .sendBuildInfo(jiraBuildInfoRequest, PipelineLogger.noopInstance())
+                        .get(0);
 
-        verify(issueKeyExtractor, never()).extractIssueKeys(any());
+        verify(issueKeyExtractor, never()).extractIssueKeys(any(), any());
         assertThat(response.getStatus())
                 .isEqualTo(JiraSendInfoResponse.Status.SUCCESS_BUILD_ACCEPTED);
         final String message = response.getMessage();
@@ -211,9 +227,11 @@ public class JiraBuildInfoSenderImplTest {
 
         // when
         final JiraSendInfoResponse response =
-                classUnderTest.sendBuildInfo(jiraBuildInfoRequest).get(0);
+                classUnderTest
+                        .sendBuildInfo(jiraBuildInfoRequest, PipelineLogger.noopInstance())
+                        .get(0);
 
-        verify(issueKeyExtractor).extractIssueKeys(any());
+        verify(issueKeyExtractor).extractIssueKeys(any(), any());
         assertThat(response.getStatus())
                 .isEqualTo(JiraSendInfoResponse.Status.SUCCESS_BUILD_ACCEPTED);
         final String message = response.getMessage();
@@ -227,7 +245,9 @@ public class JiraBuildInfoSenderImplTest {
 
         // when
         final JiraSendInfoResponse response =
-                classUnderTest.sendBuildInfo(createOneJiraRequest()).get(0);
+                classUnderTest
+                        .sendBuildInfo(createOneJiraRequest(), PipelineLogger.noopInstance())
+                        .get(0);
 
         assertThat(response.getStatus())
                 .isEqualTo(JiraSendInfoResponse.Status.FAILURE_UNKNOWN_ISSUE_KEYS);
@@ -245,9 +265,11 @@ public class JiraBuildInfoSenderImplTest {
 
         // when
         final JiraSendInfoResponse response =
-                classUnderTest.sendBuildInfo(jiraBuildInfoRequest).get(0);
+                classUnderTest
+                        .sendBuildInfo(jiraBuildInfoRequest, PipelineLogger.noopInstance())
+                        .get(0);
 
-        verify(issueKeyExtractor, never()).extractIssueKeys(any());
+        verify(issueKeyExtractor, never()).extractIssueKeys(any(), any());
         assertThat(response.getStatus())
                 .isEqualTo(JiraSendInfoResponse.Status.SUCCESS_BUILD_ACCEPTED);
         final String message = response.getMessage();
@@ -262,7 +284,8 @@ public class JiraBuildInfoSenderImplTest {
 
         // when
         final List<JiraSendInfoResponse> responses =
-                classUnderTest.sendBuildInfo(createAllJirasRequest());
+                classUnderTest.sendBuildInfo(
+                        createAllJirasRequest(), PipelineLogger.noopInstance());
 
         // then
         assertThat(responses).hasSize(2);
@@ -307,7 +330,8 @@ public class JiraBuildInfoSenderImplTest {
     }
 
     private void setupIssueKeyExtractor() {
-        when(issueKeyExtractor.extractIssueKeys(any())).thenReturn(ImmutableSet.of("TEST-123"));
+        when(issueKeyExtractor.extractIssueKeys(any(), any()))
+                .thenReturn(ImmutableSet.of("TEST-123"));
     }
 
     private void setupCloudIdResolver() {

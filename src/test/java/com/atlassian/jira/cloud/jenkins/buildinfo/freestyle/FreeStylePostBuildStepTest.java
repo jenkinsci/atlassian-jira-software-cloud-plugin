@@ -44,14 +44,11 @@ public class FreeStylePostBuildStepTest {
     private static final String CLIENT_ID = UUID.randomUUID().toString();
     private static final String CREDENTIAL_ID = UUID.randomUUID().toString();
 
-    @ClassRule
-    public static BuildWatcher buildWatcher = new BuildWatcher();
+    @ClassRule public static BuildWatcher buildWatcher = new BuildWatcher();
 
-    @Rule
-    public JenkinsRule jenkinsRule = new JenkinsRule();
+    @Rule public JenkinsRule jenkinsRule = new JenkinsRule();
 
-    @Inject
-    FreeStylePostBuildStep.DescriptorImpl descriptor;
+    @Inject FreeStylePostBuildStep.DescriptorImpl descriptor;
 
     @Before
     public void setUp() throws Exception {
@@ -78,7 +75,8 @@ public class FreeStylePostBuildStepTest {
                         Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
         final JiraBuildInfoResponse buildAccepted =
                 JiraBuildInfoResponse.successBuildAccepted(SITE, response);
-        when(mockSender.sendBuildInfo(any())).thenReturn(Collections.singletonList(buildAccepted));
+        when(mockSender.sendBuildInfo(any(), any()))
+                .thenReturn(Collections.singletonList(buildAccepted));
     }
 
     @Test

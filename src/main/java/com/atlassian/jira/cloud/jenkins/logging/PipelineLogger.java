@@ -2,6 +2,7 @@ package com.atlassian.jira.cloud.jenkins.logging;
 
 import hudson.model.TaskListener;
 
+import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
@@ -46,14 +47,25 @@ public class PipelineLogger {
     }
 
     public void warn(final String message) {
-        printStream.println("[ATLASSIAN CLOUD PLUGIN] [WARN] " + message);
+        printStream.printf("[ATLASSIAN CLOUD PLUGIN] [WARN] %s%n", message);
+    }
+
+    public void warn(final String message, final Exception e) {
+        ByteArrayOutputStream stacktraceOut = new ByteArrayOutputStream();
+        e.printStackTrace(new PrintStream(stacktraceOut));
+        printStream.printf(
+                "[ATLASSIAN CLOUD PLUGIN] [WARN] %s Stacktrace: %s%n", message, stacktraceOut);
     }
 
     public void info(final String message) {
-        printStream.println("[ATLASSIAN CLOUD PLUGIN] [INFO] " + message);
+        printStream.printf("[ATLASSIAN CLOUD PLUGIN] [INFO] %s%n", message);
     }
 
     public void error(final String message) {
-        printStream.println("[ATLASSIAN CLOUD PLUGIN] [ERROR] " + message);
+        printStream.printf("[ATLASSIAN CLOUD PLUGIN] [ERROR] %s%n", message);
+    }
+
+    public void debug(final String message) {
+        printStream.printf("[ATLASSIAN CLOUD PLUGIN] [TRACE] %s%n", message);
     }
 }

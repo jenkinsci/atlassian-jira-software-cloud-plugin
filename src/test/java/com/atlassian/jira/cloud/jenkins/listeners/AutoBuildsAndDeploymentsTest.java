@@ -13,6 +13,7 @@ import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.State;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.service.JiraDeploymentInfoRequest;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.service.JiraDeploymentInfoResponse;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.service.JiraDeploymentInfoSender;
+import com.atlassian.jira.cloud.jenkins.logging.PipelineLogger;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.CredentialsScope;
 import com.cloudbees.plugins.credentials.domains.Domain;
@@ -57,11 +58,9 @@ public class AutoBuildsAndDeploymentsTest {
     private static final String CLIENT_ID = UUID.randomUUID().toString();
     private static final String CREDENTIAL_ID = UUID.randomUUID().toString();
 
-    @ClassRule
-    public static BuildWatcher buildWatcher = new BuildWatcher();
+    @ClassRule public static BuildWatcher buildWatcher = new BuildWatcher();
 
-    @Rule
-    public JenkinsRule jenkins = new JenkinsRule();
+    @Rule public JenkinsRule jenkins = new JenkinsRule();
 
     private final JiraSenderFactory mockSenderFactory = mock(JiraSenderFactory.class);
 
@@ -95,33 +94,32 @@ public class AutoBuildsAndDeploymentsTest {
 
         // Checking that the JenkinsPipelineRunListener is registered.
         assertThat(
-                jenkins.getInstance()
-                        .getExtensionList(RunListener.class)
-                        .stream()
-                        .filter(listener -> listener instanceof JenkinsPipelineRunListener)
-                        .findFirst())
+                        jenkins.getInstance()
+                                .getExtensionList(RunListener.class)
+                                .stream()
+                                .filter(listener -> listener instanceof JenkinsPipelineRunListener)
+                                .findFirst())
                 .isNotEmpty();
 
         // Checking that the JenkinsPipelineGraphListener is registered.
         assertThat(
-                jenkins.getInstance()
-                        .getExtensionList(GraphListener.class)
-                        .stream()
-                        .filter(
-                                listener ->
-                                        listener instanceof JenkinsPipelineGraphListener)
-                        .findFirst())
+                        jenkins.getInstance()
+                                .getExtensionList(GraphListener.class)
+                                .stream()
+                                .filter(
+                                        listener ->
+                                                listener instanceof JenkinsPipelineGraphListener)
+                                .findFirst())
                 .isNotEmpty();
     }
 
     private void givenIssueKeys() {
-        when(issueKeyExtractor.extractIssueKeys(any()))
+        when(issueKeyExtractor.extractIssueKeys(any(), any()))
                 .thenReturn(Stream.of("TEST-1", "TEST-2").collect(Collectors.toSet()));
     }
 
     private void givenNoIssueKeys() {
-        when(issueKeyExtractor.extractIssueKeys(any()))
-                .thenReturn(emptySet());
+        when(issueKeyExtractor.extractIssueKeys(any(), any())).thenReturn(emptySet());
     }
 
     private void givenJiraSiteConfigured() {
@@ -170,7 +168,7 @@ public class AutoBuildsAndDeploymentsTest {
                         Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
         final JiraBuildInfoResponse buildAccepted =
                 JiraBuildInfoResponse.successBuildAccepted(SITE, response);
-        when(jiraBuildInfoSender.sendBuildInfo(any()))
+        when(jiraBuildInfoSender.sendBuildInfo(any(), any()))
                 .thenReturn(Collections.singletonList(buildAccepted));
     }
 
@@ -182,10 +180,9 @@ public class AutoBuildsAndDeploymentsTest {
                         Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
         final JiraDeploymentInfoResponse deploymentAccepted =
                 JiraDeploymentInfoResponse.successDeploymentAccepted(SITE, response);
-        when(jiraDeploymentInfoSender.sendDeploymentInfo(any()))
+        when(jiraDeploymentInfoSender.sendDeploymentInfo(any(), any()))
                 .thenReturn(Collections.singletonList(deploymentAccepted));
     }
-
 
     @Test
     public void whenNoAutoBuildsRegex_thenSendsInProgressAndSuccessBuildEvents() throws Exception {
@@ -201,8 +198,8 @@ public class AutoBuildsAndDeploymentsTest {
 
     @Test
     public void
-    whenAutoBuildsRegexMatching_thenSendsInProgressAndSuccessBuildEventsForFirstMatchingStep()
-            throws Exception {
+            whenAutoBuildsRegexMatching_thenSendsInProgressAndSuccessBuildEventsForFirstMatchingStep()
+                    throws Exception {
         WorkflowJob workflow = givenWorkflowFromFile("auto-build-with-multiple-build-steps.groovy");
         givenAutoBuildsEnabled();
         givenAutoBuildsRegex("^build.*$");
@@ -295,7 +292,8 @@ public class AutoBuildsAndDeploymentsTest {
     }
 
     @Test
-    public void whenAutoDeploymentsRegexWithoutEnvName_thenSendsNoDeploymentEvents() throws Exception {
+    public void whenAutoDeploymentsRegexWithoutEnvName_thenSendsNoDeploymentEvents()
+            throws Exception {
         WorkflowJob workflow = givenWorkflowFromFile("auto-deployment.groovy");
         givenIssueKeys();
         givenAutoDeploymentsEnabled();
@@ -307,7 +305,8 @@ public class AutoBuildsAndDeploymentsTest {
     }
 
     @Test
-    public void whenAutoDeploymentsRegexWithEnvName_thenSendsDeploymentInProgressAndSuccessEvents() throws Exception {
+    public void whenAutoDeploymentsRegexWithEnvName_thenSendsDeploymentInProgressAndSuccessEvents()
+            throws Exception {
         WorkflowJob workflow = givenWorkflowFromFile("auto-deployment.groovy");
         givenIssueKeys();
         givenAutoDeploymentsEnabled();
@@ -380,17 +379,17 @@ public class AutoBuildsAndDeploymentsTest {
     }
 
     private void verifyNoBuildEvents() {
-        verify(jiraBuildInfoSender, never()).sendBuildInfo(any());
+        verify(jiraBuildInfoSender, never()).sendBuildInfo(any(), any());
     }
 
     private void verifyNoDeploymentEvents() {
-        verify(jiraDeploymentInfoSender, never()).sendDeploymentInfo(any());
+        verify(jiraDeploymentInfoSender, never()).sendDeploymentInfo(any(), any());
     }
 
     private void verifyBuildEvent(int index, State expectedState) {
         ArgumentCaptor<MultibranchBuildInfoRequest> requestCaptor =
                 ArgumentCaptor.forClass(MultibranchBuildInfoRequest.class);
-        verify(jiraBuildInfoSender, atLeastOnce()).sendBuildInfo(requestCaptor.capture());
+        verify(jiraBuildInfoSender, atLeastOnce()).sendBuildInfo(requestCaptor.capture(), any());
 
         List<MultibranchBuildInfoRequest> requests = requestCaptor.getAllValues();
         if (index + 1 > requests.size()) {
@@ -402,11 +401,12 @@ public class AutoBuildsAndDeploymentsTest {
         assertThat(requests.get(index).getJiraState()).isEqualTo(expectedState);
     }
 
-
-    private void verifyDeploymentEvent(int index, State expectedState, String expectedEnvironmentName) {
+    private void verifyDeploymentEvent(
+            int index, State expectedState, String expectedEnvironmentName) {
         ArgumentCaptor<JiraDeploymentInfoRequest> requestCaptor =
                 ArgumentCaptor.forClass(JiraDeploymentInfoRequest.class);
-        verify(jiraDeploymentInfoSender, atLeastOnce()).sendDeploymentInfo(requestCaptor.capture());
+        verify(jiraDeploymentInfoSender, atLeastOnce())
+                .sendDeploymentInfo(requestCaptor.capture(), PipelineLogger.noopInstance());
 
         List<JiraDeploymentInfoRequest> requests = requestCaptor.getAllValues();
         if (index + 1 > requests.size()) {
@@ -416,7 +416,8 @@ public class AutoBuildsAndDeploymentsTest {
                             index + 1, requests.size()));
         }
 
-        // Need to translate a "null" state to "in progress" because the translation is done outside the bounds
+        // Need to translate a "null" state to "in progress" because the translation is done outside
+        // the bounds
         // of the environment that is mocked for this integration test.
         JiraDeploymentInfoRequest request = requests.get(index);
         String actualState = request.getState();

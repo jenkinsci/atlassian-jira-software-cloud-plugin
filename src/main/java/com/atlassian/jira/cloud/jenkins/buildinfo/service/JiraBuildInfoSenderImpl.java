@@ -8,6 +8,7 @@ import com.atlassian.jira.cloud.jenkins.common.config.JiraSiteConfigRetriever;
 import com.atlassian.jira.cloud.jenkins.common.response.JiraCommonResponse;
 import com.atlassian.jira.cloud.jenkins.common.response.JiraSendInfoResponse;
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
+import com.atlassian.jira.cloud.jenkins.logging.PipelineLogger;
 import com.atlassian.jira.cloud.jenkins.tenantinfo.CloudIdResolver;
 import com.atlassian.jira.cloud.jenkins.util.Constants;
 import com.atlassian.jira.cloud.jenkins.util.RunWrapperProvider;
@@ -49,7 +50,8 @@ public abstract class JiraBuildInfoSenderImpl implements JiraBuildInfoSender {
     }
 
     @Override
-    public List<JiraSendInfoResponse> sendBuildInfo(final JiraBuildInfoRequest request) {
+    public List<JiraSendInfoResponse> sendBuildInfo(
+            final JiraBuildInfoRequest request, final PipelineLogger pipelineLogger) {
         final List<JiraSendInfoResponse> responses = new LinkedList<>();
         if (request.getSite() == null) {
             List<String> jiraSites = siteConfigRetriever.getAllJiraSites();
@@ -58,7 +60,10 @@ public abstract class JiraBuildInfoSenderImpl implements JiraBuildInfoSender {
 
                 responses.add(
                         maybeSiteConfig
-                                .map(siteConfig -> sendBuildInfoToJiraSite(siteConfig, request))
+                                .map(
+                                        siteConfig ->
+                                                sendBuildInfoToJiraSite(
+                                                        siteConfig, request, pipelineLogger))
                                 .orElse(JiraCommonResponse.failureSiteConfigNotFound(jiraSite)));
             }
         } else {
@@ -66,7 +71,10 @@ public abstract class JiraBuildInfoSenderImpl implements JiraBuildInfoSender {
                     getSiteConfigFor(request.getSite());
             responses.add(
                     maybeSiteConfig
-                            .map(siteConfig -> sendBuildInfoToJiraSite(siteConfig, request))
+                            .map(
+                                    siteConfig ->
+                                            sendBuildInfoToJiraSite(
+                                                    siteConfig, request, pipelineLogger))
                             .orElse(
                                     JiraCommonResponse.failureSiteConfigNotFound(
                                             request.getSite())));
@@ -82,7 +90,8 @@ public abstract class JiraBuildInfoSenderImpl implements JiraBuildInfoSender {
      */
     public JiraSendInfoResponse sendBuildInfoToJiraSite(
             @Nonnull final JiraCloudSiteConfig siteConfig,
-            @Nonnull final JiraBuildInfoRequest request) {
+            @Nonnull final JiraBuildInfoRequest request,
+            @Nonnull final PipelineLogger pipelineLogger) {
 
         final String jiraSite = siteConfig.getSite();
 
@@ -92,7 +101,7 @@ public abstract class JiraBuildInfoSenderImpl implements JiraBuildInfoSender {
             return JiraCommonResponse.failureSecretNotFound(jiraSite);
         }
 
-        final Set<String> issueKeys = getIssueKeys(request);
+        final Set<String> issueKeys = getIssueKeys(request, pipelineLogger);
 
         if (issueKeys.isEmpty()) {
             return JiraBuildInfoResponse.skippedIssueKeysNotFound(siteConfig.getSite());
@@ -108,13 +117,16 @@ public abstract class JiraBuildInfoSenderImpl implements JiraBuildInfoSender {
 
         try {
             return handleBuildApiResponse(
-                    jiraSite, buildsApi.sendBuildAsJwt(siteConfig.getWebhookUrl(), buildInfo, maybeSecret.get()));
+                    jiraSite,
+                    buildsApi.sendBuildAsJwt(
+                            siteConfig.getWebhookUrl(), buildInfo, maybeSecret.get()));
         } catch (ApiUpdateFailedException e) {
             return handleBuildApiError(jiraSite, e.getMessage());
         }
     }
 
-    protected abstract Set<String> getIssueKeys(final JiraBuildInfoRequest request);
+    protected abstract Set<String> getIssueKeys(
+            final JiraBuildInfoRequest request, final PipelineLogger pipelineLogger);
 
     private Optional<JiraCloudSiteConfig> getSiteConfigFor(@Nullable final String jiraSite) {
         return siteConfigRetriever.getJiraSiteConfig(jiraSite);

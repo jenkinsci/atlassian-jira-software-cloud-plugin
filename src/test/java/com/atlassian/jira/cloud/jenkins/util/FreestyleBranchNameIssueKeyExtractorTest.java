@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import com.atlassian.jira.cloud.jenkins.logging.PipelineLogger;
 import org.apache.tools.ant.Project;
 import org.junit.Before;
 import org.junit.Test;
@@ -21,7 +22,7 @@ import hudson.plugins.git.GitSCM;
 
 public class FreestyleBranchNameIssueKeyExtractorTest {
 
-	private static final String BRANCH_NAME = "TEST-123-branch-name";
+    private static final String BRANCH_NAME = "TEST-123-branch-name";
 
     private FreestyleIssueKeyExtractor classUnderTest;
 
@@ -29,7 +30,7 @@ public class FreestyleBranchNameIssueKeyExtractorTest {
     public void setUp() throws Exception {
         classUnderTest = new FreestyleBranchNameIssueKeyExtractor();
     }
-    
+
     @Test
     public void testExtractIssueKeys_whenScmRevisionActionNotNull() {
         // given
@@ -44,7 +45,8 @@ public class FreestyleBranchNameIssueKeyExtractorTest {
         when(build.getProject().getScm()).thenReturn(gitSCM);
 
         // when
-        final Set<String> issueKeys = classUnderTest.extractIssueKeys(build);
+        final Set<String> issueKeys =
+                classUnderTest.extractIssueKeys(build, PipelineLogger.noopInstance());
 
         // then
         assertThat(issueKeys).containsExactlyInAnyOrder("TEST-123");
@@ -53,13 +55,13 @@ public class FreestyleBranchNameIssueKeyExtractorTest {
     @Test
     public void testExtractIssueKeys_whenScmRevisionActionNull() {
         // given
-    	final AbstractBuild build = mock(AbstractBuild.class);
+        final AbstractBuild build = mock(AbstractBuild.class);
 
         // when
-        final Set<String> issueKeys = classUnderTest.extractIssueKeys(build);
+        final Set<String> issueKeys =
+                classUnderTest.extractIssueKeys(build, PipelineLogger.noopInstance());
 
         // then
         assertThat(issueKeys).isEmpty();
     }
-
 }

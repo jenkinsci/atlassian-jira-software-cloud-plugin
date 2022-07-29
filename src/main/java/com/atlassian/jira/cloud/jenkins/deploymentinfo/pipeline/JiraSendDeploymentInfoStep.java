@@ -222,7 +222,7 @@ public class JiraSendDeploymentInfoStep extends Step implements Serializable {
             final List<JiraSendInfoResponse> responses =
                     JiraSenderFactory.getInstance(pipelineLogger)
                             .getJiraDeploymentInfoSender()
-                            .sendDeploymentInfo(request);
+                            .sendDeploymentInfo(request, pipelineLogger);
 
             responses.forEach(response -> logResult(taskListener, response));
             return responses;

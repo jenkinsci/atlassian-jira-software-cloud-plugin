@@ -46,8 +46,6 @@ public class AutoBuildsListener implements SinglePipelineListener {
     private String startFlowNodeId = "";
     private String endFlowNodeId = "";
 
-    private static final Logger systemLogger = LoggerFactory.getLogger(AutoBuildsListener.class);
-
     public AutoBuildsListener(
             final WorkflowRun run,
             final PipelineLogger logger,
@@ -116,9 +114,11 @@ public class AutoBuildsListener implements SinglePipelineListener {
         if (finalResultSent) {
             return;
         }
-        if (issueKeyExtractor.extractIssueKeys(this.build).isEmpty()) {
+        if (issueKeyExtractor.extractIssueKeys(this.build, pipelineLogger).isEmpty()) {
             // We don't have issueKeys at the start of the execution of the pipeline, need to wait
             // for them first
+            pipelineLogger.info(
+                    "No issue keys could be extracted yet, need to wait for them to become available before sending data to Jira");
             return;
         }
 
@@ -151,8 +151,7 @@ public class AutoBuildsListener implements SinglePipelineListener {
             return Pattern.compile(autoBuildsRegex).matcher(displayName).matches();
         } catch (final PatternSyntaxException exception) {
             final String message = "PatternSyntaxException: " + exception.getMessage();
-            pipelineLogger.warn(message);
-            systemLogger.warn(message, exception);
+            pipelineLogger.warn(message, exception);
             return false;
         }
     }
@@ -177,7 +176,6 @@ public class AutoBuildsListener implements SinglePipelineListener {
                         String.format(
                                 "cannot determine status from endFlowNode '%s'", endFlowNodeId);
                 pipelineLogger.warn(message);
-                systemLogger.warn(message);
                 return false;
             }
 
@@ -186,8 +184,7 @@ public class AutoBuildsListener implements SinglePipelineListener {
             return state != State.IN_PROGRESS;
         } catch (final IOException e) {
             final String message = "cannot determine status: " + e.getMessage();
-            pipelineLogger.warn(message);
-            systemLogger.warn(message, e);
+            pipelineLogger.warn(message, e);
             return false;
         }
     }
@@ -199,6 +196,10 @@ public class AutoBuildsListener implements SinglePipelineListener {
 
         if (!autoBuildsRegex.trim().isEmpty() && startFlowNodeId.isEmpty()) {
             // no node matched the regex, so we're not going to send any events to Jira
+            pipelineLogger.warn(
+                    String.format(
+                            "No build step matched the pipeline step regex for builds ('%s'). Not sending any events to Jira",
+                            autoBuildsRegex));
             return;
         }
 
@@ -212,7 +213,6 @@ public class AutoBuildsListener implements SinglePipelineListener {
                             String.format(
                                     "cannot determine status from endFlowNode '%s'", endFlowNodeId);
                     pipelineLogger.warn(message);
-                    systemLogger.warn(message);
                     return;
                 }
 
@@ -230,8 +230,7 @@ public class AutoBuildsListener implements SinglePipelineListener {
                                 + maybeStatusNodeId.get()
                                 + ", data to Jira is not sent! "
                                 + e.getMessage();
-                pipelineLogger.warn(message);
-                systemLogger.warn(message, e);
+                pipelineLogger.warn(message, e);
                 return;
             }
         }
@@ -240,15 +239,14 @@ public class AutoBuildsListener implements SinglePipelineListener {
                 JiraSenderFactory.getInstance(pipelineLogger)
                         .getJiraBuildInfoSender()
                         .sendBuildInfo(
-                                new MultibranchBuildInfoRequest(null, "", build, maybeStatusNode));
+                                new MultibranchBuildInfoRequest(null, "", build, maybeStatusNode),
+                                pipelineLogger);
         allResponses.forEach(
                 response -> {
                     final String message = response.getStatus() + ": " + response.getMessage();
                     if (response.getStatus().isFailure) {
-                        systemLogger.warn(message);
                         pipelineLogger.warn(message);
                     } else {
-                        systemLogger.info(message);
                         pipelineLogger.info(message);
                     }
                 });

@@ -77,7 +77,8 @@ public class JiraSendBuildInfoStepTest {
                         Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
         final JiraBuildInfoResponse buildAccepted =
                 JiraBuildInfoResponse.successBuildAccepted(SITE, response);
-        when(mockSender.sendBuildInfo(any())).thenReturn(Collections.singletonList(buildAccepted));
+        when(mockSender.sendBuildInfo(any(), any()))
+                .thenReturn(Collections.singletonList(buildAccepted));
     }
 
     @Test

@@ -1,6 +1,7 @@
 package com.atlassian.jira.cloud.jenkins.util;
 
 import com.atlassian.jira.cloud.jenkins.common.service.IssueKeyExtractor;
+import com.atlassian.jira.cloud.jenkins.logging.PipelineLogger;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 
 import java.util.Arrays;
@@ -18,9 +19,10 @@ public class CompoundIssueKeyExtractor implements IssueKeyExtractor {
     }
 
     @Override
-    public Set<String> extractIssueKeys(final WorkflowRun workflowRun) {
+    public Set<String> extractIssueKeys(
+            final WorkflowRun workflowRun, final PipelineLogger pipelineLogger) {
         return Arrays.stream(this.extractors)
-                .map(extractor -> extractor.extractIssueKeys(workflowRun))
+                .map(extractor -> extractor.extractIssueKeys(workflowRun, pipelineLogger))
                 .flatMap(Collection::stream)
                 .collect(Collectors.toSet());
     }

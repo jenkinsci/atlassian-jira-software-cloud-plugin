@@ -15,6 +15,7 @@ import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.DeploymentKe
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Deployments;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.JiraDeploymentInfo;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.RejectedDeploymentResponse;
+import com.atlassian.jira.cloud.jenkins.logging.PipelineLogger;
 import com.atlassian.jira.cloud.jenkins.tenantinfo.CloudIdResolver;
 import com.atlassian.jira.cloud.jenkins.util.RunWrapperProvider;
 import com.atlassian.jira.cloud.jenkins.util.SecretRetriever;
@@ -33,6 +34,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import javax.annotation.Nullable;
+import java.nio.channels.Pipe;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -59,8 +61,7 @@ public class JiraDeploymentInfoSenderImplTest {
     public static final String PIPELINE_ID = UUID.randomUUID().toString();
     public static final int BUILD_NUMBER = 1;
     private static final JiraCloudSiteConfig JIRA_SITE_CONFIG =
-            new JiraCloudSiteConfig(
-                    SITE, "https://webhook.url?jenkins_server_uuid=foo", "credsId");
+            new JiraCloudSiteConfig(SITE, "https://webhook.url?jenkins_server_uuid=foo", "credsId");
     private static final JiraCloudSiteConfig JIRA_SITE_CONFIG2 =
             new JiraCloudSiteConfig(
                     SITE2, "https://webhook.url?jenkins_server_uuid=bar", "credsId2");
@@ -100,7 +101,9 @@ public class JiraDeploymentInfoSenderImplTest {
 
         // when
         final JiraSendInfoResponse response =
-                classUnderTest.sendDeploymentInfo(createRequest()).get(0);
+                classUnderTest
+                        .sendDeploymentInfo(createRequest(), PipelineLogger.noopInstance())
+                        .get(0);
 
         // then
         assertThat(response.getStatus()).isEqualTo(FAILURE_SITE_CONFIG_NOT_FOUND);
@@ -113,7 +116,9 @@ public class JiraDeploymentInfoSenderImplTest {
 
         // when
         final JiraSendInfoResponse response =
-                classUnderTest.sendDeploymentInfo(createRequest()).get(0);
+                classUnderTest
+                        .sendDeploymentInfo(createRequest(), PipelineLogger.noopInstance())
+                        .get(0);
 
         // then
         assertThat(response.getStatus()).isEqualTo(FAILURE_SECRET_NOT_FOUND);
@@ -122,11 +127,13 @@ public class JiraDeploymentInfoSenderImplTest {
     @Test
     public void testSendDeploymentInfo_whenIssueKeysNotFound() {
         // given
-        when(issueKeyExtractor.extractIssueKeys(any())).thenReturn(Collections.emptySet());
+        when(issueKeyExtractor.extractIssueKeys(any(), any())).thenReturn(Collections.emptySet());
 
         // when
         final JiraSendInfoResponse response =
-                classUnderTest.sendDeploymentInfo(createRequest()).get(0);
+                classUnderTest
+                        .sendDeploymentInfo(createRequest(), PipelineLogger.noopInstance())
+                        .get(0);
 
         // then
         assertThat(response.getStatus())
@@ -144,7 +151,9 @@ public class JiraDeploymentInfoSenderImplTest {
 
         // when
         final JiraSendInfoResponse response =
-                classUnderTest.sendDeploymentInfo(createRequest()).get(0);
+                classUnderTest
+                        .sendDeploymentInfo(createRequest(), PipelineLogger.noopInstance())
+                        .get(0);
 
         // then
         assertThat(response.getStatus()).isEqualTo(FAILURE_SITE_NOT_FOUND);
@@ -157,7 +166,9 @@ public class JiraDeploymentInfoSenderImplTest {
 
         // when
         final JiraSendInfoResponse response =
-                classUnderTest.sendDeploymentInfo(createRequest()).get(0);
+                classUnderTest
+                        .sendDeploymentInfo(createRequest(), PipelineLogger.noopInstance())
+                        .get(0);
 
         // then
         assertThat(response.getStatus())
@@ -171,7 +182,9 @@ public class JiraDeploymentInfoSenderImplTest {
 
         // when
         final JiraSendInfoResponse response =
-                classUnderTest.sendDeploymentInfo(createRequest()).get(0);
+                classUnderTest
+                        .sendDeploymentInfo(createRequest(), PipelineLogger.noopInstance())
+                        .get(0);
 
         // then
         assertThat(response.getStatus())
@@ -189,7 +202,8 @@ public class JiraDeploymentInfoSenderImplTest {
         final JiraSendInfoResponse response =
                 classUnderTest
                         .sendDeploymentInfo(
-                                createRequestWithGating(SITE, ImmutableSet.of("TEST-123"), false))
+                                createRequestWithGating(SITE, ImmutableSet.of("TEST-123"), false),
+                                PipelineLogger.noopInstance())
                         .get(0);
 
         // then
@@ -207,7 +221,9 @@ public class JiraDeploymentInfoSenderImplTest {
 
         // when
         final JiraSendInfoResponse response =
-                classUnderTest.sendDeploymentInfo(createRequest()).get(0);
+                classUnderTest
+                        .sendDeploymentInfo(createRequest(), PipelineLogger.noopInstance())
+                        .get(0);
 
         // then
         assertThat(response.getStatus())
@@ -223,7 +239,9 @@ public class JiraDeploymentInfoSenderImplTest {
 
         // when
         final JiraSendInfoResponse response =
-                classUnderTest.sendDeploymentInfo(createRequest()).get(0);
+                classUnderTest
+                        .sendDeploymentInfo(createRequest(), PipelineLogger.noopInstance())
+                        .get(0);
 
         assertThat(response.getStatus())
                 .isEqualTo(JiraSendInfoResponse.Status.FAILURE_UNKNOWN_ASSOCIATIONS);
@@ -237,7 +255,8 @@ public class JiraDeploymentInfoSenderImplTest {
         final JiraDeploymentInfoRequest request = createRequest(null, null, null);
 
         // when
-        final JiraSendInfoResponse response = classUnderTest.sendDeploymentInfo(request).get(0);
+        final JiraSendInfoResponse response =
+                classUnderTest.sendDeploymentInfo(request, PipelineLogger.noopInstance()).get(0);
 
         // then
         assertThat(response.getStatus())
@@ -255,7 +274,8 @@ public class JiraDeploymentInfoSenderImplTest {
                 createRequest("prod-east", "Production East", "foobar");
 
         // when
-        final JiraSendInfoResponse response = classUnderTest.sendDeploymentInfo(request).get(0);
+        final JiraSendInfoResponse response =
+                classUnderTest.sendDeploymentInfo(request, PipelineLogger.noopInstance()).get(0);
 
         // then
         assertThat(response.getStatus())
@@ -274,7 +294,8 @@ public class JiraDeploymentInfoSenderImplTest {
         final WorkflowRun mockWorkflowRun = request.getDeployment();
 
         // when
-        final JiraSendInfoResponse response = classUnderTest.sendDeploymentInfo(request).get(0);
+        final JiraSendInfoResponse response =
+                classUnderTest.sendDeploymentInfo(request, PipelineLogger.noopInstance()).get(0);
 
         // then
         verify(mockWorkflowRun, never()).getResult();
@@ -303,7 +324,8 @@ public class JiraDeploymentInfoSenderImplTest {
                 ArgumentCaptor.forClass(Deployments.class);
 
         // when
-        final JiraSendInfoResponse response = classUnderTest.sendDeploymentInfo(request).get(0);
+        final JiraSendInfoResponse response =
+                classUnderTest.sendDeploymentInfo(request, PipelineLogger.noopInstance()).get(0);
 
         // then
         assertThat(response.getStatus())
@@ -324,7 +346,8 @@ public class JiraDeploymentInfoSenderImplTest {
 
         // when
         final List<JiraSendInfoResponse> responses =
-                classUnderTest.sendDeploymentInfo(createAllJirasRequest(false));
+                classUnderTest.sendDeploymentInfo(
+                        createAllJirasRequest(false), PipelineLogger.noopInstance());
 
         // then
         assertThat(responses).hasSize(2);
@@ -348,7 +371,8 @@ public class JiraDeploymentInfoSenderImplTest {
 
         // when
         final List<JiraSendInfoResponse> responses =
-                classUnderTest.sendDeploymentInfo(createAllJirasRequest(true));
+                classUnderTest.sendDeploymentInfo(
+                        createAllJirasRequest(true), PipelineLogger.noopInstance());
 
         // then
         assertThat(responses).hasSize(1);
@@ -360,12 +384,12 @@ public class JiraDeploymentInfoSenderImplTest {
     @Test
     public void getDeploymentState_whenUsedJenkinsRunState() {
         // given
-        when(issueKeyExtractor.extractIssueKeys(any())).thenReturn(Collections.emptySet());
+        when(issueKeyExtractor.extractIssueKeys(any(), any())).thenReturn(Collections.emptySet());
         JiraDeploymentInfoRequest request = createRequest();
         final WorkflowRun mockWorkflowRun = request.getDeployment();
 
         // when
-        classUnderTest.sendDeploymentInfo(request).get(0);
+        classUnderTest.sendDeploymentInfo(request, PipelineLogger.noopInstance()).get(0);
 
         // then
         verify(mockWorkflowRun, times(1)).getResult();
@@ -447,7 +471,8 @@ public class JiraDeploymentInfoSenderImplTest {
     }
 
     private void setupChangeLogExtractor() {
-        when(issueKeyExtractor.extractIssueKeys(any())).thenReturn(ImmutableSet.of("TEST-123"));
+        when(issueKeyExtractor.extractIssueKeys(any(), any()))
+                .thenReturn(ImmutableSet.of("TEST-123"));
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})

@@ -1,5 +1,6 @@
 package com.atlassian.jira.cloud.jenkins.deploymentinfo.service;
 
+import com.atlassian.jira.cloud.jenkins.logging.PipelineLogger;
 import hudson.model.Result;
 import hudson.scm.ChangeLogSet;
 import junit.framework.TestCase;
@@ -38,23 +39,19 @@ public class ChangeLogIssueKeyExtractorTest extends TestCase {
         List<EntryImpl> entryListPrevious2 = new ArrayList<>();
         entryListPrevious2.add(e3);
 
-        FakeChangeLogSet changeLogSetCurrent =
-                new FakeChangeLogSet(current, entryListCurrent);
+        FakeChangeLogSet changeLogSetCurrent = new FakeChangeLogSet(current, entryListCurrent);
         FakeChangeLogSet changeLogSetPrevious1 =
                 new FakeChangeLogSet(previous1, entryListPrevious1);
         FakeChangeLogSet changeLogSetPrevious2 =
                 new FakeChangeLogSet(previous2, entryListPrevious2);
 
-        List<ChangeLogSet<? extends ChangeLogSet.Entry>> changeSetsCurrent =
-                new ArrayList<>();
+        List<ChangeLogSet<? extends ChangeLogSet.Entry>> changeSetsCurrent = new ArrayList<>();
         changeSetsCurrent.add(changeLogSetCurrent);
 
-        List<ChangeLogSet<? extends ChangeLogSet.Entry>> changeSetsPrevious1 =
-                new ArrayList<>();
+        List<ChangeLogSet<? extends ChangeLogSet.Entry>> changeSetsPrevious1 = new ArrayList<>();
         changeSetsPrevious1.add(changeLogSetPrevious1);
 
-        List<ChangeLogSet<? extends ChangeLogSet.Entry>> changeSetsPrevious2 =
-                new ArrayList<>();
+        List<ChangeLogSet<? extends ChangeLogSet.Entry>> changeSetsPrevious2 = new ArrayList<>();
         changeSetsPrevious2.add(changeLogSetPrevious2);
 
         when(current.getChangeSets()).thenReturn(changeSetsCurrent);
@@ -65,7 +62,7 @@ public class ChangeLogIssueKeyExtractorTest extends TestCase {
         when(previous2.getResult()).thenReturn(Result.SUCCESS);
 
         ChangeLogIssueKeyExtractor extractor = new ChangeLogIssueKeyExtractor();
-        Set<String> issueKeys = extractor.extractIssueKeys(current);
+        Set<String> issueKeys = extractor.extractIssueKeys(current, PipelineLogger.noopInstance());
 
         verify(previous1).getChangeSets();
         verify(previous2, never()).getChangeSets();

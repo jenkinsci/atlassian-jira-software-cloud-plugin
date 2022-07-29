@@ -82,7 +82,7 @@ public class SinglePipelineSingleDeploymentListener implements SinglePipelineLis
             return;
         }
 
-        if (issueKeyExtractor.extractIssueKeys(this.build).isEmpty()) {
+        if (issueKeyExtractor.extractIssueKeys(this.build, pipelineLogger).isEmpty()) {
             // We don't have issueKeys at the start of the execution of the pipeline, need to wait
             // for them first
             return;
@@ -191,8 +191,10 @@ public class SinglePipelineSingleDeploymentListener implements SinglePipelineLis
                                                 .orElse(null),
                                         Collections.emptySet(),
                                         false,
-                                        issueKeyExtractor.extractIssueKeys(this.build),
-                                        build));
+                                        issueKeyExtractor.extractIssueKeys(
+                                                this.build, this.pipelineLogger),
+                                        build),
+                                pipelineLogger);
         allResponses.forEach(
                 response -> {
                     final String message = response.getStatus() + ": " + response.getMessage();

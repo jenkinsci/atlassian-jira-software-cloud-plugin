@@ -79,7 +79,7 @@ public class JiraSendDeploymentInfoStepTest {
                         Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
         final JiraDeploymentInfoResponse deploymentAccepted =
                 JiraDeploymentInfoResponse.successDeploymentAccepted(SITE, response);
-        when(mockSender.sendDeploymentInfo(any()))
+        when(mockSender.sendDeploymentInfo(any(), any()))
                 .thenReturn(Collections.singletonList(deploymentAccepted));
     }
 
