@@ -14,7 +14,7 @@ public class PipelineLoggerTest {
         Exception e = new RuntimeException("BWAAAH!");
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         PrintStream printStream = new PrintStream(out);
-        PipelineLogger pipelineLogger = new PipelineLogger(printStream);
+        PipelineLogger pipelineLogger = new PipelineLogger(printStream, true);
         pipelineLogger.warn("log message with exception!", e);
         assertThat(out.toString())
                 .contains(

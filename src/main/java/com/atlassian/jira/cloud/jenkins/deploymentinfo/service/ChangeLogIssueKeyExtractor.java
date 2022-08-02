@@ -49,7 +49,7 @@ public final class ChangeLogIssueKeyExtractor implements IssueKeyExtractor {
                     String comment = ((GitChangeSet) changeSetEntry).getComment();
                     Set<IssueKey> issueKeys = IssueKeyStringExtractor.extractIssueKeys(comment);
                     allIssueKeys.addAll(issueKeys);
-                    pipelineLogger.info(
+                    pipelineLogger.debug(
                             String.format(
                                     "Extracted issue keys from GitChangeSet comment '%s': %s",
                                     comment, Arrays.toString(issueKeys.toArray())));
@@ -58,7 +58,7 @@ public final class ChangeLogIssueKeyExtractor implements IssueKeyExtractor {
                 String message = changeSetEntry.getMsg();
                 Set<IssueKey> issueKeys = IssueKeyStringExtractor.extractIssueKeys(message);
                 allIssueKeys.addAll(issueKeys);
-                pipelineLogger.info(
+                pipelineLogger.debug(
                         String.format(
                                 "Extracted issue keys from ChangeLogSet message '%s': %s",
                                 message, Arrays.toString(issueKeys.toArray())));

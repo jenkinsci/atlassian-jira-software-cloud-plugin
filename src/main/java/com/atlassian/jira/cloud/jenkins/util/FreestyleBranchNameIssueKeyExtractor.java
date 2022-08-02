@@ -34,7 +34,7 @@ public class FreestyleBranchNameIssueKeyExtractor implements FreestyleIssueKeyEx
                             .map(IssueKey::toString)
                             .collect(Collectors.toSet());
 
-            pipelineLogger.info(
+            pipelineLogger.debug(
                     String.format(
                             "Extracted issue keys from branch name: %s",
                             Arrays.toString(issueKeys.toArray())));

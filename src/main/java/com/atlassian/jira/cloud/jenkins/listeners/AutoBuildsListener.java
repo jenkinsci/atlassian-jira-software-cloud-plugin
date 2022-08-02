@@ -91,7 +91,7 @@ public class AutoBuildsListener implements SinglePipelineListener {
         final StepEndNode endNode = flowNode instanceof StepEndNode ? (StepEndNode) flowNode : null;
 
         if (startNode != null && matchesRegex(autoBuildsRegex, startNode.getDisplayName())) {
-            pipelineLogger.info(
+            pipelineLogger.debug(
                     "build start node was determined: "
                             + startNode.getId()
                             + " "
@@ -100,7 +100,7 @@ public class AutoBuildsListener implements SinglePipelineListener {
         } else if (endNode != null
                 && !startFlowNodeId.isEmpty()
                 && startFlowNodeId.equals(endNode.getStartNode().getId())) {
-            pipelineLogger.info(
+            pipelineLogger.debug(
                     "build end node was determined: "
                             + endNode.getId()
                             + " "
@@ -117,7 +117,7 @@ public class AutoBuildsListener implements SinglePipelineListener {
         if (issueKeyExtractor.extractIssueKeys(this.build, pipelineLogger).isEmpty()) {
             // We don't have issueKeys at the start of the execution of the pipeline, need to wait
             // for them first
-            pipelineLogger.info(
+            pipelineLogger.debug(
                     "No issue keys could be extracted yet, need to wait for them to become available before sending data to Jira");
             return;
         }
