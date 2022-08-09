@@ -66,7 +66,11 @@ public class PipelineLogger {
 
     public void warn(final String message, final Exception e) {
         ByteArrayOutputStream stacktraceOut = new ByteArrayOutputStream();
-        e.printStackTrace(new PrintStream(stacktraceOut));
+        try {
+            e.printStackTrace(new PrintStream(stacktraceOut, true, "UTF-8"));
+        } catch (UnsupportedEncodingException e2) {
+            error("Missing stacktrace because Jenkins server doesn't support UTF-8!");
+        }
         printStream.printf(
                 "[ATLASSIAN CLOUD PLUGIN] [WARN] %s Stacktrace: %s%n", message, stacktraceOut);
         printStream.flush();
