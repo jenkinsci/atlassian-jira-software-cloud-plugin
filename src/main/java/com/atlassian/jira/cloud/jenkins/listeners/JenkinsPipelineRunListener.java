@@ -34,7 +34,7 @@ public class JenkinsPipelineRunListener extends RunListener<Run> {
 
     @Override
     public void onStarted(final Run r, final TaskListener taskListener) {
-        PipelineLogger pipelineLogger = new PipelineLogger(taskListener.getLogger());
+        PipelineLogger pipelineLogger = new PipelineLogger(taskListener.getLogger(), JiraCloudPluginConfig.isDebugLoggingEnabled());
 
         if (!(r instanceof WorkflowRun)) {
             final String message =
@@ -58,7 +58,7 @@ public class JenkinsPipelineRunListener extends RunListener<Run> {
                     workflowRun.getUrl(),
                     new AutoBuildsListener(
                             workflowRun,
-                            new PipelineLogger(taskListener.getLogger()),
+                            new PipelineLogger(taskListener.getLogger(), JiraCloudPluginConfig.isDebugLoggingEnabled()),
                             config.getAutoBuildsRegex(),
                             this.issueKeyExtractor));
         }
@@ -68,7 +68,7 @@ public class JenkinsPipelineRunListener extends RunListener<Run> {
                     workflowRun.getUrl(),
                     new AutoDeploymentsListener(
                             workflowRun,
-                            new PipelineLogger(taskListener.getLogger()),
+                            new PipelineLogger(taskListener.getLogger(), JiraCloudPluginConfig.isDebugLoggingEnabled()),
                             config.getAutoDeploymentsRegex(),
                             this.issueKeyExtractor));
         }
@@ -76,7 +76,7 @@ public class JenkinsPipelineRunListener extends RunListener<Run> {
 
     @Override
     public void onCompleted(final Run r, final TaskListener taskListener) {
-        PipelineLogger pipelineLogger = new PipelineLogger(taskListener.getLogger());
+        PipelineLogger pipelineLogger = new PipelineLogger(taskListener.getLogger(), JiraCloudPluginConfig.isDebugLoggingEnabled());
 
         if (r instanceof WorkflowRun) {
             final WorkflowRun workflowRun = (WorkflowRun) r;

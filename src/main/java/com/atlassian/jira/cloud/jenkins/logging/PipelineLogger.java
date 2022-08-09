@@ -1,6 +1,5 @@
 package com.atlassian.jira.cloud.jenkins.logging;
 
-import com.atlassian.jira.cloud.jenkins.config.JiraCloudPluginConfig;
 import hudson.model.TaskListener;
 
 import java.io.ByteArrayOutputStream;
@@ -18,22 +17,13 @@ public class PipelineLogger {
 
     private static PipelineLogger NOOP_INSTANCE;
 
-    private Boolean debugLogging = Boolean.FALSE;
+    private Boolean debugLogging;
 
     /**
      * @param taskLogger a PrintStream that points to the Jenkins pipeline logs. See {@link
-     *     TaskListener#getLogger()}.
+     *                   TaskListener#getLogger()}.
      */
-    public PipelineLogger(final PrintStream taskLogger) {
-        this.printStream = taskLogger;
-
-        JiraCloudPluginConfig config = JiraCloudPluginConfig.get();
-        if (config != null) {
-            this.debugLogging = config.getDebugLogging();
-        }
-    }
-
-    public PipelineLogger(final PrintStream taskLogger, final Boolean debugLogging) {
+    public PipelineLogger(final PrintStream taskLogger, final boolean debugLogging) {
         this.printStream = taskLogger;
         this.debugLogging = debugLogging;
     }
@@ -51,7 +41,8 @@ public class PipelineLogger {
                                             }
                                         },
                                         true,
-                                        "UTF8"));
+                                        "UTF8"),
+                                false);
             } catch (UnsupportedEncodingException e) {
                 throw new RuntimeException(e);
             }

@@ -60,6 +60,14 @@ public class JiraCloudPluginConfig extends GlobalConfiguration {
         return GlobalConfiguration.all().get(JiraCloudPluginConfig.class);
     }
 
+    public static boolean isDebugLoggingEnabled() {
+        JiraCloudPluginConfig config = get();
+        if (config == null) {
+            return false;
+        }
+        return config.getDebugLogging();
+    }
+
     @Override
     public boolean configure(final StaplerRequest req, final JSONObject json) throws FormException {
         try {

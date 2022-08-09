@@ -206,7 +206,7 @@ public class JiraSendDeploymentInfoStep extends Step implements Serializable {
             final WorkflowRun workflowRun = getContext().get(WorkflowRun.class);
             final Set<String> serviceIds = ImmutableSet.copyOf(step.getServiceIds());
             final Set<String> issueKeys = ImmutableSet.copyOf(step.getIssueKeys());
-            final PipelineLogger pipelineLogger = new PipelineLogger(taskListener.getLogger());
+            final PipelineLogger pipelineLogger = new PipelineLogger(taskListener.getLogger(), JiraCloudPluginConfig.isDebugLoggingEnabled());
 
             final JiraDeploymentInfoRequest request =
                     new JiraDeploymentInfoRequest(

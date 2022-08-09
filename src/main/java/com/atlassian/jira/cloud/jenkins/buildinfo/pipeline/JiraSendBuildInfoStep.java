@@ -121,7 +121,7 @@ public class JiraSendBuildInfoStep extends Step implements Serializable {
         protected List<JiraSendInfoResponse> run() throws Exception {
             final TaskListener taskListener = getContext().get(TaskListener.class);
             final WorkflowRun workflowRun = getContext().get(WorkflowRun.class);
-            final PipelineLogger pipelineLogger = new PipelineLogger(taskListener.getLogger());
+            final PipelineLogger pipelineLogger = new PipelineLogger(taskListener.getLogger(), JiraCloudPluginConfig.isDebugLoggingEnabled());
 
             final JiraBuildInfoRequest request =
                     new MultibranchBuildInfoRequest(
