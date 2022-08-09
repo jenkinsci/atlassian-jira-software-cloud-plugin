@@ -37,7 +37,7 @@ public final class JiraSenderFactory {
     private JiraGatingStatusRetriever jiraGatingStatusRetriever;
     private JiraBuildInfoSender freestyleBuildInfoSender;
 
-    private JiraSenderFactory(final PipelineLogger pipelineLogger) {
+    public JiraSenderFactory(final PipelineLogger pipelineLogger) {
         final ObjectMapperProvider objectMapperProvider = new ObjectMapperProvider();
         final HttpClientProvider httpClientProvider = new HttpClientProvider();
         final OkHttpClient httpClient = httpClientProvider.httpClient();
@@ -90,14 +90,6 @@ public final class JiraSenderFactory {
         this.jiraGatingStatusRetriever =
                 new JiraGatingStatusRetrieverImpl(
                         siteConfig2Retriever, secretRetriever, cloudIdResolver, gatingStatusApi);
-    }
-
-    public static synchronized JiraSenderFactory getInstance(final PipelineLogger pipelineLogger) {
-        if (INSTANCE == null) {
-            INSTANCE = new JiraSenderFactory(pipelineLogger);
-        }
-
-        return INSTANCE;
     }
 
     @VisibleForTesting

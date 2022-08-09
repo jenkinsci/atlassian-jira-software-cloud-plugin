@@ -114,13 +114,17 @@ public class AutoBuildsListener implements SinglePipelineListener {
         if (finalResultSent) {
             return;
         }
+        pipelineLogger.debug("Checking for issue keys for this build ... ");
         if (issueKeyExtractor.extractIssueKeys(this.build, pipelineLogger).isEmpty()) {
             // We don't have issueKeys at the start of the execution of the pipeline, need to wait
             // for them first
             pipelineLogger.debug(
-                    "No issue keys could be extracted yet, need to wait for them to become available before sending data to Jira");
+                    "No issue keys could be extracted from this build yet, not sending build event to Jira (yet).");
             return;
         }
+
+        pipelineLogger.debug(
+                "Found issue keys for this build! Deciding whether to send information to Jira now.");
 
         if (autoBuildsRegex.trim().isEmpty()) {
             pipelineLogger.debug("Pipeline step regex for builds is empty!");
@@ -252,7 +256,7 @@ public class AutoBuildsListener implements SinglePipelineListener {
         }
 
         final List<JiraSendInfoResponse> allResponses =
-                JiraSenderFactory.getInstance(pipelineLogger)
+                new JiraSenderFactory(pipelineLogger)
                         .getJiraBuildInfoSender()
                         .sendBuildInfo(
                                 new MultibranchBuildInfoRequest(null, "", build, maybeStatusNode),

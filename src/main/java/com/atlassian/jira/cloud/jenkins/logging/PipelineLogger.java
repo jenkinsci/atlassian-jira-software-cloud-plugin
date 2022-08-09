@@ -61,6 +61,7 @@ public class PipelineLogger {
 
     public void warn(final String message) {
         printStream.printf("[ATLASSIAN CLOUD PLUGIN] [WARN] %s%n", message);
+        printStream.flush();
     }
 
     public void warn(final String message, final Exception e) {
@@ -68,19 +69,23 @@ public class PipelineLogger {
         e.printStackTrace(new PrintStream(stacktraceOut));
         printStream.printf(
                 "[ATLASSIAN CLOUD PLUGIN] [WARN] %s Stacktrace: %s%n", message, stacktraceOut);
+        printStream.flush();
     }
 
     public void info(final String message) {
         printStream.printf("[ATLASSIAN CLOUD PLUGIN] [INFO] %s%n", message);
+        printStream.flush();
     }
 
     public void error(final String message) {
         printStream.printf("[ATLASSIAN CLOUD PLUGIN] [ERROR] %s%n", message);
+        printStream.flush();
     }
 
     public void debug(final String message) {
         if (this.debugLogging) {
             printStream.printf("[ATLASSIAN CLOUD PLUGIN] [DEBUG] %s%n", message);
+            printStream.flush();
         }
     }
 }

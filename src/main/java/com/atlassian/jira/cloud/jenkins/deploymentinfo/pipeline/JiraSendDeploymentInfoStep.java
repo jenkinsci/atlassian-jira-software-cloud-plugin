@@ -220,7 +220,7 @@ public class JiraSendDeploymentInfoStep extends Step implements Serializable {
                             issueKeys,
                             workflowRun);
             final List<JiraSendInfoResponse> responses =
-                    JiraSenderFactory.getInstance(pipelineLogger)
+                    new JiraSenderFactory(pipelineLogger)
                             .getJiraDeploymentInfoSender()
                             .sendDeploymentInfo(request, pipelineLogger);
 
