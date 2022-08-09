@@ -256,7 +256,7 @@ public class AutoBuildsListener implements SinglePipelineListener {
         }
 
         final List<JiraSendInfoResponse> allResponses =
-                new JiraSenderFactory(pipelineLogger)
+                JiraSenderFactory.getInstance()
                         .getJiraBuildInfoSender()
                         .sendBuildInfo(
                                 new MultibranchBuildInfoRequest(null, "", build, maybeStatusNode),

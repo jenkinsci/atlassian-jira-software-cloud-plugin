@@ -78,8 +78,6 @@ public class AutoBuildsAndDeploymentsTest {
         givenJiraAcceptsBuilds();
         givenJiraAcceptsDeployments();
         givenAutoBuildsRegex(null);
-
-        JiraSenderFactory.setInstance(mockSenderFactory);
     }
 
     private void assertListenersRegistered() {

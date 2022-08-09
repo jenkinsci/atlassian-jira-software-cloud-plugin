@@ -180,7 +180,7 @@ public class SinglePipelineSingleDeploymentListener implements SinglePipelineLis
                             }
                         });
         final List<JiraSendInfoResponse> allResponses =
-                new JiraSenderFactory(pipelineLogger)
+                JiraSenderFactory.getInstance()
                         .getJiraDeploymentInfoSender()
                         .sendDeploymentInfo(
                                 new JiraDeploymentInfoRequest(

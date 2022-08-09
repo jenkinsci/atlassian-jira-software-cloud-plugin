@@ -266,7 +266,7 @@ public class FreestyleJiraBuildInfoSenderImplTest {
                         Collections.emptyList(),
                         Collections.emptyList(),
                         ImmutableList.of("TEST-123"));
-        when(buildsApi.sendBuildAsJwt(any(), any(), any())).thenReturn(buildApiResponse);
+        when(buildsApi.sendBuildAsJwt(any(), any(), any(), any())).thenReturn(buildApiResponse);
     }
 
     private void setupMocks() {
@@ -317,7 +317,7 @@ public class FreestyleJiraBuildInfoSenderImplTest {
     }
 
     private void setupBuildsApiFailure() {
-        when(buildsApi.sendBuildAsJwt(any(), any(), any()))
+        when(buildsApi.sendBuildAsJwt(any(), any(), any(), any()))
                 .thenThrow(new ApiUpdateFailedException("Error"));
     }
 
@@ -336,7 +336,7 @@ public class FreestyleJiraBuildInfoSenderImplTest {
                         ImmutableList.of(buildKeyResponse),
                         Collections.emptyList(),
                         Collections.emptyList());
-        when(buildsApi.sendBuildAsJwt(any(), any(), any())).thenReturn(buildApiResponse);
+        when(buildsApi.sendBuildAsJwt(any(), any(), any(), any())).thenReturn(buildApiResponse);
     }
 
     private void setupBuildApiBuildRejected() {
@@ -350,7 +350,7 @@ public class FreestyleJiraBuildInfoSenderImplTest {
                         Collections.emptyList(),
                         ImmutableList.of(buildResponse),
                         Collections.emptyList());
-        when(buildsApi.sendBuildAsJwt(any(), any(), any())).thenReturn(buildApiResponse);
+        when(buildsApi.sendBuildAsJwt(any(), any(), any(), any())).thenReturn(buildApiResponse);
     }
 
     private AbstractBuild changeSetFreestyle() {

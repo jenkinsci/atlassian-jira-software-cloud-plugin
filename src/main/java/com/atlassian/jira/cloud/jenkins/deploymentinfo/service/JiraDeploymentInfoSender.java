@@ -8,5 +8,5 @@ import java.util.List;
 public interface JiraDeploymentInfoSender {
 
     List<JiraSendInfoResponse> sendDeploymentInfo(
-            JiraDeploymentInfoRequest request, final PipelineLogger pipelineLogger);
+            JiraDeploymentInfoRequest request, PipelineLogger pipelineLogger);
 }

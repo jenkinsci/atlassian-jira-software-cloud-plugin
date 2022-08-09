@@ -75,7 +75,7 @@ public class FreeStylePostBuildStep extends Recorder implements Serializable, Si
 
         final FreestyleBuildInfoRequest request =
                 new FreestyleBuildInfoRequest(this.getSite(), this.branch, build);
-        new JiraSenderFactory(pipelineLogger)
+        JiraSenderFactory.getInstance()
                 .getFreestyleBuildInfoSender()
                 .sendBuildInfo(request, pipelineLogger);
         return super.perform(build, launcher, listener);

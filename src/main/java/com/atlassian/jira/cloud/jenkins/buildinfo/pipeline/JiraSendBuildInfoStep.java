@@ -128,7 +128,7 @@ public class JiraSendBuildInfoStep extends Step implements Serializable {
                             step.getSite(), step.getBranch(), workflowRun, Optional.empty());
 
             final List<JiraSendInfoResponse> allResponses =
-                    new JiraSenderFactory(pipelineLogger)
+                    JiraSenderFactory.getInstance()
                             .getJiraBuildInfoSender()
                             .sendBuildInfo(request, pipelineLogger);
 

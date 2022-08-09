@@ -31,35 +31,24 @@ public abstract class JenkinsAppApi<ResponseEntity> {
     private final ObjectMapper objectMapper;
     private static final int JWT_EXPIRY_SECONDS = 5 * 60;
 
-    private final PipelineLogger pipelineLogger;
-
-    public JenkinsAppApi(
-            final OkHttpClient httpClient,
-            final ObjectMapper objectMapper,
-            final PipelineLogger pipelineLogger) {
-        this.httpClient = Objects.requireNonNull(httpClient);
-        this.objectMapper = Objects.requireNonNull(objectMapper);
-        this.pipelineLogger = pipelineLogger;
-    }
-
     @Inject
     public JenkinsAppApi(final OkHttpClient httpClient, final ObjectMapper objectMapper) {
         this.httpClient = Objects.requireNonNull(httpClient);
         this.objectMapper = Objects.requireNonNull(objectMapper);
-        this.pipelineLogger = PipelineLogger.noopInstance();
     }
 
     protected ResponseEntity sendRequest(
             final String webhookUrl,
             final JenkinsAppRequest jenkinsAppRequest,
-            final Class<ResponseEntity> responseClass)
+            final Class<ResponseEntity> responseClass,
+            final PipelineLogger pipelineLogger)
             throws ApiUpdateFailedException {
         try {
             final String requestPayload = objectMapper.writeValueAsString(jenkinsAppRequest);
             RequestBody body = RequestBody.create(JSON_CONTENT_TYPE, requestPayload);
             Request request = new Request.Builder().url(webhookUrl).post(body).build();
             final Response response = httpClient.newCall(request).execute();
-            checkForErrorResponse(response);
+            checkForErrorResponse(response, pipelineLogger);
             return handleResponseBody(response, responseClass);
         } catch (Exception e) {
             throw handleError(e);
@@ -70,18 +59,20 @@ public abstract class JenkinsAppApi<ResponseEntity> {
             final String webhookUrl,
             final String secret,
             final JenkinsAppRequest jenkinsAppRequest,
-            final Class<ResponseEntity> responseClass)
+            final Class<ResponseEntity> responseClass,
+            final PipelineLogger pipelineLogger)
             throws ApiUpdateFailedException {
         try {
             final String requestPayload =
                     wrapInJwt(
                             jenkinsAppRequest,
                             secret,
-                            Date.from(Instant.now().plusSeconds(JWT_EXPIRY_SECONDS)));
+                            Date.from(Instant.now().plusSeconds(JWT_EXPIRY_SECONDS)),
+                            pipelineLogger);
             RequestBody body = RequestBody.create(JWT_CONTENT_TYPE, requestPayload);
             Request request = new Request.Builder().url(webhookUrl).post(body).build();
             final Response response = httpClient.newCall(request).execute();
-            checkForErrorResponse(response);
+            checkForErrorResponse(response, pipelineLogger);
             return handleResponseBody(response, responseClass);
         } catch (Exception e) {
             throw handleError(e);
@@ -113,7 +104,8 @@ public abstract class JenkinsAppApi<ResponseEntity> {
         }
     }
 
-    private void checkForErrorResponse(final Response response) throws IOException {
+    private void checkForErrorResponse(final Response response, final PipelineLogger pipelineLogger)
+            throws IOException {
         if (!response.isSuccessful()) {
 
             // log the error response
@@ -159,7 +151,10 @@ public abstract class JenkinsAppApi<ResponseEntity> {
 
     @VisibleForTesting
     protected String wrapInJwt(
-            final JenkinsAppRequest request, final String secret, final Date expiryDate)
+            final JenkinsAppRequest request,
+            final String secret,
+            final Date expiryDate,
+            final PipelineLogger pipelineLogger)
             throws JsonProcessingException {
         final String body = objectMapper.writeValueAsString(request);
         pipelineLogger.info(String.format("sending request to Jenkins app in Jira: %s", body));

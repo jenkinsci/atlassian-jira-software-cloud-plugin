@@ -107,7 +107,7 @@ public class JiraCloudSiteConfigDescriptorTest {
 
     @Test
     public void testFailTestConnection_whenPingFailed() {
-        given(pingApi.sendPing(any(), any())).willReturn(false);
+        given(pingApi.sendPing(any(), any(), any())).willReturn(false);
 
         // when
         final FormValidation result =
@@ -205,7 +205,7 @@ public class JiraCloudSiteConfigDescriptorTest {
     }
 
     private void setupPingApi() {
-        when(pingApi.sendPing(any(), any())).thenReturn(true);
+        when(pingApi.sendPing(any(), any(), any())).thenReturn(true);
     }
 
     private void setupCloudIdResolver() {
