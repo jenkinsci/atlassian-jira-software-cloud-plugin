@@ -38,7 +38,6 @@ import java.util.Set;
 public class JiraSendDeploymentInfoStep extends Step implements Serializable {
 
     private static final long serialVersionUID = 1L;
-    private static final Logger logger = LoggerFactory.getLogger(JiraSendDeploymentInfoStep.class);
 
     private String site;
     private String environmentId;
@@ -224,12 +223,12 @@ public class JiraSendDeploymentInfoStep extends Step implements Serializable {
                             .getJiraDeploymentInfoSender()
                             .sendDeploymentInfo(request, pipelineLogger);
 
-            responses.forEach(response -> logResult(taskListener, response));
+            responses.forEach(response -> logResult(pipelineLogger, response));
             return responses;
         }
 
         private void logResult(
-                final TaskListener taskListener, final JiraSendInfoResponse response) {
+                final PipelineLogger pipelineLogger, final JiraSendInfoResponse response) {
             String message =
                     "jiraSendDeploymentInfo("
                             + response.getJiraSite()
@@ -237,8 +236,7 @@ public class JiraSendDeploymentInfoStep extends Step implements Serializable {
                             + response.getStatus()
                             + ": "
                             + response.getMessage();
-            logger.info(message);
-            taskListener.getLogger().println(message);
+            pipelineLogger.info(message);
         }
     }
 }

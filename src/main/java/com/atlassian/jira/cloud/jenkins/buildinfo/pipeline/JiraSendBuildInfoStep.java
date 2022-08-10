@@ -132,16 +132,15 @@ public class JiraSendBuildInfoStep extends Step implements Serializable {
                             .getJiraBuildInfoSender()
                             .sendBuildInfo(request, pipelineLogger);
 
-            allResponses.forEach(response -> logResult(taskListener, response));
+            allResponses.forEach(response -> logResult(pipelineLogger, response));
 
             return allResponses;
         }
 
         private void logResult(
-                final TaskListener taskListener, final JiraSendInfoResponse response) {
-            taskListener
-                    .getLogger()
-                    .println(
+                final PipelineLogger pipelineLogger, final JiraSendInfoResponse response) {
+            pipelineLogger
+                    .debug(
                             "jiraSendBuildInfo("
                                     + response.getJiraSite()
                                     + "): "
