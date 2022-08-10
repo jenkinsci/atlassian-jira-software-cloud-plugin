@@ -71,6 +71,7 @@ public class JiraSendBuildInfoStepTest {
         final JiraSenderFactory mockSenderFactory = mock(JiraSenderFactory.class);
         final JiraBuildInfoSender mockSender = mock(JiraBuildInfoSender.class);
         when(mockSenderFactory.getJiraBuildInfoSender()).thenReturn(mockSender);
+        JiraSenderFactory.setInstance(mockSenderFactory);
         final BuildApiResponse response =
                 new BuildApiResponse(
                         Collections.emptyList(), Collections.emptyList(), Collections.emptyList());

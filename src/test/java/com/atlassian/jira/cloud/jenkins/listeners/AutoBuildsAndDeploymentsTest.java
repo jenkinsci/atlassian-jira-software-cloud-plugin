@@ -78,6 +78,7 @@ public class AutoBuildsAndDeploymentsTest {
         givenJiraAcceptsBuilds();
         givenJiraAcceptsDeployments();
         givenAutoBuildsRegex(null);
+        JiraSenderFactory.setInstance(mockSenderFactory);
     }
 
     private void assertListenersRegistered() {
@@ -123,7 +124,9 @@ public class AutoBuildsAndDeploymentsTest {
     private void givenJiraSiteConfigured() {
         JiraCloudPluginConfig.get()
                 .setSites(
-                        ImmutableList.of(new JiraCloudSiteConfig(SITE, CLIENT_ID, CREDENTIAL_ID)));
+                        ImmutableList.of(
+                                new JiraCloudSiteConfig(
+                                        SITE, "https://webhook.url", CREDENTIAL_ID)));
     }
 
     private void givenAutoBuildsEnabled() {
@@ -404,7 +407,7 @@ public class AutoBuildsAndDeploymentsTest {
         ArgumentCaptor<JiraDeploymentInfoRequest> requestCaptor =
                 ArgumentCaptor.forClass(JiraDeploymentInfoRequest.class);
         verify(jiraDeploymentInfoSender, atLeastOnce())
-                .sendDeploymentInfo(requestCaptor.capture(), PipelineLogger.noopInstance());
+                .sendDeploymentInfo(requestCaptor.capture(), any(PipelineLogger.class));
 
         List<JiraDeploymentInfoRequest> requests = requestCaptor.getAllValues();
         if (index + 1 > requests.size()) {
