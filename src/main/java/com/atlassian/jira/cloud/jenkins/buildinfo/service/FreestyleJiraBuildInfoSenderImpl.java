@@ -6,6 +6,7 @@ import com.atlassian.jira.cloud.jenkins.buildinfo.client.model.Builds;
 import com.atlassian.jira.cloud.jenkins.common.config.JiraSiteConfigRetriever;
 import com.atlassian.jira.cloud.jenkins.common.model.IssueKey;
 import com.atlassian.jira.cloud.jenkins.common.service.FreestyleIssueKeyExtractor;
+import com.atlassian.jira.cloud.jenkins.logging.PipelineLogger;
 import com.atlassian.jira.cloud.jenkins.tenantinfo.CloudIdResolver;
 import com.atlassian.jira.cloud.jenkins.util.IssueKeyStringExtractor;
 import com.atlassian.jira.cloud.jenkins.util.RunWrapperProvider;
@@ -38,7 +39,8 @@ public class FreestyleJiraBuildInfoSenderImpl extends JiraBuildInfoSenderImpl {
     }
 
     @Override
-    protected Set<String> getIssueKeys(final JiraBuildInfoRequest request) {
+    protected Set<String> getIssueKeys(
+            final JiraBuildInfoRequest request, final PipelineLogger pipelineLogger) {
         FreestyleBuildInfoRequest freestyleRequest = (FreestyleBuildInfoRequest) request;
         Set<String> branchIssueKeys =
                 Optional.ofNullable(request.getBranch())
@@ -52,9 +54,10 @@ public class FreestyleJiraBuildInfoSenderImpl extends JiraBuildInfoSenderImpl {
                         .orElseGet(
                                 () ->
                                         issueKeyExtractor.extractIssueKeys(
-                                                freestyleRequest.getBuild()));
+                                                freestyleRequest.getBuild(), pipelineLogger));
         Set<String> commitIssueKeys =
-                changeLogIssueKeyExtractor.extractIssueKeys(freestyleRequest.getBuild());
+                changeLogIssueKeyExtractor.extractIssueKeys(
+                        freestyleRequest.getBuild(), pipelineLogger);
         if (!commitIssueKeys.isEmpty()) {
             branchIssueKeys.addAll(commitIssueKeys);
         }

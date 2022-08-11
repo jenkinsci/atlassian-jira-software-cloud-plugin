@@ -67,6 +67,9 @@ public class JiraCloudPluginConfigTest {
                                     + "    } "
                                     + "}");
 
+    private static final JSONObject DEBUG_LOGGING_JSON =
+            (JSONObject) JSONSerializer.toJSON("{\n" + "    \"debugLogging\":true" + "}");
+
     private static final JSONObject AUTO_DEPLOYMENTS_JSON =
             (JSONObject)
                     JSONSerializer.toJSON(
@@ -85,8 +88,7 @@ public class JiraCloudPluginConfigTest {
                                     + "    } "
                                     + "}");
 
-    @Rule
-    public JenkinsRule jRule = new JenkinsRule();
+    @Rule public JenkinsRule jRule = new JenkinsRule();
 
     @Test
     public void testDoesNotGetSiteConfig_whenSiteIsNotConfigured() {
@@ -131,7 +133,10 @@ public class JiraCloudPluginConfigTest {
         // given
         JiraCloudSiteConfig siteConfig1 = new JiraCloudSiteConfig(SITE, CLIENT_ID, CREDENTIALS_ID);
         JiraCloudSiteConfig siteConfig2 =
-                new JiraCloudSiteConfig("foobar.atlassian.net", "https://webhook.url?jenkins_server_uuid=foo", "credsId");
+                new JiraCloudSiteConfig(
+                        "foobar.atlassian.net",
+                        "https://webhook.url?jenkins_server_uuid=foo",
+                        "credsId");
         JiraCloudPluginConfig.get().setSites(ImmutableList.of(siteConfig1, siteConfig2));
 
         // when
@@ -154,7 +159,9 @@ public class JiraCloudPluginConfigTest {
         assertThat(loadedConfig.getSites().get(0))
                 .isEqualTo(
                         new JiraCloudSiteConfig(
-                                "mysite1.atlassian.net", "https://webhook.url?jenkins_server_uuid=foo", "myCreds1"));
+                                "mysite1.atlassian.net",
+                                "https://webhook.url?jenkins_server_uuid=foo",
+                                "myCreds1"));
     }
 
     @Test
@@ -170,7 +177,9 @@ public class JiraCloudPluginConfigTest {
         assertThat(loadedConfig.getSites().get(0))
                 .isEqualTo(
                         new JiraCloudSiteConfig(
-                                "mysite1.atlassian.net", "https://webhook.url?jenkins_server_uuid=foo", "myCreds1"));
+                                "mysite1.atlassian.net",
+                                "https://webhook.url?jenkins_server_uuid=foo",
+                                "myCreds1"));
     }
 
     @Test
@@ -193,6 +202,16 @@ public class JiraCloudPluginConfigTest {
         final JiraCloudPluginConfig loadedConfig = new JiraCloudPluginConfig(configName);
         assertThat(loadedConfig.getAutoBuildsEnabled()).isTrue();
         assertThat(loadedConfig.getAutoBuildsRegex()).isEqualTo("blah");
+    }
+
+    @Test
+    public void testConfigure_populatesDebugLogging() throws Descriptor.FormException {
+        final String configName = "config" + Math.random();
+
+        new JiraCloudPluginConfig(configName).configure(mockStapler(), DEBUG_LOGGING_JSON);
+
+        final JiraCloudPluginConfig loadedConfig = new JiraCloudPluginConfig(configName);
+        assertThat(loadedConfig.getDebugLogging()).isTrue();
     }
 
     @Test

@@ -7,6 +7,7 @@ import com.atlassian.jira.cloud.jenkins.common.config.JiraSiteConfigRetriever;
 import com.atlassian.jira.cloud.jenkins.common.model.IssueKey;
 import com.atlassian.jira.cloud.jenkins.common.service.IssueKeyExtractor;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.service.ChangeLogIssueKeyExtractor;
+import com.atlassian.jira.cloud.jenkins.logging.PipelineLogger;
 import com.atlassian.jira.cloud.jenkins.tenantinfo.CloudIdResolver;
 import com.atlassian.jira.cloud.jenkins.util.IssueKeyStringExtractor;
 import com.atlassian.jira.cloud.jenkins.util.RunWrapperProvider;
@@ -35,7 +36,8 @@ public class MultibranchBuildInfoSenderImpl extends JiraBuildInfoSenderImpl {
     }
 
     @Override
-    protected Set<String> getIssueKeys(final JiraBuildInfoRequest request) {
+    protected Set<String> getIssueKeys(
+            final JiraBuildInfoRequest request, final PipelineLogger pipelineLogger) {
 
         MultibranchBuildInfoRequest multibranchRequest = (MultibranchBuildInfoRequest) request;
         Set<String> branchIssueKeys =
@@ -50,9 +52,10 @@ public class MultibranchBuildInfoSenderImpl extends JiraBuildInfoSenderImpl {
                         .orElseGet(
                                 () ->
                                         issueKeyExtractor.extractIssueKeys(
-                                                multibranchRequest.getBuild()));
+                                                multibranchRequest.getBuild(), pipelineLogger));
         Set<String> commitIssueKeys =
-                changeLogIssueKeyExtractor.extractIssueKeys(multibranchRequest.getBuild());
+                changeLogIssueKeyExtractor.extractIssueKeys(
+                        multibranchRequest.getBuild(), pipelineLogger);
         if (!commitIssueKeys.isEmpty()) {
             branchIssueKeys.addAll(commitIssueKeys);
         }

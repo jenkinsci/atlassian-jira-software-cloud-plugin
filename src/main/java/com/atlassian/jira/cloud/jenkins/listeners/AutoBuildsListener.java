@@ -46,8 +46,6 @@ public class AutoBuildsListener implements SinglePipelineListener {
     private String startFlowNodeId = "";
     private String endFlowNodeId = "";
 
-    private static final Logger systemLogger = LoggerFactory.getLogger(AutoBuildsListener.class);
-
     public AutoBuildsListener(
             final WorkflowRun run,
             final PipelineLogger logger,
@@ -93,7 +91,7 @@ public class AutoBuildsListener implements SinglePipelineListener {
         final StepEndNode endNode = flowNode instanceof StepEndNode ? (StepEndNode) flowNode : null;
 
         if (startNode != null && matchesRegex(autoBuildsRegex, startNode.getDisplayName())) {
-            pipelineLogger.info(
+            pipelineLogger.debug(
                     "build start node was determined: "
                             + startNode.getId()
                             + " "
@@ -102,7 +100,7 @@ public class AutoBuildsListener implements SinglePipelineListener {
         } else if (endNode != null
                 && !startFlowNodeId.isEmpty()
                 && startFlowNodeId.equals(endNode.getStartNode().getId())) {
-            pipelineLogger.info(
+            pipelineLogger.debug(
                     "build end node was determined: "
                             + endNode.getId()
                             + " "
@@ -116,32 +114,54 @@ public class AutoBuildsListener implements SinglePipelineListener {
         if (finalResultSent) {
             return;
         }
-        if (issueKeyExtractor.extractIssueKeys(this.build).isEmpty()) {
+        pipelineLogger.debug("Checking for issue keys for this build ... ");
+        if (issueKeyExtractor.extractIssueKeys(this.build, pipelineLogger).isEmpty()) {
             // We don't have issueKeys at the start of the execution of the pipeline, need to wait
             // for them first
+            pipelineLogger.debug(
+                    "No issue keys could be extracted from this build yet, not sending build event to Jira (yet).");
             return;
         }
 
+        pipelineLogger.debug(
+                "Found issue keys for this build! Deciding whether to send information to Jira now.");
+
         if (autoBuildsRegex.trim().isEmpty()) {
+            pipelineLogger.debug("Pipeline step regex for builds is empty!");
             if (isOnCompleted) {
+                pipelineLogger.debug("Sending final build event (isOnCompleted == true))");
                 finalResultSent = true;
                 sendBuildStatusToJira(Optional.empty());
             } else if (!inProgressSent) {
+                pipelineLogger.debug(
+                        "Sending in-progress build event (isOnCompleted == false, inProgressSent == false))");
                 inProgressSent = true;
                 sendBuildStatusToJira(Optional.empty());
+            } else {
+                pipelineLogger.debug(
+                        "Not sending any build event (isOnCompleted == false, inProgressSent == true))");
             }
         } else {
+            pipelineLogger.debug(
+                    String.format(
+                            "Pipeline step regex for builds is set to '%s'", autoBuildsRegex));
             if (isOnCompleted) {
+                pipelineLogger.debug("Sending final build event (isOnCompleted == true))");
                 finalResultSent = true;
                 sendBuildStatusToJira(Optional.empty());
-
             } else if (canDetermineFinalResultOfEndNode()) {
+                pipelineLogger.debug(
+                        "Sending final build event (isOnCompleted == false, canDetermineFinalResultOfEndNode() == true))");
                 finalResultSent = true;
                 sendBuildStatusToJira(Optional.of(endFlowNodeId));
-
             } else if (!startFlowNodeId.isEmpty() && !inProgressSent) {
+                pipelineLogger.debug(
+                        "Sending in-progress build event (isOnCompleted == false, canDetermineFinalResultOfEndNode() == false, inProgressSent == false))");
                 inProgressSent = true;
                 sendBuildStatusToJira(Optional.empty());
+            } else {
+                pipelineLogger.debug(
+                        "Not sending any build event (isOnCompleted == false, canDetermineFinalResultOfEndNode() == false, inProgressSent == true)))");
             }
         }
     }
@@ -151,8 +171,7 @@ public class AutoBuildsListener implements SinglePipelineListener {
             return Pattern.compile(autoBuildsRegex).matcher(displayName).matches();
         } catch (final PatternSyntaxException exception) {
             final String message = "PatternSyntaxException: " + exception.getMessage();
-            pipelineLogger.warn(message);
-            systemLogger.warn(message, exception);
+            pipelineLogger.warn(message, exception);
             return false;
         }
     }
@@ -177,7 +196,6 @@ public class AutoBuildsListener implements SinglePipelineListener {
                         String.format(
                                 "cannot determine status from endFlowNode '%s'", endFlowNodeId);
                 pipelineLogger.warn(message);
-                systemLogger.warn(message);
                 return false;
             }
 
@@ -186,8 +204,7 @@ public class AutoBuildsListener implements SinglePipelineListener {
             return state != State.IN_PROGRESS;
         } catch (final IOException e) {
             final String message = "cannot determine status: " + e.getMessage();
-            pipelineLogger.warn(message);
-            systemLogger.warn(message, e);
+            pipelineLogger.warn(message, e);
             return false;
         }
     }
@@ -199,6 +216,10 @@ public class AutoBuildsListener implements SinglePipelineListener {
 
         if (!autoBuildsRegex.trim().isEmpty() && startFlowNodeId.isEmpty()) {
             // no node matched the regex, so we're not going to send any events to Jira
+            pipelineLogger.warn(
+                    String.format(
+                            "No build step matched the pipeline step regex for builds ('%s'). Not sending any events to Jira",
+                            autoBuildsRegex));
             return;
         }
 
@@ -212,7 +233,6 @@ public class AutoBuildsListener implements SinglePipelineListener {
                             String.format(
                                     "cannot determine status from endFlowNode '%s'", endFlowNodeId);
                     pipelineLogger.warn(message);
-                    systemLogger.warn(message);
                     return;
                 }
 
@@ -230,25 +250,23 @@ public class AutoBuildsListener implements SinglePipelineListener {
                                 + maybeStatusNodeId.get()
                                 + ", data to Jira is not sent! "
                                 + e.getMessage();
-                pipelineLogger.warn(message);
-                systemLogger.warn(message, e);
+                pipelineLogger.warn(message, e);
                 return;
             }
         }
 
         final List<JiraSendInfoResponse> allResponses =
-                JiraSenderFactory.getInstance(pipelineLogger)
+                JiraSenderFactory.getInstance()
                         .getJiraBuildInfoSender()
                         .sendBuildInfo(
-                                new MultibranchBuildInfoRequest(null, "", build, maybeStatusNode));
+                                new MultibranchBuildInfoRequest(null, "", build, maybeStatusNode),
+                                pipelineLogger);
         allResponses.forEach(
                 response -> {
                     final String message = response.getStatus() + ": " + response.getMessage();
                     if (response.getStatus().isFailure) {
-                        systemLogger.warn(message);
                         pipelineLogger.warn(message);
                     } else {
-                        systemLogger.info(message);
                         pipelineLogger.info(message);
                     }
                 });

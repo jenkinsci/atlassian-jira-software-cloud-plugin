@@ -2,6 +2,7 @@ package com.atlassian.jira.cloud.jenkins.deploymentinfo.service;
 
 import com.atlassian.jira.cloud.jenkins.common.model.IssueKey;
 import com.atlassian.jira.cloud.jenkins.common.service.IssueKeyExtractor;
+import com.atlassian.jira.cloud.jenkins.logging.PipelineLogger;
 import com.atlassian.jira.cloud.jenkins.util.IssueKeyStringExtractor;
 import hudson.model.Result;
 import hudson.model.Run;
@@ -10,6 +11,7 @@ import hudson.scm.ChangeLogSet;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 
 import javax.annotation.CheckForNull;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -24,12 +26,14 @@ import java.util.stream.Collectors;
  */
 public final class ChangeLogIssueKeyExtractor implements IssueKeyExtractor {
 
-    public Set<String> extractIssueKeys(final WorkflowRun workflowRun) {
+    public Set<String> extractIssueKeys(
+            final WorkflowRun workflowRun, final PipelineLogger pipelineLogger) {
 
         final Set<IssueKey> allIssueKeys = new HashSet<>();
         final List<ChangeLogSet<? extends ChangeLogSet.Entry>> changeSets =
                 new ArrayList<>(workflowRun.getChangeSets());
 
+        // Go through all previously failed builds and collect their changesets.
         WorkflowRun previous = workflowRun.getPreviousBuild();
         while (Objects.nonNull(previous) && !isBuildSuccessful(previous)) {
             changeSets.addAll(previous.getChangeSets());
@@ -42,14 +46,28 @@ public final class ChangeLogIssueKeyExtractor implements IssueKeyExtractor {
                 final ChangeLogSet.Entry changeSetEntry = (ChangeLogSet.Entry) item;
 
                 if (changeSetEntry instanceof GitChangeSet) {
-                    allIssueKeys.addAll(
-                            IssueKeyStringExtractor.extractIssueKeys(
-                                    ((GitChangeSet) changeSetEntry).getComment()));
+                    String comment = ((GitChangeSet) changeSetEntry).getComment();
+                    Set<IssueKey> issueKeys = IssueKeyStringExtractor.extractIssueKeys(comment);
+                    allIssueKeys.addAll(issueKeys);
+                    pipelineLogger.debug(
+                            String.format(
+                                    "Extracted issue keys from GitChangeSet comment '%s': %s",
+                                    comment, Arrays.toString(issueKeys.toArray())));
                 }
-                allIssueKeys.addAll(
-                        IssueKeyStringExtractor.extractIssueKeys(changeSetEntry.getMsg()));
+
+                String message = changeSetEntry.getMsg();
+                Set<IssueKey> issueKeys = IssueKeyStringExtractor.extractIssueKeys(message);
+                allIssueKeys.addAll(issueKeys);
+                pipelineLogger.debug(
+                        String.format(
+                                "Extracted issue keys from ChangeLogSet message '%s': %s",
+                                message, Arrays.toString(issueKeys.toArray())));
 
                 if (allIssueKeys.size() >= ISSUE_KEY_MAX_LIMIT) {
+                    pipelineLogger.warn(
+                            String.format(
+                                    "Not extracting any more issues as the maximum of %d has been reached!",
+                                    ISSUE_KEY_MAX_LIMIT));
                     break;
                 }
             }

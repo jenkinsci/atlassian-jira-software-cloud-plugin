@@ -124,10 +124,9 @@ public class JiraCheckGatingStatusStep extends Step implements Serializable {
         protected Boolean run() throws Exception {
             final TaskListener taskListener = requireNonNull(getContext().get(TaskListener.class));
             final WorkflowRun run = requireNonNull(getContext().get(WorkflowRun.class));
-            final PipelineLogger pipelineLogger = new PipelineLogger(taskListener.getLogger());
 
             final JiraGatingStatusResponse response =
-                    JiraSenderFactory.getInstance(pipelineLogger)
+                    JiraSenderFactory.getInstance()
                             .getJiraGateStateRetriever()
                             .getGatingStatus(
                                     taskListener, step.getSite(), step.getEnvironmentId(), run);

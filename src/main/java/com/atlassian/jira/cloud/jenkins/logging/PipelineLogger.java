@@ -2,6 +2,7 @@ package com.atlassian.jira.cloud.jenkins.logging;
 
 import hudson.model.TaskListener;
 
+import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
@@ -16,12 +17,15 @@ public class PipelineLogger {
 
     private static PipelineLogger NOOP_INSTANCE;
 
+    private Boolean debugLogging;
+
     /**
      * @param taskLogger a PrintStream that points to the Jenkins pipeline logs. See {@link
-     *     TaskListener#getLogger()}.
+     *                   TaskListener#getLogger()}.
      */
-    public PipelineLogger(final PrintStream taskLogger) {
+    public PipelineLogger(final PrintStream taskLogger, final boolean debugLogging) {
         this.printStream = taskLogger;
+        this.debugLogging = debugLogging;
     }
 
     public static PipelineLogger noopInstance() {
@@ -37,7 +41,8 @@ public class PipelineLogger {
                                             }
                                         },
                                         true,
-                                        "UTF8"));
+                                        "UTF8"),
+                                false);
             } catch (UnsupportedEncodingException e) {
                 throw new RuntimeException(e);
             }
@@ -46,14 +51,36 @@ public class PipelineLogger {
     }
 
     public void warn(final String message) {
-        printStream.println("[ATLASSIAN CLOUD PLUGIN] [WARN] " + message);
+        printStream.printf("[ATLASSIAN CLOUD PLUGIN] [WARN] %s%n", message);
+        printStream.flush();
+    }
+
+    public void warn(final String message, final Exception e) {
+        ByteArrayOutputStream stacktraceOut = new ByteArrayOutputStream();
+        try {
+            e.printStackTrace(new PrintStream(stacktraceOut, true, "UTF-8"));
+        } catch (UnsupportedEncodingException e2) {
+            error("Missing stacktrace because Jenkins server doesn't support UTF-8!");
+        }
+        printStream.printf(
+                "[ATLASSIAN CLOUD PLUGIN] [WARN] %s Stacktrace: %s%n", message, stacktraceOut);
+        printStream.flush();
     }
 
     public void info(final String message) {
-        printStream.println("[ATLASSIAN CLOUD PLUGIN] [INFO] " + message);
+        printStream.printf("[ATLASSIAN CLOUD PLUGIN] [INFO] %s%n", message);
+        printStream.flush();
     }
 
     public void error(final String message) {
-        printStream.println("[ATLASSIAN CLOUD PLUGIN] [ERROR] " + message);
+        printStream.printf("[ATLASSIAN CLOUD PLUGIN] [ERROR] %s%n", message);
+        printStream.flush();
+    }
+
+    public void debug(final String message) {
+        if (this.debugLogging) {
+            printStream.printf("[ATLASSIAN CLOUD PLUGIN] [DEBUG] %s%n", message);
+            printStream.flush();
+        }
     }
 }

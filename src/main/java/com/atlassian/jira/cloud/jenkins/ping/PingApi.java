@@ -1,6 +1,7 @@
 package com.atlassian.jira.cloud.jenkins.ping;
 
 import com.atlassian.jira.cloud.jenkins.common.client.JenkinsAppApi;
+import com.atlassian.jira.cloud.jenkins.logging.PipelineLogger;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.OkHttpClient;
 
@@ -19,9 +20,11 @@ public class PingApi extends JenkinsAppApi<PingResponse> {
      * the same on both sides). This effectively tests if the connection between Jenkins plugin and
      * app is valid.
      */
-    public boolean sendPing(final String webhookUrl, final String secret) {
+    public boolean sendPing(
+            final String webhookUrl, final String secret, final PipelineLogger pipelineLogger) {
         JenkinsAppPingRequest request = new JenkinsAppPingRequest();
-        PingResponse response = sendRequestAsJwt(webhookUrl, secret, request, PingResponse.class);
+        PingResponse response =
+                sendRequestAsJwt(webhookUrl, secret, request, PingResponse.class, pipelineLogger);
         return response.getSuccess();
     }
 }

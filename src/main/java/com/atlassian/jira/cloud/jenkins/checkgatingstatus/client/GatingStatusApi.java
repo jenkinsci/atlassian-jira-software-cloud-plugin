@@ -9,11 +9,8 @@ import okhttp3.OkHttpClient;
 
 public class GatingStatusApi extends JenkinsAppApi<GatingStatusResponse> {
 
-    public GatingStatusApi(
-            final OkHttpClient httpClient,
-            final ObjectMapper objectMapper,
-            final PipelineLogger pipelineLogger) {
-        super(httpClient, objectMapper, pipelineLogger);
+    public GatingStatusApi(final OkHttpClient httpClient, final ObjectMapper objectMapper) {
+        super(httpClient, objectMapper);
     }
 
     public GatingStatusResponse getGatingStatus(
@@ -21,11 +18,13 @@ public class GatingStatusApi extends JenkinsAppApi<GatingStatusResponse> {
             final String secret,
             final String deploymentId,
             final String pipelineId,
-            final String environmentId) {
+            final String environmentId,
+            final PipelineLogger pipelineLogger) {
         return sendRequestAsJwt(
                 webhookUrl,
                 secret,
                 new GatingStatusRequest(deploymentId, pipelineId, environmentId),
-                GatingStatusResponse.class);
+                GatingStatusResponse.class,
+                pipelineLogger);
     }
 }

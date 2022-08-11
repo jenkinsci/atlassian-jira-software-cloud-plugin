@@ -5,6 +5,7 @@ import com.atlassian.jira.cloud.jenkins.checkgatingstatus.client.model.GatingSta
 import com.atlassian.jira.cloud.jenkins.common.config.JiraSiteConfigRetriever;
 import com.atlassian.jira.cloud.jenkins.common.response.JiraCommonResponse;
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
+import com.atlassian.jira.cloud.jenkins.logging.PipelineLogger;
 import com.atlassian.jira.cloud.jenkins.tenantinfo.CloudIdResolver;
 import com.atlassian.jira.cloud.jenkins.util.SecretRetriever;
 import hudson.model.TaskListener;
@@ -81,7 +82,8 @@ public class JiraGatingStatusRetrieverImpl implements JiraGatingStatusRetriever 
                             maybeSecret.get(),
                             deploymentId,
                             pipelineId,
-                            environmentId);
+                            environmentId,
+                            PipelineLogger.noopInstance());
 
             return JiraGatingStatusResponse.success(jiraSite, result);
         } catch (Exception e) {

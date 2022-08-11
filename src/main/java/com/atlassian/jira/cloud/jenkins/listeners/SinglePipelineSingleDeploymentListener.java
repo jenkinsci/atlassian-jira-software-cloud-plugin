@@ -23,9 +23,6 @@ import java.util.stream.Collectors;
 
 public class SinglePipelineSingleDeploymentListener implements SinglePipelineListener {
 
-    private static final Logger systemLogger =
-            LoggerFactory.getLogger(SinglePipelineSingleDeploymentListener.class);
-
     private final WorkflowRun build;
     private final String environmentName;
     private final PipelineLogger pipelineLogger;
@@ -82,21 +79,30 @@ public class SinglePipelineSingleDeploymentListener implements SinglePipelineLis
             return;
         }
 
-        if (issueKeyExtractor.extractIssueKeys(this.build).isEmpty()) {
+        pipelineLogger.debug("Checking for issue keys for this deployment ... ");
+        if (issueKeyExtractor.extractIssueKeys(this.build, pipelineLogger).isEmpty()) {
             // We don't have issueKeys at the start of the execution of the pipeline, need to wait
             // for them first
+            pipelineLogger.debug(
+                    "No issue keys could be extracted from this deployment yet, not sending deployment event to Jira (yet).");
             return;
         }
 
+        pipelineLogger.debug(
+                "Found issue keys for this deployment! Deciding whether to send information to Jira now.");
+
         if (isOnCompleted) {
+            pipelineLogger.debug("Sending final deployment event (isOnCompleted == true))");
             finalResultSent = true;
             sendDeploymentsDataToJira(Optional.empty());
-
         } else if (canDetermineFinalResultOfEndNode()) {
+            pipelineLogger.debug(
+                    "Sending final deployment event (canDetermineFinalResultOfEndNode() == true))");
             finalResultSent = true;
             sendDeploymentsDataToJira(Optional.of(endFlowNodeId));
-
         } else if (!startFlowNodeId.isEmpty() && !inProgressSent) {
+            pipelineLogger.debug(
+                    "Sending in-progress deployment event (!startFlowNodeId.isEmpty() && !inProgressSent))");
             inProgressSent = true;
             sendDeploymentsDataToJira(Optional.empty());
         }
@@ -169,13 +175,12 @@ public class SinglePipelineSingleDeploymentListener implements SinglePipelineLis
                             } catch (final IOException e) {
                                 final String message =
                                         "cannot find node " + nodeId + ": " + e.getMessage();
-                                pipelineLogger.warn(message);
-                                systemLogger.warn(message, e);
+                                pipelineLogger.warn(message, e);
                                 return null;
                             }
                         });
         final List<JiraSendInfoResponse> allResponses =
-                JiraSenderFactory.getInstance(pipelineLogger)
+                JiraSenderFactory.getInstance()
                         .getJiraDeploymentInfoSender()
                         .sendDeploymentInfo(
                                 new JiraDeploymentInfoRequest(
@@ -191,16 +196,16 @@ public class SinglePipelineSingleDeploymentListener implements SinglePipelineLis
                                                 .orElse(null),
                                         Collections.emptySet(),
                                         false,
-                                        issueKeyExtractor.extractIssueKeys(this.build),
-                                        build));
+                                        issueKeyExtractor.extractIssueKeys(
+                                                this.build, this.pipelineLogger),
+                                        build),
+                                pipelineLogger);
         allResponses.forEach(
                 response -> {
                     final String message = response.getStatus() + ": " + response.getMessage();
                     if (response.getStatus().isFailure) {
-                        systemLogger.warn(message);
                         pipelineLogger.warn(message);
                     } else {
-                        systemLogger.info(message);
                         pipelineLogger.info(message);
                     }
                 });
@@ -221,7 +226,6 @@ public class SinglePipelineSingleDeploymentListener implements SinglePipelineLis
                         String.format(
                                 "cannot determine status from endFlowNode '%s'", endFlowNodeId);
                 pipelineLogger.warn(message);
-                systemLogger.warn(message);
                 return false;
             }
 
@@ -230,8 +234,7 @@ public class SinglePipelineSingleDeploymentListener implements SinglePipelineLis
             return state != State.IN_PROGRESS;
         } catch (final IOException e) {
             final String message = "cannot determine status: " + e.getMessage();
-            pipelineLogger.warn(message);
-            systemLogger.warn(message, e);
+            pipelineLogger.warn(message, e);
             return false;
         }
     }
