@@ -36,8 +36,7 @@ public class FreestyleBranchNameIssueKeyExtractor implements FreestyleIssueKeyEx
 
             pipelineLogger.debug(
                     String.format(
-                            "Extracted issue keys from branch name: %s",
-                            Arrays.toString(issueKeys.toArray())));
+                            "Extracted issue keys from branch name: %s", issueKeys));
 
             return issueKeys;
         }
