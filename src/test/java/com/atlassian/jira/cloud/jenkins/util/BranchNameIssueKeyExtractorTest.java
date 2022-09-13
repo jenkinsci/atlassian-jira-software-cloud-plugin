@@ -10,6 +10,7 @@ import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.HashMap;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -35,13 +36,21 @@ public class BranchNameIssueKeyExtractorTest {
         final SCMRevisionAction scmRevisionAction =
                 new SCMRevisionAction(new GitSCMSource(""), new GitBranchSCMRevision(head, ""));
         when(mockWorkflowRun.getAction(SCMRevisionAction.class)).thenReturn(scmRevisionAction);
+        when(mockWorkflowRun.getEnvVars())
+                .thenReturn(
+                        new HashMap<String, String>() {
+                            {
+                                put("BRANCH_NAME", "DEP-56");
+                                put("CHANGE_BRANCH", "DEP-57");
+                            }
+                        });
 
         // when
         final Set<String> issueKeys =
                 classUnderTest.extractIssueKeys(mockWorkflowRun, PipelineLogger.noopInstance());
 
         // then
-        assertThat(issueKeys).containsExactlyInAnyOrder("TEST-123");
+        assertThat(issueKeys).containsExactlyInAnyOrder("TEST-123", "DEP-56", "DEP-57");
     }
 
     @Test
