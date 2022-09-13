@@ -51,11 +51,12 @@ public class BranchNameIssueKeyExtractor implements IssueKeyExtractor {
         // change request, the name is generally arbitrary
         final String branchNameEnvVar = envVars.get("BRANCH_NAME");
         if (branchNameEnvVar != null) {
-            issueKeys.addAll(extractIssueKeys(branchNameEnvVar));
+            Set<String> extractedIssueKeys = extractIssueKeys(branchNameEnvVar);
+            issueKeys.addAll(extractedIssueKeys);
             pipelineLogger.debug(
                     String.format(
                             "Extracted issue keys from env var BRANCH_NAME (%s): %s",
-                            branchNameEnvVar, issueKeys));
+                            branchNameEnvVar, extractedIssueKeys));
         } else {
             pipelineLogger.debug(
                     "Not extracting issue keys from environment variable BRANCH_NAME because it's not set");
@@ -67,11 +68,12 @@ public class BranchNameIssueKeyExtractor implements IssueKeyExtractor {
         // something like PR-24.
         final String changeBranchEnvVar = envVars.get("CHANGE_BRANCH");
         if (changeBranchEnvVar != null) {
-            issueKeys.addAll(extractIssueKeys(changeBranchEnvVar));
+            Set<String> extractedIssueKeys = extractIssueKeys(changeBranchEnvVar);
+            issueKeys.addAll(extractedIssueKeys);
             pipelineLogger.debug(
                     String.format(
                             "Extracted issue keys from env var CHANGE_BRANCH (%s): %s",
-                            changeBranchEnvVar, issueKeys));
+                            changeBranchEnvVar, extractedIssueKeys));
         } else {
             pipelineLogger.debug(
                     "Not extracting issue keys from environment variable CHANGE_BRANCH because it's not set");
