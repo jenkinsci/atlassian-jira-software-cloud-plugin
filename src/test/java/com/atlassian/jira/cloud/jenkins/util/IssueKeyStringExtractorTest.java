@@ -59,11 +59,11 @@ public class IssueKeyStringExtractorTest {
 
         final Set<IssueKey> issuesKeys = IssueKeyStringExtractor.extractIssueKeys(commitWithLongMessage);
 
-        assertThat(issuesKeys).hasSize(100); // instead of 110
+        assertThat(issuesKeys).hasSize(500); // instead of 510
     }
 
     private String getLongMessage() {
-        return IntStream.range(1, 110)
+        return IntStream.range(1, 510)
                 .mapToObj(seq -> "TEST-" + seq)
                 .reduce("Commit message",
                         (accumulator, element) -> accumulator + " TEST-" + element);

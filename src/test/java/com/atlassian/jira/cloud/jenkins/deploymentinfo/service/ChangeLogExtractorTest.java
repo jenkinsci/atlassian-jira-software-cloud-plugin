@@ -103,7 +103,7 @@ public class ChangeLogExtractorTest {
                 changeLogExtractor.extractIssueKeys(workflowRun, PipelineLogger.noopInstance());
 
         // then
-        assertThat(issueKeys).hasSize(100);
+        assertThat(issueKeys).hasSize(500);
     }
 
     private WorkflowRun workflowRunWithNoChangeSets() {
@@ -170,7 +170,7 @@ public class ChangeLogExtractorTest {
     }
 
     private WorkflowRun workflowRunWithIssuesAboveLimit() {
-        int count = 105;
+        int count = 505;
         Object[] changeSetEntries = new Object[count];
         for (int i = 0; i < count; i++) {
             final ChangeLogSet.Entry entry = mock(ChangeLogSet.Entry.class);
