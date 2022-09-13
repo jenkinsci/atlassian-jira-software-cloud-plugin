@@ -6,7 +6,7 @@ import java.util.Set;
 
 public interface IssueKeyExtractor {
 
-    Integer ISSUE_KEY_MAX_LIMIT = 100;
+    Integer ISSUE_KEY_MAX_LIMIT = 500;
 
     Set<String> extractIssueKeys(WorkflowRun workflowRun);
 }
