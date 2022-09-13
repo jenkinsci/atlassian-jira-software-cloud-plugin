@@ -80,7 +80,7 @@ public class BranchNameIssueKeyExtractor implements IssueKeyExtractor {
         pipelineLogger.debug(
                 String.format(
                         "Extracted the following issue keys out of branch name: %s",
-                        issueKeys.toArray()));
+                        issueKeys));
 
         return issueKeys;
     }
