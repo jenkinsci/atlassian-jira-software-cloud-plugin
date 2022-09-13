@@ -28,6 +28,8 @@ public class JiraCloudPluginConfig extends GlobalConfiguration {
     public static final String FIELD_NAME_AUTO_BUILDS_REGEX = "autoBuildsRegex";
     public static final String FIELD_NAME_AUTO_DEPLOYMENTS_REGEX = "autoDeploymentsRegex";
 
+    public static final String FIELD_NAME_DEBUG_LOGGING = "debugLogging";
+
     private static final Logger log = LoggerFactory.getLogger(JiraCloudPluginConfig.class);
 
     private static final String ATL_JSW_GLOBAL_CONFIGURATION_ID = "atl-jsw-global-configuration";
@@ -36,6 +38,8 @@ public class JiraCloudPluginConfig extends GlobalConfiguration {
 
     private Boolean autoBuildsEnabled;
     private String autoBuildsRegex;
+
+    private Boolean debugLogging = Boolean.FALSE;
 
     private Boolean autoDeploymentsEnabled;
     private String autoDeploymentsRegex = "^deploy to (?<envName>.*)$";
@@ -54,6 +58,14 @@ public class JiraCloudPluginConfig extends GlobalConfiguration {
     @Nullable
     public static JiraCloudPluginConfig get() {
         return GlobalConfiguration.all().get(JiraCloudPluginConfig.class);
+    }
+
+    public static boolean isDebugLoggingEnabled() {
+        JiraCloudPluginConfig config = get();
+        if (config == null) {
+            return false;
+        }
+        return config.getDebugLogging();
     }
 
     @Override
@@ -98,13 +110,18 @@ public class JiraCloudPluginConfig extends GlobalConfiguration {
                 }
             }
 
+            if (json.containsKey(FIELD_NAME_DEBUG_LOGGING)) {
+                this.debugLogging = json.getBoolean(FIELD_NAME_DEBUG_LOGGING);
+            }
+
         } catch (Exception e) {
-            log.debug("Submitting form to JSW Plugin failed: ({})", e.getMessage(), e);
+            log.debug("Submitting form to Atlassian Cloud plugin failed: ({})", e.getMessage(), e);
             if (log.isTraceEnabled()) {
-                log.trace("JSW form data: {}", json.toString());
+                log.trace("Atlassian Cloud plugin data: {}", json.toString());
             }
             throw new FormException(
-                    String.format("Incorrect JSW Configuration (%s)", e.getMessage()),
+                    String.format(
+                            "Incorrect Atlassian Cloud plugin configuration (%s)", e.getMessage()),
                     e,
                     "configs");
         }
@@ -132,6 +149,14 @@ public class JiraCloudPluginConfig extends GlobalConfiguration {
 
     public void setAutoBuildsRegex(@Nullable final String autoBuildsRegex) {
         this.autoBuildsRegex = autoBuildsRegex;
+    }
+
+    public Boolean getDebugLogging() {
+        return debugLogging;
+    }
+
+    public void setDebugLogging(final Boolean debugLogging) {
+        this.debugLogging = debugLogging;
     }
 
     public void setAutoDeploymentsRegex(final String autoDeploymentsRegex) {

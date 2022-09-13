@@ -1,6 +1,7 @@
 package com.atlassian.jira.cloud.jenkins.config;
 
 import com.atlassian.jira.cloud.jenkins.common.client.BadRequestException;
+import com.atlassian.jira.cloud.jenkins.logging.PipelineLogger;
 import com.atlassian.jira.cloud.jenkins.ping.PingApi;
 import com.atlassian.jira.cloud.jenkins.tenantinfo.CloudIdResolver;
 import com.atlassian.jira.cloud.jenkins.util.SecretRetriever;
@@ -179,7 +180,9 @@ public class JiraCloudSiteConfig extends AbstractDescribableImpl<JiraCloudSiteCo
             }
 
             try {
-                boolean pingSuccess = pingApi.sendPing(webhookUrl, maybeSecret.get());
+                boolean pingSuccess =
+                        pingApi.sendPing(
+                                webhookUrl, maybeSecret.get(), PipelineLogger.noopInstance());
                 if (!pingSuccess) {
                     return FormValidation.error(
                             "Connection could not be established. Is the secret correct?");

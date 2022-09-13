@@ -38,7 +38,6 @@ import java.util.Set;
 public class JiraSendDeploymentInfoStep extends Step implements Serializable {
 
     private static final long serialVersionUID = 1L;
-    private static final Logger logger = LoggerFactory.getLogger(JiraSendDeploymentInfoStep.class);
 
     private String site;
     private String environmentId;
@@ -206,7 +205,7 @@ public class JiraSendDeploymentInfoStep extends Step implements Serializable {
             final WorkflowRun workflowRun = getContext().get(WorkflowRun.class);
             final Set<String> serviceIds = ImmutableSet.copyOf(step.getServiceIds());
             final Set<String> issueKeys = ImmutableSet.copyOf(step.getIssueKeys());
-            final PipelineLogger pipelineLogger = new PipelineLogger(taskListener.getLogger());
+            final PipelineLogger pipelineLogger = new PipelineLogger(taskListener.getLogger(), JiraCloudPluginConfig.isDebugLoggingEnabled());
 
             final JiraDeploymentInfoRequest request =
                     new JiraDeploymentInfoRequest(
@@ -220,16 +219,16 @@ public class JiraSendDeploymentInfoStep extends Step implements Serializable {
                             issueKeys,
                             workflowRun);
             final List<JiraSendInfoResponse> responses =
-                    JiraSenderFactory.getInstance(pipelineLogger)
+                    JiraSenderFactory.getInstance()
                             .getJiraDeploymentInfoSender()
-                            .sendDeploymentInfo(request);
+                            .sendDeploymentInfo(request, pipelineLogger);
 
-            responses.forEach(response -> logResult(taskListener, response));
+            responses.forEach(response -> logResult(pipelineLogger, response));
             return responses;
         }
 
         private void logResult(
-                final TaskListener taskListener, final JiraSendInfoResponse response) {
+                final PipelineLogger pipelineLogger, final JiraSendInfoResponse response) {
             String message =
                     "jiraSendDeploymentInfo("
                             + response.getJiraSite()
@@ -237,8 +236,7 @@ public class JiraSendDeploymentInfoStep extends Step implements Serializable {
                             + response.getStatus()
                             + ": "
                             + response.getMessage();
-            logger.info(message);
-            taskListener.getLogger().println(message);
+            pipelineLogger.info(message);
         }
     }
 }

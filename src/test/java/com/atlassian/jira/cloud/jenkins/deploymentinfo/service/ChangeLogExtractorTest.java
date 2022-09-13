@@ -1,6 +1,7 @@
 package com.atlassian.jira.cloud.jenkins.deploymentinfo.service;
 
 import com.atlassian.jira.cloud.jenkins.common.service.IssueKeyExtractor;
+import com.atlassian.jira.cloud.jenkins.logging.PipelineLogger;
 import com.google.common.collect.ImmutableList;
 import hudson.plugins.git.GitChangeSet;
 import hudson.scm.ChangeLogSet;
@@ -33,7 +34,8 @@ public class ChangeLogExtractorTest {
         final WorkflowRun workflowRun = workflowRunWithNoChangeSets();
 
         // when
-        final Set<String> issueKeys = changeLogExtractor.extractIssueKeys(workflowRun);
+        final Set<String> issueKeys =
+                changeLogExtractor.extractIssueKeys(workflowRun, PipelineLogger.noopInstance());
 
         // then
         assertThat(issueKeys).isEmpty();
@@ -45,7 +47,8 @@ public class ChangeLogExtractorTest {
         final WorkflowRun workflowRun = changeSetWithOneChangeSetEntry();
 
         // when
-        final Set<String> issueKeys = changeLogExtractor.extractIssueKeys(workflowRun);
+        final Set<String> issueKeys =
+                changeLogExtractor.extractIssueKeys(workflowRun, PipelineLogger.noopInstance());
 
         // then
         assertThat(issueKeys).containsExactlyInAnyOrder("TEST-123");
@@ -57,7 +60,8 @@ public class ChangeLogExtractorTest {
         final WorkflowRun workflowRun = changeSetWithMultipleChangeSetEntries();
 
         // when
-        final Set<String> issueKeys = changeLogExtractor.extractIssueKeys(workflowRun);
+        final Set<String> issueKeys =
+                changeLogExtractor.extractIssueKeys(workflowRun, PipelineLogger.noopInstance());
 
         // then
         assertThat(issueKeys).containsExactlyInAnyOrder("TEST-123", "TEST-456");
@@ -69,7 +73,8 @@ public class ChangeLogExtractorTest {
         final WorkflowRun workflowRun = workflowRunWithMultipleChangeSets();
 
         // when
-        final Set<String> issueKeys = changeLogExtractor.extractIssueKeys(workflowRun);
+        final Set<String> issueKeys =
+                changeLogExtractor.extractIssueKeys(workflowRun, PipelineLogger.noopInstance());
 
         // then
         assertThat(issueKeys).containsExactlyInAnyOrder("TEST-123", "TEST-456");
@@ -81,7 +86,8 @@ public class ChangeLogExtractorTest {
         final WorkflowRun workflowRun = changeSetWithSquashedCommitsInComment();
 
         // when
-        final Set<String> issueKeys = changeLogExtractor.extractIssueKeys(workflowRun);
+        final Set<String> issueKeys =
+                changeLogExtractor.extractIssueKeys(workflowRun, PipelineLogger.noopInstance());
 
         // then
         assertThat(issueKeys).containsExactlyInAnyOrder("TEST-3", "TEST-4");
@@ -93,7 +99,8 @@ public class ChangeLogExtractorTest {
         final WorkflowRun workflowRun = workflowRunWithIssuesAboveLimit();
 
         // when
-        final Set<String> issueKeys = changeLogExtractor.extractIssueKeys(workflowRun);
+        final Set<String> issueKeys =
+                changeLogExtractor.extractIssueKeys(workflowRun, PipelineLogger.noopInstance());
 
         // then
         assertThat(issueKeys).hasSize(100);

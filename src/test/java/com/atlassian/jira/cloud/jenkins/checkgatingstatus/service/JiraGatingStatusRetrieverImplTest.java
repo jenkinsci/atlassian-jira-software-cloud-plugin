@@ -150,7 +150,7 @@ public class JiraGatingStatusRetrieverImplTest {
     }
 
     private void setupApiFailure() {
-        when(jiraApi.getGatingStatus(any(), any(), any(), any(), any()))
+        when(jiraApi.getGatingStatus(any(), any(), any(), any(), any(), any()))
                 .thenThrow(new IllegalStateException("BWAAAH!"));
     }
 
@@ -163,7 +163,7 @@ public class JiraGatingStatusRetrieverImplTest {
                         PIPELINE_ID,
                         ENVIRONMENT_ID,
                         BUILD_NUMBER);
-        when(jiraApi.getGatingStatus(any(), any(), any(), any(), any()))
+        when(jiraApi.getGatingStatus(any(), any(), any(), any(), any(), any()))
                 .thenReturn(gatingStatusResponse);
     }
 }

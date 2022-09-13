@@ -2,6 +2,7 @@ package com.atlassian.jira.cloud.jenkins.listeners;
 
 import com.atlassian.jira.cloud.jenkins.common.service.IssueKeyExtractor;
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudPluginConfig;
+import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Pipeline;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.service.ChangeLogIssueKeyExtractor;
 import com.atlassian.jira.cloud.jenkins.util.BranchNameIssueKeyExtractor;
 import com.atlassian.jira.cloud.jenkins.util.CompoundIssueKeyExtractor;
@@ -17,7 +18,6 @@ import org.slf4j.LoggerFactory;
 @Extension
 public class JenkinsPipelineRunListener extends RunListener<Run> {
 
-    private static final Logger log = LoggerFactory.getLogger(JenkinsPipelineRunListener.class);
     private final SinglePipelineListenerRegistry singlePipelineListenerRegistry =
             SinglePipelineListenerRegistry.get();
     private final IssueKeyExtractor issueKeyExtractor;
@@ -34,11 +34,12 @@ public class JenkinsPipelineRunListener extends RunListener<Run> {
 
     @Override
     public void onStarted(final Run r, final TaskListener taskListener) {
+        PipelineLogger pipelineLogger = new PipelineLogger(taskListener.getLogger(), JiraCloudPluginConfig.isDebugLoggingEnabled());
+
         if (!(r instanceof WorkflowRun)) {
             final String message =
                     "Not a WorkflowRun, automatic builds and deployments won't work.";
-            log.warn(message);
-            taskListener.getLogger().println("[WARN] " + message);
+            pipelineLogger.warn(message);
             return;
         }
 
@@ -46,8 +47,7 @@ public class JenkinsPipelineRunListener extends RunListener<Run> {
         if (config == null) {
             final String message =
                     "Atlassian cloud plugin config is null. Please configure the plugin to support auto-detection of build and deployment events";
-            log.warn(message);
-            taskListener.getLogger().println("[WARN] " + message);
+            pipelineLogger.warn(message);
             return;
         }
 
@@ -58,7 +58,7 @@ public class JenkinsPipelineRunListener extends RunListener<Run> {
                     workflowRun.getUrl(),
                     new AutoBuildsListener(
                             workflowRun,
-                            new PipelineLogger(taskListener.getLogger()),
+                            new PipelineLogger(taskListener.getLogger(), JiraCloudPluginConfig.isDebugLoggingEnabled()),
                             config.getAutoBuildsRegex(),
                             this.issueKeyExtractor));
         }
@@ -68,7 +68,7 @@ public class JenkinsPipelineRunListener extends RunListener<Run> {
                     workflowRun.getUrl(),
                     new AutoDeploymentsListener(
                             workflowRun,
-                            new PipelineLogger(taskListener.getLogger()),
+                            new PipelineLogger(taskListener.getLogger(), JiraCloudPluginConfig.isDebugLoggingEnabled()),
                             config.getAutoDeploymentsRegex(),
                             this.issueKeyExtractor));
         }
@@ -76,6 +76,8 @@ public class JenkinsPipelineRunListener extends RunListener<Run> {
 
     @Override
     public void onCompleted(final Run r, final TaskListener taskListener) {
+        PipelineLogger pipelineLogger = new PipelineLogger(taskListener.getLogger(), JiraCloudPluginConfig.isDebugLoggingEnabled());
+
         if (r instanceof WorkflowRun) {
             final WorkflowRun workflowRun = (WorkflowRun) r;
             singlePipelineListenerRegistry
@@ -88,9 +90,8 @@ public class JenkinsPipelineRunListener extends RunListener<Run> {
             singlePipelineListenerRegistry.unregister(workflowRun.getUrl());
         } else {
             final String message =
-                    "Not a WorkflowRun, onCompleted won't be propagated to listeners";
-            log.warn(message);
-            taskListener.getLogger().println("[WARN] " + message);
+                    "Not a WorkflowRun, onCompleted() won't be propagated to listeners";
+            pipelineLogger.warn(message);
         }
     }
 }

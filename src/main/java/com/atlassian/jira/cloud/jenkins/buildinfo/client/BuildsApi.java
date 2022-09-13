@@ -13,19 +13,20 @@ import org.jetbrains.annotations.NotNull;
 
 public class BuildsApi extends JenkinsAppApi<BuildApiResponse> {
 
-    public BuildsApi(
-            final OkHttpClient httpClient,
-            final ObjectMapper objectMapper,
-            final PipelineLogger pipelineLogger) {
-        super(httpClient, objectMapper, pipelineLogger);
+    public BuildsApi(final OkHttpClient httpClient, final ObjectMapper objectMapper) {
+        super(httpClient, objectMapper);
     }
 
     public BuildApiResponse sendBuildAsJwt(
-            final String webhookUrl, final Builds buildsRequest, final String secret)
+            final String webhookUrl,
+            final Builds buildsRequest,
+            final String secret,
+            final PipelineLogger pipelineLogger)
             throws ApiUpdateFailedException {
 
         JenkinsAppRequest request = createRequest(buildsRequest);
-        return this.sendRequestAsJwt(webhookUrl, secret, request, BuildApiResponse.class);
+        return this.sendRequestAsJwt(
+                webhookUrl, secret, request, BuildApiResponse.class, pipelineLogger);
     }
 
     @NotNull

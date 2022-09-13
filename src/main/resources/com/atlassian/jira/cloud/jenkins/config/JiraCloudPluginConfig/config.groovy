@@ -22,6 +22,13 @@ f.section(title: "Jira Software Cloud Integration") {
                 addCaption: _("Add Jira Cloud Site"))
     }
 
+    f.entry(title: "Logging"){
+        f.checkbox(
+                title: "Activate debug logging",
+                field: instance.FIELD_NAME_DEBUG_LOGGING
+        )
+    }
+
     f.optionalBlock(
             title: _("Send builds automatically"),
             name: instance.FIELD_NAME_AUTO_BUILDS,

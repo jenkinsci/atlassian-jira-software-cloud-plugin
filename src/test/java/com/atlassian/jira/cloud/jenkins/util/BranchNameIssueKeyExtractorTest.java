@@ -1,6 +1,7 @@
 package com.atlassian.jira.cloud.jenkins.util;
 
 import com.atlassian.jira.cloud.jenkins.common.service.IssueKeyExtractor;
+import com.atlassian.jira.cloud.jenkins.logging.PipelineLogger;
 import jenkins.plugins.git.GitBranchSCMHead;
 import jenkins.plugins.git.GitBranchSCMRevision;
 import jenkins.plugins.git.GitSCMSource;
@@ -36,7 +37,8 @@ public class BranchNameIssueKeyExtractorTest {
         when(mockWorkflowRun.getAction(SCMRevisionAction.class)).thenReturn(scmRevisionAction);
 
         // when
-        final Set<String> issueKeys = classUnderTest.extractIssueKeys(mockWorkflowRun);
+        final Set<String> issueKeys =
+                classUnderTest.extractIssueKeys(mockWorkflowRun, PipelineLogger.noopInstance());
 
         // then
         assertThat(issueKeys).containsExactlyInAnyOrder("TEST-123");
@@ -48,7 +50,8 @@ public class BranchNameIssueKeyExtractorTest {
         final WorkflowRun mockWorkflowRun = mock(WorkflowRun.class);
 
         // when
-        final Set<String> issueKeys = classUnderTest.extractIssueKeys(mockWorkflowRun);
+        final Set<String> issueKeys =
+                classUnderTest.extractIssueKeys(mockWorkflowRun, PipelineLogger.noopInstance());
 
         // then
         assertThat(issueKeys).isEmpty();

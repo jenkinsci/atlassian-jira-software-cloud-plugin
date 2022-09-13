@@ -71,13 +71,13 @@ public class FreeStylePostBuildStep extends Recorder implements Serializable, Si
             final AbstractBuild<?, ?> build, final Launcher launcher, final BuildListener listener)
             throws InterruptedException, IOException {
 
-        final PipelineLogger pipelineLogger = new PipelineLogger(listener.getLogger());
+        final PipelineLogger pipelineLogger = new PipelineLogger(listener.getLogger(), JiraCloudPluginConfig.isDebugLoggingEnabled());
 
         final FreestyleBuildInfoRequest request =
                 new FreestyleBuildInfoRequest(this.getSite(), this.branch, build);
-        JiraSenderFactory.getInstance(pipelineLogger)
+        JiraSenderFactory.getInstance()
                 .getFreestyleBuildInfoSender()
-                .sendBuildInfo(request);
+                .sendBuildInfo(request, pipelineLogger);
         return super.perform(build, launcher, listener);
     }
 

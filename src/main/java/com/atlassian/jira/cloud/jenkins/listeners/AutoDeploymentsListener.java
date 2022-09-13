@@ -64,7 +64,7 @@ public class AutoDeploymentsListener implements SinglePipelineListener {
     }
 
     private void registerDeploymentListener(final FlowNode flowNode, final String envName) {
-        pipelineLogger.info("deployment node was determined, envName=" + envName);
+        pipelineLogger.debug("deployment node was determined, envName=" + envName);
         deploymentListeners.add(
                 new SinglePipelineSingleDeploymentListener(
                         build, pipelineLogger, flowNode.getId(), envName, issueKeyExtractor));

@@ -13,19 +13,20 @@ import org.jetbrains.annotations.NotNull;
 
 public class DeploymentsApi extends JenkinsAppApi<DeploymentApiResponse> {
 
-    public DeploymentsApi(
-            final OkHttpClient httpClient,
-            final ObjectMapper objectMapper,
-            final PipelineLogger pipelineLogger) {
-        super(httpClient, objectMapper, pipelineLogger);
+    public DeploymentsApi(final OkHttpClient httpClient, final ObjectMapper objectMapper) {
+        super(httpClient, objectMapper);
     }
 
     public DeploymentApiResponse sendDeploymentAsJwt(
-            final String webhookUrl, final Deployments deploymentsRequest, final String secret)
+            final String webhookUrl,
+            final Deployments deploymentsRequest,
+            final String secret,
+            final PipelineLogger pipelineLogger)
             throws ApiUpdateFailedException {
 
         JenkinsAppRequest request = createRequest(deploymentsRequest);
-        return this.sendRequestAsJwt(webhookUrl, secret, request, DeploymentApiResponse.class);
+        return this.sendRequestAsJwt(
+                webhookUrl, secret, request, DeploymentApiResponse.class, pipelineLogger);
     }
 
     @NotNull

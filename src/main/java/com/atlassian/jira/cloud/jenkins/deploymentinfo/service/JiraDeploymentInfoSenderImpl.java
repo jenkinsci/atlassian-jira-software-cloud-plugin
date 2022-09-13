@@ -14,6 +14,7 @@ import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Command;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.DeploymentApiResponse;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Deployments;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Environment;
+import com.atlassian.jira.cloud.jenkins.logging.PipelineLogger;
 import com.atlassian.jira.cloud.jenkins.tenantinfo.CloudIdResolver;
 import com.atlassian.jira.cloud.jenkins.util.JenkinsToJiraStatus;
 import com.atlassian.jira.cloud.jenkins.util.RunWrapperProvider;
@@ -75,7 +76,8 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
     }
 
     @Override
-    public List<JiraSendInfoResponse> sendDeploymentInfo(final JiraDeploymentInfoRequest request) {
+    public List<JiraSendInfoResponse> sendDeploymentInfo(
+            final JiraDeploymentInfoRequest request, final PipelineLogger pipelineLogger) {
         final List<JiraSendInfoResponse> responses = new LinkedList<>();
         if (request.getSite() == null) {
             List<String> jiraSites = siteConfigRetriever.getAllJiraSites();
@@ -91,7 +93,7 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
                                     .map(
                                             siteConfig ->
                                                     sendDeploymentInfoToJiraSite(
-                                                            siteConfig, request))
+                                                            siteConfig, request, pipelineLogger))
                                     .orElse(
                                             JiraCommonResponse.failureSiteConfigNotFound(
                                                     jiraSite)));
@@ -102,7 +104,10 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
                     getSiteConfigFor(request.getSite());
             responses.add(
                     maybeSiteConfig
-                            .map(siteConfig -> sendDeploymentInfoToJiraSite(siteConfig, request))
+                            .map(
+                                    siteConfig ->
+                                            sendDeploymentInfoToJiraSite(
+                                                    siteConfig, request, pipelineLogger))
                             .orElse(
                                     JiraCommonResponse.failureSiteConfigNotFound(
                                             request.getSite())));
@@ -114,11 +119,12 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
      * Sends deployment data to a Jira site.
      *
      * @param siteConfig - Jira to send data to
-     * @param request    - JiraBuildInfoRequest::site is ignored and jiraSite is used instead
+     * @param request - JiraBuildInfoRequest::site is ignored and jiraSite is used instead
      */
     private JiraSendInfoResponse sendDeploymentInfoToJiraSite(
             @Nonnull final JiraCloudSiteConfig siteConfig,
-            final JiraDeploymentInfoRequest request) {
+            final JiraDeploymentInfoRequest request,
+            final PipelineLogger pipelineLogger) {
         final WorkflowRun deployment = request.getDeployment();
         final Set<String> serviceIds = request.getServiceIds();
         final boolean enableGating = request.getEnableGating();
@@ -149,7 +155,7 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
         final Set<String> issueKeys;
 
         if (requestIssueKeys.isEmpty()) {
-            issueKeys = issueKeyExtractor.extractIssueKeys(deployment);
+            issueKeys = issueKeyExtractor.extractIssueKeys(deployment, pipelineLogger);
         } else {
             issueKeys = requestIssueKeys;
         }
@@ -176,7 +182,11 @@ public class JiraDeploymentInfoSenderImpl implements JiraDeploymentInfoSender {
         try {
             return handleDeploymentApiResponse(
                     jiraSite,
-                    deploymentsApi.sendDeploymentAsJwt(siteConfig.getWebhookUrl(), deploymentInfo, maybeSecret.get()));
+                    deploymentsApi.sendDeploymentAsJwt(
+                            siteConfig.getWebhookUrl(),
+                            deploymentInfo,
+                            maybeSecret.get(),
+                            pipelineLogger));
         } catch (ApiUpdateFailedException e) {
             return handleDeploymentApiError(jiraSite, e.getMessage());
         }
