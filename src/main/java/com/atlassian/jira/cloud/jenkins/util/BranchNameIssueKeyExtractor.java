@@ -55,25 +55,10 @@ public class BranchNameIssueKeyExtractor implements IssueKeyExtractor {
         // You can get an overview of a Jenkins server's environment variables by opening
         // http://your-jenkins-server/env-vars.html
 
-        // For a multibranch project, this will be set to the name of the branch being built, for example in case you
-        // wish to deploy to production from master but not from feature branches; if corresponding to some kind of
-        // change request, the name is generally arbitrary
-        final String branchNameEnvVar = envVars.get("BRANCH_NAME");
-        if (branchNameEnvVar != null) {
-            issueKeys.addAll(extractIssueKeys(branchNameEnvVar));
-            pipelineLogger.debug(
-                    String.format(
-                            "Extracted issue keys from env var BRANCH_NAME (%s): %s",
-                            branchNameEnvVar, issueKeys));
-        } else {
-            pipelineLogger.debug(
-                    "Not extracting issue keys from environment variable BRANCH_NAME because it's not set");
-        }
-
         // For a multibranch project corresponding to some kind of change request, this will be set to the name of the
-        // actual head on the source control system which may or may not be different from BRANCH_NAME. For example
-        // in GitHub or Bitbucket this would have the name of the origin branch whereas BRANCH_NAME would be
-        // something like PR-24.
+        // actual head on the source control system which may or may not be different from the branch name that is returned
+        // via revision.getHead() above. For example in GitHub or Bitbucket this would have the name of the origin branch
+        // whereas revision.getHead() would return something like PR-24.
         final String changeBranchEnvVar = envVars.get("CHANGE_BRANCH");
         if (changeBranchEnvVar != null) {
             issueKeys.addAll(extractIssueKeys(changeBranchEnvVar));

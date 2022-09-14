@@ -55,12 +55,13 @@ import static org.mockito.Mockito.*;
 public class AutoBuildsAndDeploymentsTest {
 
     private static final String SITE = "example.atlassian.net";
-    private static final String CLIENT_ID = UUID.randomUUID().toString();
     private static final String CREDENTIAL_ID = UUID.randomUUID().toString();
 
-    @ClassRule public static BuildWatcher buildWatcher = new BuildWatcher();
+    @ClassRule
+    public static BuildWatcher buildWatcher = new BuildWatcher();
 
-    @Rule public JenkinsRule jenkins = new JenkinsRule();
+    @Rule
+    public JenkinsRule jenkins = new JenkinsRule();
 
     private final JiraSenderFactory mockSenderFactory = mock(JiraSenderFactory.class);
 
@@ -94,22 +95,22 @@ public class AutoBuildsAndDeploymentsTest {
 
         // Checking that the JenkinsPipelineRunListener is registered.
         assertThat(
-                        jenkins.getInstance()
-                                .getExtensionList(RunListener.class)
-                                .stream()
-                                .filter(listener -> listener instanceof JenkinsPipelineRunListener)
-                                .findFirst())
+                jenkins.getInstance()
+                        .getExtensionList(RunListener.class)
+                        .stream()
+                        .filter(listener -> listener instanceof JenkinsPipelineRunListener)
+                        .findFirst())
                 .isNotEmpty();
 
         // Checking that the JenkinsPipelineGraphListener is registered.
         assertThat(
-                        jenkins.getInstance()
-                                .getExtensionList(GraphListener.class)
-                                .stream()
-                                .filter(
-                                        listener ->
-                                                listener instanceof JenkinsPipelineGraphListener)
-                                .findFirst())
+                jenkins.getInstance()
+                        .getExtensionList(GraphListener.class)
+                        .stream()
+                        .filter(
+                                listener ->
+                                        listener instanceof JenkinsPipelineGraphListener)
+                        .findFirst())
                 .isNotEmpty();
     }
 
@@ -200,8 +201,8 @@ public class AutoBuildsAndDeploymentsTest {
 
     @Test
     public void
-            whenAutoBuildsRegexMatching_thenSendsInProgressAndSuccessBuildEventsForFirstMatchingStep()
-                    throws Exception {
+    whenAutoBuildsRegexMatching_thenSendsInProgressAndSuccessBuildEventsForFirstMatchingStep()
+            throws Exception {
         WorkflowJob workflow = givenWorkflowFromFile("auto-build-with-multiple-build-steps.groovy");
         givenAutoBuildsEnabled();
         givenAutoBuildsRegex("^build.*$");
