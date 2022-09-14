@@ -3,15 +3,16 @@ package com.atlassian.jira.cloud.jenkins.util;
 import com.atlassian.jira.cloud.jenkins.common.model.IssueKey;
 import com.atlassian.jira.cloud.jenkins.common.service.IssueKeyExtractor;
 import com.atlassian.jira.cloud.jenkins.logging.PipelineLogger;
+import hudson.util.LogTaskListener;
 import jenkins.scm.api.SCMRevision;
 import jenkins.scm.api.SCMRevisionAction;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 /**
@@ -43,7 +44,13 @@ public class BranchNameIssueKeyExtractor implements IssueKeyExtractor {
                     "Not extracting issue keys from scmRevision.getHead() because it's not set");
         }
 
-        final Map<String, String> envVars = build.getEnvVars();
+        final Map<String, String> envVars;
+
+        try {
+            envVars = build.getEnvironment(new LogTaskListener(Logger.getLogger(BranchNameIssueKeyExtractor.class.getName()), Level.INFO));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
 
         // You can get an overview of a Jenkins server's environment variables by opening
         // http://your-jenkins-server/env-vars.html

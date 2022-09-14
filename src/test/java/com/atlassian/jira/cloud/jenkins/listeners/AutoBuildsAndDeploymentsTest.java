@@ -79,6 +79,7 @@ public class AutoBuildsAndDeploymentsTest {
         givenJiraAcceptsDeployments();
         givenAutoBuildsRegex(null);
         JiraSenderFactory.setInstance(mockSenderFactory);
+        JiraCloudPluginConfig.get().setDebugLogging(Boolean.TRUE);
     }
 
     private void assertListenersRegistered() {
