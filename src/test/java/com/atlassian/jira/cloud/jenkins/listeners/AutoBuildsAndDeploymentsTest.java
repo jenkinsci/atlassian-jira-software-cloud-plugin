@@ -35,6 +35,8 @@ import org.jvnet.hudson.test.BuildWatcher;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -42,6 +44,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -55,12 +58,13 @@ import static org.mockito.Mockito.*;
 public class AutoBuildsAndDeploymentsTest {
 
     private static final String SITE = "example.atlassian.net";
-    private static final String CLIENT_ID = UUID.randomUUID().toString();
     private static final String CREDENTIAL_ID = UUID.randomUUID().toString();
 
-    @ClassRule public static BuildWatcher buildWatcher = new BuildWatcher();
+    @ClassRule
+    public static BuildWatcher buildWatcher = new BuildWatcher();
 
-    @Rule public JenkinsRule jenkins = new JenkinsRule();
+    @Rule
+    public JenkinsRule jenkins = new JenkinsRule();
 
     private final JiraSenderFactory mockSenderFactory = mock(JiraSenderFactory.class);
 
@@ -69,6 +73,8 @@ public class AutoBuildsAndDeploymentsTest {
     private JiraDeploymentInfoSender jiraDeploymentInfoSender;
 
     private final IssueKeyExtractor issueKeyExtractor = Mockito.mock(IssueKeyExtractor.class);
+
+    private final Logger logger = LoggerFactory.getLogger(AutoBuildsAndDeploymentsTest.class);
 
     @Before
     public void setUp() throws Exception {
@@ -79,37 +85,48 @@ public class AutoBuildsAndDeploymentsTest {
         givenJiraAcceptsDeployments();
         givenAutoBuildsRegex(null);
         JiraSenderFactory.setInstance(mockSenderFactory);
+        JiraCloudPluginConfig.get().setDebugLogging(Boolean.TRUE);
     }
 
     private void assertListenersRegistered() {
 
-        // Adding a custom JenkinsPipelineListener so we can inject mocks.
-        // The default listener instance will also still be registered (I didn't find a way to
-        // unregister it),
-        // but it will not send any requests to Jira because it won't find any issue keys.
+        Optional<RunListener> existingListener = jenkins.getInstance()
+                .getExtensionList(RunListener.class)
+                .stream()
+                .filter(listener -> listener instanceof JenkinsPipelineRunListener)
+                .findFirst();
+
+        if (existingListener.isPresent()) {
+            logger.info("found existing {} ... removing it", JenkinsPipelineRunListener.class.getName());
+            jenkins.getInstance()
+                    .getExtensionList(RunListener.class)
+                    .remove(existingListener.get());
+        }
+
         jenkins.getInstance()
                 .getExtensionList(RunListener.class)
-                .add(0, new JenkinsPipelineRunListener(this.issueKeyExtractor));
+                .add(0, new JenkinsPipelineRunListener(issueKeyExtractor));
 
-        // Checking that the JenkinsPipelineRunListener is registered.
-        assertThat(
-                        jenkins.getInstance()
-                                .getExtensionList(RunListener.class)
-                                .stream()
-                                .filter(listener -> listener instanceof JenkinsPipelineRunListener)
-                                .findFirst())
-                .isNotEmpty();
 
-        // Checking that the JenkinsPipelineGraphListener is registered.
+        // Checking that the JenkinsPipelineRunListener is registered exactly once.
         assertThat(
-                        jenkins.getInstance()
-                                .getExtensionList(GraphListener.class)
-                                .stream()
-                                .filter(
-                                        listener ->
-                                                listener instanceof JenkinsPipelineGraphListener)
-                                .findFirst())
-                .isNotEmpty();
+                (int) jenkins.getInstance()
+                        .getExtensionList(RunListener.class)
+                        .stream()
+                        .filter(listener -> listener instanceof JenkinsPipelineRunListener)
+                        .count())
+                .isEqualTo(1);
+
+        // Checking that the JenkinsPipelineGraphListener is registered exactly once.
+        assertThat(
+                jenkins.getInstance()
+                        .getExtensionList(GraphListener.class)
+                        .stream()
+                        .filter(
+                                listener ->
+                                        listener instanceof JenkinsPipelineGraphListener)
+                        .count())
+                .isEqualTo(1);
     }
 
     private void givenIssueKeys() {
@@ -199,8 +216,8 @@ public class AutoBuildsAndDeploymentsTest {
 
     @Test
     public void
-            whenAutoBuildsRegexMatching_thenSendsInProgressAndSuccessBuildEventsForFirstMatchingStep()
-                    throws Exception {
+    whenAutoBuildsRegexMatching_thenSendsInProgressAndSuccessBuildEventsForFirstMatchingStep()
+            throws Exception {
         WorkflowJob workflow = givenWorkflowFromFile("auto-build-with-multiple-build-steps.groovy");
         givenAutoBuildsEnabled();
         givenAutoBuildsRegex("^build.*$");
