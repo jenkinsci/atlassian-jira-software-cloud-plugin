@@ -44,6 +44,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -89,35 +90,34 @@ public class AutoBuildsAndDeploymentsTest {
 
     private void assertListenersRegistered() {
 
-        int listenerCount = jenkins.getInstance()
-                .getExtensionList(JenkinsPipelineRunListener.class)
-                .size();
+        Optional<RunListener> existingListener = jenkins.getInstance()
+                .getExtensionList(RunListener.class)
+                .stream()
+                .filter(listener -> listener instanceof JenkinsPipelineRunListener)
+                .findFirst();
 
-        logger.info("found {} registered pipeline listeners", listenerCount);
-
-        for (int i = 1; i <= listenerCount; i++) {
+        if (existingListener.isPresent()) {
+            logger.info("found existing {} ... removing it", JenkinsPipelineRunListener.class.getName());
             jenkins.getInstance()
-                    .getExtensionList(JenkinsPipelineRunListener.class)
-                    .remove(0);
-            logger.info("removed pipeline listener");
+                    .getExtensionList(RunListener.class)
+                    .remove(existingListener.get());
         }
-
-        logger.info("added custom pipeline listener for testing");
 
         jenkins.getInstance()
                 .getExtensionList(RunListener.class)
-                .add(0, new JenkinsPipelineRunListener(this.issueKeyExtractor));
+                .add(0, new JenkinsPipelineRunListener(issueKeyExtractor));
 
-        // Checking that the JenkinsPipelineRunListener is registered.
+
+        // Checking that the JenkinsPipelineRunListener is registered exactly once.
         assertThat(
-                jenkins.getInstance()
+                (int) jenkins.getInstance()
                         .getExtensionList(RunListener.class)
                         .stream()
                         .filter(listener -> listener instanceof JenkinsPipelineRunListener)
-                        .findFirst())
-                .isNotEmpty();
+                        .count())
+                .isEqualTo(1);
 
-        // Checking that the JenkinsPipelineGraphListener is registered.
+        // Checking that the JenkinsPipelineGraphListener is registered exactly once.
         assertThat(
                 jenkins.getInstance()
                         .getExtensionList(GraphListener.class)
@@ -125,8 +125,8 @@ public class AutoBuildsAndDeploymentsTest {
                         .filter(
                                 listener ->
                                         listener instanceof JenkinsPipelineGraphListener)
-                        .findFirst())
-                .isNotEmpty();
+                        .count())
+                .isEqualTo(1);
     }
 
     private void givenIssueKeys() {
