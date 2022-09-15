@@ -95,18 +95,13 @@ public class AutoBuildsAndDeploymentsTest {
 
         logger.info("found {} registered pipeline listeners", listenerCount);
 
-        for (int i = 1; i < listenerCount; i++) {
+        for (int i = 1; i <= listenerCount; i++) {
             jenkins.getInstance()
                     .getExtensionList(JenkinsPipelineRunListener.class)
                     .remove(0);
             logger.info("removed pipeline listener");
         }
 
-        // remove the default listener that Jenkins adds automatically, so we can override it with a custom one that
-        // is configured for the tests
-        jenkins.getInstance()
-                .getExtensionList(JenkinsPipelineRunListener.class)
-                .remove(0);
         logger.info("added custom pipeline listener for testing");
 
         jenkins.getInstance()
