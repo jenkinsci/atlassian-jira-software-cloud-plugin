@@ -47,7 +47,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.Collections.emptySet;
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -80,15 +80,16 @@ public class AutoBuildsAndDeploymentsTest {
         givenJiraAcceptsDeployments();
         givenAutoBuildsRegex(null);
         JiraSenderFactory.setInstance(mockSenderFactory);
-        JiraCloudPluginConfig.get().setDebugLogging(Boolean.TRUE);
     }
 
     private void assertListenersRegistered() {
 
-        // Adding a custom JenkinsPipelineListener so we can inject mocks.
-        // The default listener instance will also still be registered (I didn't find a way to
-        // unregister it),
-        // but it will not send any requests to Jira because it won't find any issue keys.
+        // remove the default listener that Jenkins adds automatically, so we can override it with a custom one that
+        // is configured for the tests
+        jenkins.getInstance()
+                .getExtensionList(JenkinsPipelineRunListener.class)
+                .remove(0);
+
         jenkins.getInstance()
                 .getExtensionList(RunListener.class)
                 .add(0, new JenkinsPipelineRunListener(this.issueKeyExtractor));
@@ -194,8 +195,9 @@ public class AutoBuildsAndDeploymentsTest {
         givenIssueKeys();
 
         jenkins.assertBuildStatusSuccess(workflow.scheduleBuild2(0));
-        verifyAtLeastOneBuildEvent(State.IN_PROGRESS);
-        verifyExactlyOneBuildEvent(State.SUCCESSFUL);
+
+        verifyBuildEvent(0, State.IN_PROGRESS);
+        verifyBuildEvent(1, State.SUCCESSFUL);
     }
 
     @Test
@@ -209,8 +211,8 @@ public class AutoBuildsAndDeploymentsTest {
 
         jenkins.assertBuildStatusSuccess(workflow.scheduleBuild2(0));
 
-        verifyAtLeastOneBuildEvent(State.IN_PROGRESS);
-        verifyExactlyOneBuildEvent(State.SUCCESSFUL);
+        verifyBuildEvent(0, State.IN_PROGRESS);
+        verifyBuildEvent(1, State.SUCCESSFUL);
     }
 
     @Test
@@ -233,8 +235,8 @@ public class AutoBuildsAndDeploymentsTest {
 
         jenkins.assertBuildStatus(Result.FAILURE, workflow.scheduleBuild2(0));
 
-        verifyAtLeastOneBuildEvent(State.IN_PROGRESS);
-        verifyExactlyOneBuildEvent(State.FAILED);
+        verifyBuildEvent(0, State.IN_PROGRESS);
+        verifyBuildEvent(1, State.FAILED);
     }
 
     @Test
@@ -352,8 +354,8 @@ public class AutoBuildsAndDeploymentsTest {
 
         jenkins.assertBuildStatus(Result.FAILURE, workflow.scheduleBuild2(0));
 
-        verifyAtLeastOneBuildEvent(State.IN_PROGRESS);
-        verifyExactlyOneBuildEvent(State.SUCCESSFUL);
+        verifyBuildEvent(0, State.IN_PROGRESS);
+        verifyBuildEvent(1, State.SUCCESSFUL);
 
         verifyDeploymentEvent(0, State.IN_PROGRESS, "stg");
         verifyDeploymentEvent(1, State.SUCCESSFUL, "stg");
@@ -388,28 +390,19 @@ public class AutoBuildsAndDeploymentsTest {
         verify(jiraDeploymentInfoSender, never()).sendDeploymentInfo(any(), any());
     }
 
-    private void verifyAtLeastOneBuildEvent(State expectedState) {
+    private void verifyBuildEvent(int index, State expectedState) {
         ArgumentCaptor<MultibranchBuildInfoRequest> requestCaptor =
                 ArgumentCaptor.forClass(MultibranchBuildInfoRequest.class);
         verify(jiraBuildInfoSender, atLeastOnce()).sendBuildInfo(requestCaptor.capture(), any());
 
         List<MultibranchBuildInfoRequest> requests = requestCaptor.getAllValues();
-        assertThat(requests)
-                .filteredOn(event -> event.getJiraState().equals(expectedState))
-                .size()
-                .isGreaterThanOrEqualTo(1);
-    }
-
-    private void verifyExactlyOneBuildEvent(State expectedState) {
-        ArgumentCaptor<MultibranchBuildInfoRequest> requestCaptor =
-                ArgumentCaptor.forClass(MultibranchBuildInfoRequest.class);
-        verify(jiraBuildInfoSender, atLeastOnce()).sendBuildInfo(requestCaptor.capture(), any());
-
-        List<MultibranchBuildInfoRequest> requests = requestCaptor.getAllValues();
-        assertThat(requests)
-                .filteredOn(event -> event.getJiraState().equals(expectedState))
-                .size()
-                .isEqualTo(1);
+        if (index + 1 > requests.size()) {
+            fail(
+                    String.format(
+                            "Expecting at least %d requests to Jira, but got only %d",
+                            index + 1, requests.size()));
+        }
+        assertThat(requests.get(index).getJiraState()).isEqualTo(expectedState);
     }
 
     private void verifyDeploymentEvent(
