@@ -35,6 +35,8 @@ import org.jvnet.hudson.test.BuildWatcher;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -71,6 +73,8 @@ public class AutoBuildsAndDeploymentsTest {
 
     private final IssueKeyExtractor issueKeyExtractor = Mockito.mock(IssueKeyExtractor.class);
 
+    private final Logger logger = LoggerFactory.getLogger(AutoBuildsAndDeploymentsTest.class);
+
     @Before
     public void setUp() throws Exception {
         assertListenersRegistered();
@@ -85,11 +89,25 @@ public class AutoBuildsAndDeploymentsTest {
 
     private void assertListenersRegistered() {
 
+        int listenerCount = jenkins.getInstance()
+                .getExtensionList(JenkinsPipelineRunListener.class)
+                .size();
+
+        logger.info("found {} registered pipeline listeners", listenerCount);
+
+        for (int i = 1; i < listenerCount; i++) {
+            jenkins.getInstance()
+                    .getExtensionList(JenkinsPipelineRunListener.class)
+                    .remove(0);
+            logger.info("removed pipeline listener");
+        }
+
         // remove the default listener that Jenkins adds automatically, so we can override it with a custom one that
         // is configured for the tests
         jenkins.getInstance()
                 .getExtensionList(JenkinsPipelineRunListener.class)
                 .remove(0);
+        logger.info("added custom pipeline listener for testing");
 
         jenkins.getInstance()
                 .getExtensionList(RunListener.class)
