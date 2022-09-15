@@ -47,7 +47,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.Collections.emptySet;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -194,9 +194,8 @@ public class AutoBuildsAndDeploymentsTest {
         givenIssueKeys();
 
         jenkins.assertBuildStatusSuccess(workflow.scheduleBuild2(0));
-
-        verifyBuildEvent(0, State.IN_PROGRESS);
-        verifyBuildEvent(1, State.SUCCESSFUL);
+        verifyAtLeastOneBuildEvent(State.IN_PROGRESS);
+        verifyExactlyOneBuildEvent(State.SUCCESSFUL);
     }
 
     @Test
@@ -210,8 +209,8 @@ public class AutoBuildsAndDeploymentsTest {
 
         jenkins.assertBuildStatusSuccess(workflow.scheduleBuild2(0));
 
-        verifyBuildEvent(0, State.IN_PROGRESS);
-        verifyBuildEvent(1, State.SUCCESSFUL);
+        verifyAtLeastOneBuildEvent(State.IN_PROGRESS);
+        verifyExactlyOneBuildEvent(State.SUCCESSFUL);
     }
 
     @Test
@@ -234,8 +233,8 @@ public class AutoBuildsAndDeploymentsTest {
 
         jenkins.assertBuildStatus(Result.FAILURE, workflow.scheduleBuild2(0));
 
-        verifyBuildEvent(0, State.IN_PROGRESS);
-        verifyBuildEvent(1, State.FAILED);
+        verifyAtLeastOneBuildEvent(State.IN_PROGRESS);
+        verifyExactlyOneBuildEvent(State.FAILED);
     }
 
     @Test
@@ -353,8 +352,8 @@ public class AutoBuildsAndDeploymentsTest {
 
         jenkins.assertBuildStatus(Result.FAILURE, workflow.scheduleBuild2(0));
 
-        verifyBuildEvent(0, State.IN_PROGRESS);
-        verifyBuildEvent(1, State.SUCCESSFUL);
+        verifyAtLeastOneBuildEvent(State.IN_PROGRESS);
+        verifyExactlyOneBuildEvent(State.SUCCESSFUL);
 
         verifyDeploymentEvent(0, State.IN_PROGRESS, "stg");
         verifyDeploymentEvent(1, State.SUCCESSFUL, "stg");
@@ -389,19 +388,28 @@ public class AutoBuildsAndDeploymentsTest {
         verify(jiraDeploymentInfoSender, never()).sendDeploymentInfo(any(), any());
     }
 
-    private void verifyBuildEvent(int index, State expectedState) {
+    private void verifyAtLeastOneBuildEvent(State expectedState) {
         ArgumentCaptor<MultibranchBuildInfoRequest> requestCaptor =
                 ArgumentCaptor.forClass(MultibranchBuildInfoRequest.class);
         verify(jiraBuildInfoSender, atLeastOnce()).sendBuildInfo(requestCaptor.capture(), any());
 
         List<MultibranchBuildInfoRequest> requests = requestCaptor.getAllValues();
-        if (index + 1 > requests.size()) {
-            fail(
-                    String.format(
-                            "Expecting at least %d requests to Jira, but got only %d",
-                            index + 1, requests.size()));
-        }
-        assertThat(requests.get(index).getJiraState()).isEqualTo(expectedState);
+        assertThat(requests)
+                .filteredOn(event -> event.getJiraState().equals(expectedState))
+                .size()
+                .isGreaterThanOrEqualTo(1);
+    }
+
+    private void verifyExactlyOneBuildEvent(State expectedState) {
+        ArgumentCaptor<MultibranchBuildInfoRequest> requestCaptor =
+                ArgumentCaptor.forClass(MultibranchBuildInfoRequest.class);
+        verify(jiraBuildInfoSender, atLeastOnce()).sendBuildInfo(requestCaptor.capture(), any());
+
+        List<MultibranchBuildInfoRequest> requests = requestCaptor.getAllValues();
+        assertThat(requests)
+                .filteredOn(event -> event.getJiraState().equals(expectedState))
+                .size()
+                .isEqualTo(1);
     }
 
     private void verifyDeploymentEvent(
