@@ -47,16 +47,20 @@
 
     <developers>
         <developer>
-            <id>thombergs</id>
-            <name>Tom Hombergs</name>
-        </developer>
-        <developer>
             <id>atrigueiro</id>
             <name>Amanda Trigueiro</name>
         </developer>
         <developer>
             <id>bgvozdev</id>
             <name>Boris Gvozdev</name>
+        </developer>        
+        <developer>
+            <id>Harminder84</id>
+            <name>Harminder Singh</name>
+        </developer>        
+        <developer>
+            <id>gxueatlassian</id>
+            <name>Gary Xue</name>
         </developer>        
     </developers>
 
