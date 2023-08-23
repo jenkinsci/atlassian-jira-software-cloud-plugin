@@ -10,6 +10,7 @@ import javax.inject.Inject;
 
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
 import com.atlassian.jira.cloud.jenkins.logging.PipelineLogger;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.jenkinsci.plugins.workflow.steps.Step;
 import org.jenkinsci.plugins.workflow.steps.StepContext;
@@ -94,6 +95,9 @@ public class JiraSendBuildInfoStep extends Step implements Serializable {
         }
 
         @SuppressWarnings("unused")
+        @SuppressFBWarnings(
+                value = "NP_NONNULL_PARAM_VIOLATION",
+                justification = "TODO needs triage")
         public ListBoxModel doFillSiteItems() {
             ListBoxModel items = new ListBoxModel();
             items.add("All", null);

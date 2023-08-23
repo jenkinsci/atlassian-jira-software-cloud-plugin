@@ -1,16 +1,15 @@
-# Intellij files
-#IDE
-.idea/
-**/*.iml
-
-# jenkins stuff
-work/
-
-# maven stuff
-.mvn/maven.config
 target
 
-# other
-*~
-*.swp
-*.DS_Store
+# mvn hpi:run
+work
+
+# IntelliJ IDEA project files
+*.iml
+*.iws
+*.ipr
+.idea
+
+# Eclipse project files
+.settings
+.classpath
+.project

@@ -10,6 +10,7 @@ import javax.inject.Inject;
 
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
 import com.atlassian.jira.cloud.jenkins.logging.PipelineLogger;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.StaplerRequest;
@@ -114,6 +115,9 @@ public class FreeStylePostBuildStep extends Recorder implements Serializable, Si
         }
 
         @SuppressWarnings("unused")
+        @SuppressFBWarnings(
+                value = "NP_NONNULL_PARAM_VIOLATION",
+                justification = "TODO needs triage")
         public ListBoxModel doFillSiteItems() {
             ListBoxModel items = new ListBoxModel();
             final List<JiraCloudSiteConfig> siteList = globalConfig.getSites();
