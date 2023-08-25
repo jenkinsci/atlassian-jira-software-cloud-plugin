@@ -4,38 +4,32 @@
     <parent>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>plugin</artifactId>
-        <version>4.33</version>
+        <version>4.72</version>
         <relativePath />
     </parent>
     <groupId>com.atlassian.jira.software.cloud.jenkins</groupId>
     <artifactId>atlassian-jira-software-cloud</artifactId>
-    <version>2.0.8-SNAPSHOT</version>
+    <version>${revision}${changelist}</version>
     <packaging>hpi</packaging>
     <properties>
+        <revision>2.0.8</revision>
+        <changelist>-SNAPSHOT</changelist>
         <!-- Baseline Jenkins version you use to build the plugin. Users must have this version or newer to run. -->
-        <jenkins.version>2.249.3</jenkins.version>
-        <jenkins.baseline>2.249</jenkins.baseline>
-        <jenkins-test-harness.version>2.49</jenkins-test-harness.version>
-        <java.level>8</java.level>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <jenkins.version>2.387.3</jenkins.version>
+        <jenkins.baseline>2.387</jenkins.baseline>
+        <gitHubRepo>jenkinsci/atlassian-jira-software-cloud-plugin</gitHubRepo>
         <filterModified>true</filterModified>
-        <mockito.version>4.3.1</mockito.version>
-        <jackson.version>2.13.1</jackson.version>
-        <jackson-databind.version>2.13.1</jackson-databind.version>
         <okhttp.version>4.0.1</okhttp.version>
-        <assertj.version>3.11.1</assertj.version>
+        <assertj.version>3.24.2</assertj.version>
         <maven-checkstyle-plugin.version>2.17</maven-checkstyle-plugin.version>
         <archunit.version>0.9.2</archunit.version>
-        <jsonassert.version>1.5.0</jsonassert.version>
+        <jsonassert.version>1.5.1</jsonassert.version>
         <resilience4j.version>1.4.0</resilience4j.version>
-        <slf4j.version>1.7.30</slf4j.version>
-        <maven.compiler.target>1.8</maven.compiler.target>
-        <maven.compiler.source>1.8</maven.compiler.source>
         <jwt.version>3.18.3</jwt.version>
     </properties>
     <name>Atlassian Jira Software Cloud</name>
     <description>Atlassian Jira Software Cloud Jenkins Integration</description>
-    <url>https://github.com/jenkinsci/atlassian-jira-software-cloud-plugin</url>
+    <url>https://github.com/jenkinsci/${project.artifactId}-plugin</url>
 
     <licenses>
         <license>
@@ -65,10 +59,10 @@
     </developers>
 
     <scm>
-        <connection>scm:git:https://github.com/jenkinsci/atlassian-jira-software-cloud-plugin</connection>
-        <developerConnection>scm:git:https://github.com/jenkinsci/atlassian-jira-software-cloud-plugin</developerConnection>
-        <url>https://github.com/jenkinsci/atlassian-jira-software-cloud-plugin</url>
-        <tag>atlassian-jira-software-cloud-2.0.0</tag>
+        <connection>scm:git:https://github.com/${gitHubRepo}.git</connection>
+        <developerConnection>scm:git:git@github.com:${gitHubRepo}.git</developerConnection>
+        <url>https://github.com/${gitHubRepo}</url>
+        <tag>${scmTag}</tag>
     </scm>
 
     <dependencies>
@@ -81,7 +75,6 @@
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>junit</artifactId>
 
-            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.jenkins-ci.plugins.workflow</groupId>
@@ -103,39 +96,6 @@
             <artifactId>workflow-cps</artifactId>
 
         </dependency>
-        <dependency>
-            <groupId>org.jenkins-ci.main</groupId>
-            <artifactId>jenkins-core</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>log4j-over-slf4j</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>jcl-over-slf4j</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-jdk14 -->
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-jdk14</artifactId>
-            <version>1.7.26</version>
-            <scope>test</scope>
-        </dependency>
-
-        <!--  <dependency>
-        <groupId>org.jenkins-ci.main</groupId>
-            <artifactId>jenkins-war</artifactId>
-            <exclusions>
-            <exclusion>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-jdk14</artifactId>
-            </exclusion>
-            </exclusions>
-        </dependency> -->
 
         <!-- SCM -->
         <dependency>
@@ -156,35 +116,11 @@
             <groupId>io.github.resilience4j</groupId>
             <artifactId>resilience4j-ratelimiter</artifactId>
             <version>${resilience4j.version}</version>
-        </dependency>
-
-        <!-- slf4j api -->
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>${slf4j.version}</version>
-            <!-- <exclusions>
-             <exclusion>
-             <groupId>org.slf4j</groupId>
-             <artifactId>slf4j-jdk14</artifactId>
-             </exclusion>
-             </exclusions> -->
-
-        </dependency>
-        <!-- Jackson -->
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-core</artifactId>
-            <version>${jackson.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>${jackson-databind.version}</version>
             <exclusions>
+                <!-- Provided by core -->
                 <exclusion>
-                    <groupId>com.fasterxml.jackson.core</groupId>
-                    <artifactId>jackson-core</artifactId>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -202,12 +138,6 @@
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>jackson2-api</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.fasterxml.jackson.core</groupId>
-                    <artifactId>jackson-core</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
 
@@ -215,7 +145,7 @@
         <dependency>
             <groupId>org.jenkins-ci.plugins.workflow</groupId>
             <artifactId>workflow-aggregator</artifactId>
-            <version>2.6</version>
+            <version>596.v8c21c963d92d</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -241,7 +171,6 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <version>${mockito.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -273,6 +202,13 @@
             <groupId>com.auth0</groupId>
             <artifactId>java-jwt</artifactId>
             <version>${jwt.version}</version>
+            <exclusions>
+                <!-- Provided by jackson2-api plugin -->
+                <exclusion>
+                    <groupId>com.fasterxml.jackson.core</groupId>
+                    <artifactId>jackson-databind</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
     </dependencies>
@@ -282,7 +218,7 @@
             <dependency>
                 <groupId>io.jenkins.tools.bom</groupId>
                 <artifactId>bom-${jenkins.baseline}.x</artifactId>
-                <version>841.vd6e713d848ab</version>
+                <version>2357.v1043f8578392</version>
                 <scope>import</scope>
                 <type>pom</type>
             </dependency>
@@ -331,26 +267,6 @@
                         <phase>process-sources</phase>
                         <goals>
                             <goal>check</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.jacoco</groupId>
-                <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.2</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>prepare-agent</goal>
-                        </goals>
-                    </execution>
-                    <!-- attached to Maven test phase -->
-                    <execution>
-                        <id>report</id>
-                        <phase>test</phase>
-                        <goals>
-                            <goal>report</goal>
                         </goals>
                     </execution>
                 </executions>

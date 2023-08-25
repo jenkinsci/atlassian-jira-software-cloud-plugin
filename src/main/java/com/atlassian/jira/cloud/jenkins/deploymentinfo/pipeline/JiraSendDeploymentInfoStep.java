@@ -9,6 +9,7 @@ import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.State;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.service.JiraDeploymentInfoRequest;
 import com.atlassian.jira.cloud.jenkins.logging.PipelineLogger;
 import com.google.common.collect.ImmutableSet;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.Extension;
 import hudson.model.Run;
 import hudson.model.TaskListener;
@@ -156,6 +157,9 @@ public class JiraSendDeploymentInfoStep extends Step implements Serializable {
         }
 
         @SuppressWarnings("unused")
+        @SuppressFBWarnings(
+                value = "NP_NONNULL_PARAM_VIOLATION",
+                justification = "TODO needs triage")
         public ListBoxModel doFillSiteItems() {
             ListBoxModel items = new ListBoxModel();
             final List<JiraCloudSiteConfig> siteList = globalConfig.getSites();

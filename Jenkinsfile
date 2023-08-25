@@ -1,2 +1,5 @@
 // Builds a module using https://github.com/jenkins-infra/pipeline-library
-buildPlugin(platforms: ['linux'])
+buildPlugin(useContainerAgent: true, configurations: [
+  [platform: 'linux', jdk: 21],
+  [platform: 'windows', jdk: 17],
+])
