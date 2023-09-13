@@ -34,7 +34,7 @@ public class JiraCloudPluginConfig extends GlobalConfiguration {
 
     private static final String ATL_JSW_GLOBAL_CONFIGURATION_ID = "atl-jsw-global-configuration";
 
-    private List<JiraCloudSiteConfig> sites = new ArrayList<>();
+    private List<JiraCloudSiteConfig> sites = new ArrayList<JiraCloudSiteConfig>();
 
     private Boolean autoBuildsEnabled;
     private String autoBuildsRegex;
