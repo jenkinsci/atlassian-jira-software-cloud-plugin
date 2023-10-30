@@ -179,6 +179,9 @@ public class JiraCloudSiteConfig extends AbstractDescribableImpl<JiraCloudSiteCo
                 return FormValidation.error("Failed to retrieve secret");
             }
 
+            // Access the "NODE_ENV" property from the config.properties file
+            String nodeEnv = AppConfig.getNodeEnv();
+
             try {
                 boolean pingSuccess =
                         pingApi.sendPing(
@@ -195,7 +198,8 @@ public class JiraCloudSiteConfig extends AbstractDescribableImpl<JiraCloudSiteCo
                 return FormValidation.error("Unexpected error when testing connection!");
             }
 
-            return FormValidation.ok("Successfully validated site credentials");
+            return FormValidation.ok(
+                    "Successfully validated site credentials. Node Environment: %s", nodeEnv);
         }
 
         @Override
