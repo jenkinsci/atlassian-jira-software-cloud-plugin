@@ -47,15 +47,19 @@
         <developer>
             <id>bgvozdev</id>
             <name>Boris Gvozdev</name>
-        </developer>        
+        </developer>
         <developer>
-            <id>Harminder84</id>
-            <name>Harminder Singh</name>
-        </developer>        
+            <id>rachellerathbone</id>
+            <name>Rachelle Rathbone</name>
+        </developer>
         <developer>
             <id>gxueatlassian</id>
             <name>Gary Xue</name>
-        </developer>        
+        </developer>
+        <developer>
+            <id>joshkay10</id>
+            <name>Josh Kay</name>
+        </developer>
     </developers>
 
     <scm>
