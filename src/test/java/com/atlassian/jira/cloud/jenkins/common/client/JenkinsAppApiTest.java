@@ -192,7 +192,7 @@ public class JenkinsAppApiTest {
         PingApi pingApi = new PingApi(client, objectMapper);
 
         // when
-        pingApi.sendPing("https://webhook.url","this is a secret", PipelineLogger.noopInstance());
+        pingApi.sendPing("https://webhook.url", "this is a secret", PipelineLogger.noopInstance());
 
         // then
         ArgumentCaptor<Request> requestCaptor = ArgumentCaptor.forClass(Request.class);
