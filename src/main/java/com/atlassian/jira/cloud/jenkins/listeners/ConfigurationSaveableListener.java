@@ -25,7 +25,6 @@ public class ConfigurationSaveableListener extends SaveableListener {
 
     @Override
     public void onChange(final Saveable saveable, final XmlFile file) {
-        // We only want to send the payload on the save event of the configuration page
         if (!(saveable instanceof com.atlassian.jira.cloud.jenkins.config.JiraCloudPluginConfig)) {
             return;
         }
