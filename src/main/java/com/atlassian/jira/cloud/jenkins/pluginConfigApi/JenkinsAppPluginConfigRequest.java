@@ -25,23 +25,23 @@ public class JenkinsAppPluginConfigRequest extends JenkinsAppRequest {
         this.autoDeploymentsRegex = autoDeploymentsRegex;
     }
 
-    public String getIpAddress() {
+    public final String getIpAddress() {
         return ipAddress;
     }
 
-    public Boolean getAutoBuildEnabled() {
+    public final boolean isAutoBuildEnabled() {
         return autoBuildsEnabled;
     }
 
-    public String getAutoBuildRegex() {
+    public final String getAutoBuildRegex() {
         return autoBuildRegex;
     }
 
-    public Boolean autoDeploymentsEnabled() {
+    public final boolean isAutoDeploymentsEnabled() {
         return autoDeploymentsEnabled;
     }
 
-    public String autoDeploymentsRegex() {
+    public final String getAutoDeploymentsRegex() {
         return autoDeploymentsRegex;
     }
 }
