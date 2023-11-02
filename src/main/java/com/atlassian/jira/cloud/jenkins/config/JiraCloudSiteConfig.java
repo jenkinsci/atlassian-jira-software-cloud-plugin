@@ -28,6 +28,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -180,13 +182,37 @@ public class JiraCloudSiteConfig extends AbstractDescribableImpl<JiraCloudSiteCo
             }
 
             try {
+                String ipAddress = "COULD NOT FIND";
+                try {
+                    InetAddress localhost = InetAddress.getLocalHost();
+                    ipAddress = localhost.getHostAddress();
+                } catch (UnknownHostException e) {
+                    e.printStackTrace();
+                }
+
+                //                Jenkins jenkins = Jenkins.getInstanceOrNull();
+                Boolean autoBuildsEnabled = false;
+                String autoBuildRegex = "NO DEAL";
+                //                if (jenkins != null) {
+                final JiraCloudPluginConfig config = JiraCloudPluginConfig.get();
+                autoBuildsEnabled = config.getAutoBuildsEnabled();
+                autoBuildRegex = config.getAutoBuildsRegex();
+                //                }
+
                 boolean pingSuccess =
                         pingApi.sendPing(
-                                webhookUrl, maybeSecret.get(), PipelineLogger.noopInstance());
+                                webhookUrl,
+                                maybeSecret.get(),
+                                PipelineLogger.noopInstance(),
+                                ipAddress,
+                                autoBuildsEnabled,
+                                autoBuildRegex);
                 if (!pingSuccess) {
                     return FormValidation.error(
                             "Connection could not be established. Is the secret correct?");
                 }
+
+                // TODO-JK - once ping has been succesfull send jenkinsDataEvent
             } catch (BadRequestException e) {
                 return FormValidation.error(
                         String.format("Error message from Jira: %s", e.getMessage()));

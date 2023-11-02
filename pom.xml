@@ -47,15 +47,15 @@
         <developer>
             <id>bgvozdev</id>
             <name>Boris Gvozdev</name>
-        </developer>        
+        </developer>
         <developer>
             <id>Harminder84</id>
             <name>Harminder Singh</name>
-        </developer>        
+        </developer>
         <developer>
             <id>gxueatlassian</id>
             <name>Gary Xue</name>
-        </developer>        
+        </developer>
     </developers>
 
     <scm>
@@ -209,6 +209,12 @@
                     <artifactId>jackson-databind</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>org.jenkins-ci.main</groupId>
+            <artifactId>jenkins-core</artifactId>
+            <version>2.387.3</version>
         </dependency>
 
     </dependencies>

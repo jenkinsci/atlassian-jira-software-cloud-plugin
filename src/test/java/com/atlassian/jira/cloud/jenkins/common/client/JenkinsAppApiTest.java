@@ -98,7 +98,7 @@ public class JenkinsAppApiTest {
 
         String jwt =
                 pingApi.wrapInJwt(
-                        new JenkinsAppPingRequest(),
+                        new JenkinsAppPingRequest("CAT", true, ""),
                         "this is a secret",
                         farFuture.getTime(),
                         PipelineLogger.noopInstance());
@@ -192,7 +192,13 @@ public class JenkinsAppApiTest {
         PingApi pingApi = new PingApi(client, objectMapper);
 
         // when
-        pingApi.sendPing("https://webhook.url", "this is a secret", PipelineLogger.noopInstance());
+        pingApi.sendPing(
+                "https://webhook.url",
+                "this is a secret",
+                PipelineLogger.noopInstance(),
+                "false",
+                false,
+                "");
 
         // then
         ArgumentCaptor<Request> requestCaptor = ArgumentCaptor.forClass(Request.class);

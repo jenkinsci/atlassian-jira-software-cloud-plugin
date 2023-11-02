@@ -1,6 +1,6 @@
 package com.atlassian.jira.cloud.jenkins.config;
 
-import com.atlassian.jira.cloud.jenkins.Messages;
+// import com.atlassian.jira.cloud.jenkins.Messages;
 import hudson.Extension;
 import jenkins.model.GlobalConfiguration;
 import net.sf.json.JSONArray;
@@ -190,10 +190,11 @@ public class JiraCloudPluginConfig extends GlobalConfiguration {
     private static Optional<JiraCloudSiteConfig> defaultFromConfig() {
         final List<JiraCloudSiteConfig> allSites = JiraCloudPluginConfig.get().getSites();
         if (allSites.isEmpty()) {
-            log.warn(Messages.JiraCommonResponse_FAILURE_NO_SITE_CONFIG_PRESENT());
+            //            log.warn(Messages.JiraCommonResponse_FAILURE_NO_SITE_CONFIG_PRESENT());
             return Optional.empty();
         } else if (allSites.size() > 1) {
-            log.warn(Messages.JiraCommonResponse_FAILURE_MULTIPLE_SITE_CONFIGS_PRESENT());
+            //
+            // log.warn(Messages.JiraCommonResponse_FAILURE_MULTIPLE_SITE_CONFIGS_PRESENT());
             return Optional.empty();
         } else {
             return Optional.of(allSites.get(0));
