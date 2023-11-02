@@ -9,9 +9,7 @@ import java.util.Set;
 
 @Getter
 public enum SetFeatureFlag implements FeatureFlag<Set<String>> {
-    ALLOW_SYNTHETIC_PRICING_DATA_CREATION_FOR_PRICING_PLANS(
-            "ccp.offering-catalogue-allow-synthetic-pricing-data-creation-for-pricing-plans",
-            Collections.emptySet());
+    BACKEND_TEST("backend-test", Collections.emptySet());
 
     private final String featureKey;
     private final Set<String> defaultValue;

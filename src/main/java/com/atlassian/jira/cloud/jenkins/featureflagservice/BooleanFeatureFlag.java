@@ -6,9 +6,7 @@ import java.util.Objects;
 
 @Getter
 public enum BooleanFeatureFlag {
-
-    // Permanent feature flags
-    TEST_FLAG("test-flag", false);
+    BACKEND_TEST("backend-test", false);
     private final String featureKey;
     private final Boolean defaultValue;
 

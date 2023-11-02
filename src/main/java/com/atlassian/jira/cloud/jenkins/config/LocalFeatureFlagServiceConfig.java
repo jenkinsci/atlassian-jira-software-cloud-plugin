@@ -2,19 +2,19 @@ package com.atlassian.jira.cloud.jenkins.config;
 
 import com.atlassian.jira.cloud.jenkins.featureflagservice.BooleanFeatureFlag;
 import com.atlassian.jira.cloud.jenkins.featureflagservice.SetFeatureFlag;
-import com.atlassian.jira.cloud.jenkins.properties.FeatureFlagProperties;
 import com.launchdarkly.sdk.LDValue;
 import com.launchdarkly.sdk.server.LDClient;
 import com.launchdarkly.sdk.server.LDConfig;
 import com.launchdarkly.sdk.server.integrations.TestData;
 import com.launchdarkly.sdk.server.interfaces.LDClientInterface;
-
 import lombok.Setter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.Collections;
 import java.util.Objects;
 import java.util.Set;
+import java.util.HashSet;
 
 @Configuration
 @Setter
@@ -45,7 +45,10 @@ public class LocalFeatureFlagServiceConfig {
                                         String.format("Feature flag %s is not defined", key));
                             }
                             var arrayBuilder = LDValue.buildArray();
-                            Set<String> defaultValue = value == null ? Set.of() : value;
+                            Set<String> defaultValue =
+                                    value == null
+                                            ? Collections.emptySet()
+                                            : Collections.unmodifiableSet(new HashSet<>(value));
                             defaultValue.forEach(arrayBuilder::add);
                             testData.update(
                                     testData.flag(key).valueForAllUsers(arrayBuilder.build()));

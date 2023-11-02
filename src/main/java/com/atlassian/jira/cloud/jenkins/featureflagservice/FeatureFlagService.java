@@ -1,60 +1,47 @@
 package com.atlassian.jira.cloud.jenkins.featureflagservice;
 
 import com.launchdarkly.sdk.LDUser;
-import com.launchdarkly.sdk.LDValue;
-import com.launchdarkly.sdk.server.interfaces.LDClientInterface;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.launchdarkly.sdk.server.LDClient;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.Spliterator;
-import java.util.Spliterators;
-import java.util.stream.StreamSupport;
+import java.io.IOException;
 
 @Service
 public class FeatureFlagService {
-    private final LDClientInterface ldClient;
-    private final String launchDarklyAppName;
-    private final String launchDarklyApiKey;
+    private static final String LAUNCH_DARKLY_SDK_KEY = "<need-to-pass-this-in>";
+    private static final String PROJECT_KEY = "jenkins-for-jira";
+    private final LDClient ldClient;
+    private final OkHttpClient httpClient;
 
-    @Autowired
-    public FeatureFlagService(
-            final LDClientInterface ldClient,
-            final String launchDarklyAppName,
-            final String launchDarklyApiKey) {
-        this.ldClient = ldClient;
-        this.launchDarklyAppName = launchDarklyAppName;
-        this.launchDarklyApiKey = launchDarklyApiKey;
+    public FeatureFlagService() {
+        this.ldClient = new LDClient(LAUNCH_DARKLY_SDK_KEY);
+        this.httpClient = new OkHttpClient();
     }
 
-    public boolean getBooleanValue(final String featureFlagKey, final String projectKey) {
-        LDUser ldUser = new LDUser.Builder(projectKey).build();
+    public boolean getBooleanValue(final String featureFlagKey) {
+        LDUser ldUser = new LDUser.Builder(PROJECT_KEY).build();
         return ldClient.boolVariation(featureFlagKey, ldUser, false);
     }
 
-    public Set<String> getSetOfStrings(final String featureFlagKey, final String projectKey) {
-        LDUser ldUser = new LDUser.Builder(projectKey).build();
-        LDValue defaultValue = getDefaultLDValue(Collections.emptySet());
-        LDValue actualValue = ldClient.jsonValueVariation(featureFlagKey, ldUser, defaultValue);
+    public String getFeatureFlag(final String featureFlagKey) throws IOException {
+        String url =
+                "https://app.launchdarkly.com/api/v2/flags/" + PROJECT_KEY + "/" + featureFlagKey;
 
-        Spliterator<LDValue> spliterator =
-                Spliterators.spliteratorUnknownSize(
-                        actualValue.values().iterator(), Spliterator.ORDERED);
-        return StreamSupport.stream(spliterator, false)
-                .map(LDValue::stringValue)
-                .collect(Collectors.toSet());
-    }
+        Request request =
+                new Request.Builder()
+                        .url(url)
+                        .header("Authorization", "Bearer " + LAUNCH_DARKLY_SDK_KEY)
+                        .build();
 
-    private LDValue getDefaultLDValue(final Set<String> defaultValue) {
-        String jsonArray =
-                "["
-                        + defaultValue
-                                .stream()
-                                .map(item -> "\"" + item + "\"")
-                                .collect(Collectors.joining(","))
-                        + "]";
-        return LDValue.parse(jsonArray);
+        try (Response response = httpClient.newCall(request).execute()) {
+            if (response.isSuccessful()) {
+                return response.body().string();
+            }
+        }
+
+        return null;
     }
 }
