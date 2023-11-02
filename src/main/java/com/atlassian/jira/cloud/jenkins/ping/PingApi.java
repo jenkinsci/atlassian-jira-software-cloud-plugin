@@ -1,10 +1,8 @@
 package com.atlassian.jira.cloud.jenkins.ping;
 
 import com.atlassian.jira.cloud.jenkins.common.client.JenkinsAppApi;
-import com.atlassian.jira.cloud.jenkins.config.JiraCloudPluginConfig;
 import com.atlassian.jira.cloud.jenkins.logging.PipelineLogger;
 import com.fasterxml.jackson.databind.ObjectMapper;
-// import jenkins.model.Jenkins;
 import okhttp3.OkHttpClient;
 
 import javax.inject.Inject;
@@ -25,13 +23,9 @@ public class PingApi extends JenkinsAppApi<PingResponse> {
     public boolean sendPing(
             final String webhookUrl,
             final String secret,
-            final PipelineLogger pipelineLogger,
-            final String ipAddress,
-            final Boolean autoBuildsEnabled,
-            final String autoBuildRegex) {
+            final PipelineLogger pipelineLogger) {
 
-        JenkinsAppPingRequest request =
-                new JenkinsAppPingRequest(ipAddress, autoBuildsEnabled, autoBuildRegex);
+        JenkinsAppPingRequest request = new JenkinsAppPingRequest();
         PingResponse response =
                 sendRequestAsJwt(webhookUrl, secret, request, PingResponse.class, pipelineLogger);
         return response.getSuccess();
