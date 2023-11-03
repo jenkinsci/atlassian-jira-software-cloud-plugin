@@ -1,12 +1,10 @@
 package com.atlassian.jira.cloud.jenkins.config;
 
-import com.atlassian.jira.cloud.jenkins.featureflagservice.SetFeatureFlag;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 
 @Component
