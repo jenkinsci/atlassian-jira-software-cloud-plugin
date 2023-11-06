@@ -15,7 +15,7 @@ import java.io.StringReader;
 
 public class XmlUtils {
 
-    public static Element parseXmlFile(final XmlFile file)
+    public Element parseXmlFile(final XmlFile file)
             throws ParserConfigurationException, IOException, SAXException {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         DocumentBuilder builder = factory.newDocumentBuilder();
@@ -23,7 +23,7 @@ public class XmlUtils {
         return document.getDocumentElement();
     }
 
-    public static String extractXmlValue(final Element parentElement, final String tagName) {
+    public String extractXmlValue(final Element parentElement, final String tagName) {
         NodeList nodeList = parentElement.getElementsByTagName(tagName);
         if (nodeList.getLength() > 0) {
             return nodeList.item(0).getTextContent();
@@ -31,7 +31,7 @@ public class XmlUtils {
         return "";
     }
 
-    public static boolean extractBooleanValue(final Element parentElement, final String tagName) {
+    public boolean extractBooleanValue(final Element parentElement, final String tagName) {
         NodeList nodeList = parentElement.getElementsByTagName(tagName);
         if (nodeList.getLength() > 0) {
             String value = nodeList.item(0).getTextContent();

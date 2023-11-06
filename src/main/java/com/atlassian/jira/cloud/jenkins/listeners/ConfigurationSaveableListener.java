@@ -4,6 +4,7 @@ import com.atlassian.jira.cloud.jenkins.common.model.PluginSiteData;
 import com.atlassian.jira.cloud.jenkins.logging.PipelineLogger;
 import com.atlassian.jira.cloud.jenkins.pluginConfigApi.PluginConfigApi;
 import com.atlassian.jira.cloud.jenkins.util.SecretRetriever;
+import com.atlassian.jira.cloud.jenkins.util.XmlUtils;
 import hudson.Extension;
 import hudson.XmlFile;
 import hudson.model.Saveable;
@@ -19,9 +20,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static com.atlassian.jira.cloud.jenkins.util.IpAddressProvider.getIpAddress;
-import static com.atlassian.jira.cloud.jenkins.util.XmlUtils.extractXmlValue;
-import static com.atlassian.jira.cloud.jenkins.util.XmlUtils.extractBooleanValue;
-import static com.atlassian.jira.cloud.jenkins.util.XmlUtils.parseXmlFile;
 
 @Extension
 public class ConfigurationSaveableListener extends SaveableListener {
@@ -30,6 +28,7 @@ public class ConfigurationSaveableListener extends SaveableListener {
 
     private PluginConfigApi pluginConfigApi;
     private SecretRetriever secretRetriever;
+    private XmlUtils xmlUtils;
 
     @Inject
     public void setSecretRetriever(final SecretRetriever secretRetriever) {
@@ -41,6 +40,11 @@ public class ConfigurationSaveableListener extends SaveableListener {
         this.pluginConfigApi = pluginConfigApi;
     }
 
+    @Inject
+    public void setXmlUtils(final XmlUtils xmlUtils) {
+        this.xmlUtils = xmlUtils;
+    }
+
     @Override
     public void onChange(final Saveable saveable, final XmlFile file) {
         if (saveable instanceof com.atlassian.jira.cloud.jenkins.config.JiraCloudPluginConfig) {
@@ -50,13 +54,15 @@ public class ConfigurationSaveableListener extends SaveableListener {
 
     void sendPluginConfigData(final XmlFile file) {
         try {
-            Element rootElement = parseXmlFile(file);
+            Element rootElement = this.xmlUtils.parseXmlFile(file);
             List<PluginSiteData> siteDataList = createSiteDataList(rootElement);
-            String autoBuildsRegex = extractXmlValue(rootElement, "autoBuildsRegex");
-            boolean autoBuildsEnabled = extractBooleanValue(rootElement, "autoBuildsEnabled");
+            String autoBuildsRegex = this.xmlUtils.extractXmlValue(rootElement, "autoBuildsRegex");
+            boolean autoBuildsEnabled =
+                    this.xmlUtils.extractBooleanValue(rootElement, "autoBuildsEnabled");
             boolean autoDeploymentsEnabled =
-                    extractBooleanValue(rootElement, "autoDeploymentsEnabled");
-            String autoDeploymentsRegex = extractXmlValue(rootElement, "autoDeploymentsRegex");
+                    this.xmlUtils.extractBooleanValue(rootElement, "autoDeploymentsEnabled");
+            String autoDeploymentsRegex =
+                    this.xmlUtils.extractXmlValue(rootElement, "autoDeploymentsRegex");
 
             for (PluginSiteData data : siteDataList) {
                 Optional<String> maybeSecret =
@@ -82,8 +88,8 @@ public class ConfigurationSaveableListener extends SaveableListener {
         NodeList siteElements = rootElement.getElementsByTagName(SITE_CONFIGURATION_TAG);
         for (int i = 0; i < siteElements.getLength(); i++) {
             Element siteElement = (Element) siteElements.item(i);
-            String webhookUrl = extractXmlValue(siteElement, "webhookUrl");
-            String credentialsId = extractXmlValue(siteElement, "credentialsId");
+            String webhookUrl = this.xmlUtils.extractXmlValue(siteElement, "webhookUrl");
+            String credentialsId = this.xmlUtils.extractXmlValue(siteElement, "credentialsId");
             PluginSiteData siteData = new PluginSiteData(webhookUrl, credentialsId);
             siteDataList.add(siteData);
         }

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<com.atlassian.jira.cloud.jenkins.config.JiraCloudPluginConfig plugin="atlassian-jira-software-cloud@2.0.10-SNAPSHOT">
+<sites>
+    <atl-jsw-site-configuration>
+        <site>joshkayjira.atlassian.net</site>
+        <webhookUrl>https://df76f661-4cbe-t/x1/I4e0dLTWkINn9cy0iUmE6dmwlYs?jenkins_server_uuid=e4db56a2c9252</webhookUrl>
+        <credentialsId>c0dda471c081a7</credentialsId>
+    </atl-jsw-site-configuration>
+</sites>
+<autoBuildsEnabled>true</autoBuildsEnabled>
+<autoBuildsRegex>^build$</autoBuildsRegex>
+<debugLogging>true</debugLogging>
+<autoDeploymentsEnabled>true</autoDeploymentsEnabled>
+<autoDeploymentsRegex>^deploy to (?&lt;envName&gt;.*)$</autoDeploymentsRegex>
+</com.atlassian.jira.cloud.jenkins.config.JiraCloudPluginConfig>
