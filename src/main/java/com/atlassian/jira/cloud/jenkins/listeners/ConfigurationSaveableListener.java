@@ -33,9 +33,6 @@ public class ConfigurationSaveableListener extends SaveableListener {
 
     public void sendPluginConfigData() {
         try {
-            String ipAddress = IpAddressProvider.getIpAddress();
-            LOGGER.log(Level.INFO, "IP Address: {0}", ipAddress);
-
             // TODO - get webhhokurl/secret from save xml, fire jenkins plugin data event
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Error processing XML content", e);
