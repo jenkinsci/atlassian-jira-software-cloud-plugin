@@ -16,8 +16,7 @@ public class JenkinsAppPluginConfigRequest extends JenkinsAppRequest {
             final String autoBuildRegex,
             final boolean autoDeploymentsEnabled,
             final String autoDeploymentsRegex) {
-        super(RequestType.PING);
-        //        super(RequestType.PLUGIN_CONFIG);
+        super(RequestType.PLUGIN_CONFIG);
 
         this.ipAddress = ipAddress;
         this.autoBuildsEnabled = autoBuildsEnabled;
