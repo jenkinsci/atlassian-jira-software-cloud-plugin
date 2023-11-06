@@ -47,21 +47,19 @@ public class ConfigurationSaveableListenerTest {
 
     @Test
     public void testOnChange() {
-        // Create a mock Saveable and XmlFile objects
+        // Arrange
         Saveable saveable = Mockito.mock(JiraCloudPluginConfig.class);
         XmlFile file = Mockito.mock(XmlFile.class);
 
-        // Create an instance of your class and spy on it
         ConfigurationSaveableListener configurationSaveableListener = new ConfigurationSaveableListener();
         ConfigurationSaveableListener spyListener = Mockito.spy(configurationSaveableListener);
 
-        // Mock the sendPluginConfigData method to do nothing
         Mockito.doNothing().when(spyListener).sendPluginConfigData(file);
 
-        // Call the onChange method on the spy instance
+        // Act
         spyListener.onChange(saveable, file);
 
-        // Verify that the sendPluginConfigData method is called with the XmlFile object
+        // Assert
         Mockito.verify(spyListener).sendPluginConfigData(file);
     }
 
