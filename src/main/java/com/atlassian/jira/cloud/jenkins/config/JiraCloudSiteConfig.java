@@ -181,8 +181,7 @@ public class JiraCloudSiteConfig extends AbstractDescribableImpl<JiraCloudSiteCo
 
             try {
                 boolean pingSuccess =
-                        pingApi.sendPing(
-                                webhookUrl, maybeSecret.get(), PipelineLogger.noopInstance());
+                        pingApi.sendPing(webhookUrl, maybeSecret.get(), PipelineLogger.noopInstance());
                 if (!pingSuccess) {
                     return FormValidation.error(
                             "Connection could not be established. Is the secret correct?");
