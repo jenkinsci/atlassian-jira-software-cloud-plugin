@@ -13,6 +13,13 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.io.StringReader;
 
+/**
+ * Utility class for handling XML-related operations such as parsing XML files and extracting values
+ * from XML elements.
+ *
+ * <p>This class provides methods to parse XML files, extract specific values based on tag names,
+ * and handle boolean values stored within XML elements.
+ */
 public class XmlUtils {
 
     public Element parseXmlFile(final XmlFile file)

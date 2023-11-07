@@ -21,6 +21,12 @@ import java.util.logging.Logger;
 
 import static com.atlassian.jira.cloud.jenkins.util.IpAddressProvider.getIpAddress;
 
+/**
+ * A {@code SaveableListener} implementation that listens for changes in saveable objects,
+ * specifically instances of {@code com.atlassian.jira.cloud.jenkins.config.JiraCloudPluginConfig}.
+ * When changes occur, this listener processes the plugin configuration data and sends it to the
+ * plugin API for further processing.
+ */
 @Extension
 public class ConfigurationSaveableListener extends SaveableListener {
     private static final String SITE_CONFIGURATION_TAG = "atl-jsw-site-configuration";
@@ -32,16 +38,25 @@ public class ConfigurationSaveableListener extends SaveableListener {
 
     @Inject
     public void setSecretRetriever(final SecretRetriever secretRetriever) {
+        if (secretRetriever == null) {
+            throw new IllegalArgumentException("SecretRetriever cannot be null");
+        }
         this.secretRetriever = secretRetriever;
     }
 
     @Inject
     public void setConnectionDataApi(final PluginConfigApi pluginConfigApi) {
+        if (pluginConfigApi == null) {
+            throw new IllegalArgumentException("PluginConfigApi cannot be null");
+        }
         this.pluginConfigApi = pluginConfigApi;
     }
 
     @Inject
     public void setXmlUtils(final XmlUtils xmlUtils) {
+        if (xmlUtils == null) {
+            throw new IllegalArgumentException("XmlUtils cannot be null");
+        }
         this.xmlUtils = xmlUtils;
     }
 
@@ -79,7 +94,6 @@ public class ConfigurationSaveableListener extends SaveableListener {
             }
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Error processing plugin configuration data", e);
-            throw new RuntimeException(e);
         }
     }
 
