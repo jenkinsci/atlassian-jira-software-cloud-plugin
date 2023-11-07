@@ -11,8 +11,11 @@ import hudson.model.Saveable;
 import hudson.model.listeners.SaveableListener;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 import javax.inject.Inject;
+import javax.xml.parsers.ParserConfigurationException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;

@@ -16,11 +16,17 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
+import javax.xml.parsers.ParserConfigurationException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.logging.Logger;
 
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.*;
 
 public class ConfigurationSaveableListenerTest {
@@ -46,7 +52,7 @@ public class ConfigurationSaveableListenerTest {
     }
 
     @Test
-    public void testOnChange() {
+    public void testOnChange() throws ParserConfigurationException, IOException, SAXException {
         // Arrange
         Saveable saveable = Mockito.mock(JiraCloudPluginConfig.class);
         XmlFile file = Mockito.mock(XmlFile.class);
@@ -67,26 +73,7 @@ public class ConfigurationSaveableListenerTest {
     public void testSendPluginConfigData_SuccessfullySendsDataToPluginApi() throws Exception {
         // Arrange
         XmlFile file = mock(XmlFile.class);
-        Element rootElement = mock(Element.class);
-        NodeList siteElements = mock(NodeList.class);
-        Element siteElement = mock(Element.class);
-
-        when(xmlUtils.parseXmlFile(file)).thenReturn(rootElement);
-        when(xmlUtils.extractXmlValue(rootElement, "autoBuildsRegex")).thenReturn("regex");
-        when(xmlUtils.extractBooleanValue(rootElement, "autoBuildsEnabled")).thenReturn(true);
-        when(xmlUtils.extractBooleanValue(rootElement, "autoDeploymentsEnabled")).thenReturn(true);
-        when(xmlUtils.extractXmlValue(rootElement, "autoDeploymentsRegex")).thenReturn("regex");
-        when(rootElement.getElementsByTagName("atl-jsw-site-configuration")).thenReturn(siteElements);
-        when(siteElements.getLength()).thenReturn(1);
-        when(siteElements.item(0)).thenReturn(siteElement);
-        when(xmlUtils.extractXmlValue(siteElement, "webhookUrl")).thenReturn("url");
-        when(xmlUtils.extractXmlValue(siteElement, "credentialsId")).thenReturn("id");
-        when(secretRetriever.getSecretFor(eq("id"))).thenReturn(Optional.of("secret"));
-        when(xmlUtils.parseXmlFile(file)).thenReturn(rootElement);
-        when(xmlUtils.extractXmlValue(rootElement, "autoBuildsRegex")).thenReturn("regex");
-        when(xmlUtils.extractBooleanValue(rootElement, "autoBuildsEnabled")).thenReturn(true);
-        when(xmlUtils.extractBooleanValue(rootElement, "autoDeploymentsEnabled")).thenReturn(true);
-        when(xmlUtils.extractXmlValue(rootElement, "autoDeploymentsRegex")).thenReturn("regex");
+        arrangeMockData(file);
 
         // Act
         listener.sendPluginConfigData(file);
@@ -102,6 +89,117 @@ public class ConfigurationSaveableListenerTest {
                 eq(true),
                 eq("regex")
         );
+    }
+
+    @Test
+    public void testSendPluginConfigData_FailsSendsWhenNoSecret() throws Exception {
+
+
+        // Arrange
+        XmlFile file = mock(XmlFile.class);
+        arrangeMockData(file);
+
+        // dont return a secret!
+        when(secretRetriever.getSecretFor(eq("id"))).thenReturn(null);
+
+        // Act
+        listener.sendPluginConfigData(file);
+
+        // Assert
+        verify(pluginConfigApi, never()).sendConnectionData(
+                anyString(),
+                anyString(),
+                any(PipelineLogger.class),
+                anyString(),
+                anyBoolean(),
+                anyString(),
+                anyBoolean(),
+                anyString()
+        );
+    }
+
+    @Test
+    public void testSendPluginConfigData_FailsSendsWhenNoSites() throws Exception {
+
+        // Arrange without sites
+        XmlFile file = mock(XmlFile.class);
+        Element rootElement = mock(Element.class);
+        NodeList siteElements = mock(NodeList.class);
+        Element siteElement = mock(Element.class);
+
+        when(xmlUtils.parseXmlFile(file)).thenReturn(rootElement);
+        when(xmlUtils.extractXmlValue(rootElement, "autoBuildsRegex")).thenReturn("regex");
+        when(xmlUtils.extractBooleanValue(rootElement, "autoBuildsEnabled")).thenReturn(true);
+        when(xmlUtils.extractBooleanValue(rootElement, "autoDeploymentsEnabled")).thenReturn(true);
+        when(xmlUtils.extractXmlValue(rootElement, "autoDeploymentsRegex")).thenReturn("regex");
+        when(rootElement.getElementsByTagName("atl-jsw-site-configuration")).thenReturn(siteElements);
+        when(siteElements.getLength()).thenReturn(0);
+        when(siteElements.item(0)).thenReturn(null);
+        when(xmlUtils.extractXmlValue(siteElement, "webhookUrl")).thenReturn("url");
+        when(xmlUtils.extractXmlValue(siteElement, "credentialsId")).thenReturn("id");
+        when(secretRetriever.getSecretFor(eq("id"))).thenReturn(Optional.of("secret"));
+
+        // Act
+        listener.sendPluginConfigData(file);
+
+        // Assert
+        verify(pluginConfigApi, never()).sendConnectionData(
+                anyString(),
+                anyString(),
+                any(PipelineLogger.class),
+                anyString(),
+                anyBoolean(),
+                anyString(),
+                anyBoolean(),
+                anyString()
+        );
+    }
+
+    @Test
+    public void testSendPluginConfigData_FailsXmlExtractThrowsError() throws Exception {
+        // Arrange
+        XmlFile file = mock(XmlFile.class);
+        arrangeMockData(file);
+
+        // ahh throw a error
+        when(xmlUtils.parseXmlFile(file)).thenThrow(new RuntimeException("Error during XML parsing"));
+
+        // Act
+        try {
+            listener.sendPluginConfigData(file);
+        } catch (Exception e) {
+        }
+
+        // Assert
+        verify(pluginConfigApi, never()).sendConnectionData(
+                anyString(),
+                anyString(),
+                any(PipelineLogger.class),
+                anyString(),
+                anyBoolean(),
+                anyString(),
+                anyBoolean(),
+                anyString()
+        );
+    }
+
+    private void arrangeMockData(final XmlFile file) throws ParserConfigurationException, IOException, SAXException {
+        Element rootElement = mock(Element.class);
+        NodeList siteElements = mock(NodeList.class);
+        Element siteElement = mock(Element.class);
+
+        when(xmlUtils.parseXmlFile(file)).thenReturn(rootElement);
+        when(xmlUtils.extractXmlValue(rootElement, "autoBuildsRegex")).thenReturn("regex");
+        when(xmlUtils.extractBooleanValue(rootElement, "autoBuildsEnabled")).thenReturn(true);
+        when(xmlUtils.extractBooleanValue(rootElement, "autoDeploymentsEnabled")).thenReturn(true);
+        when(xmlUtils.extractXmlValue(rootElement, "autoDeploymentsRegex")).thenReturn("regex");
+        when(rootElement.getElementsByTagName("atl-jsw-site-configuration")).thenReturn(siteElements);
+        when(siteElements.getLength()).thenReturn(1);
+        when(siteElements.item(0)).thenReturn(siteElement);
+        when(xmlUtils.extractXmlValue(siteElement, "webhookUrl")).thenReturn("url");
+        when(xmlUtils.extractXmlValue(siteElement, "credentialsId")).thenReturn("id");
+        when(secretRetriever.getSecretFor(eq("id"))).thenReturn(Optional.of("secret"));
+
     }
 
 }
