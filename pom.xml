@@ -26,6 +26,7 @@
         <jsonassert.version>1.5.1</jsonassert.version>
         <resilience4j.version>1.4.0</resilience4j.version>
         <jwt.version>3.18.3</jwt.version>
+        <launchdarkly-java-server-sdk.version>5.7.1</launchdarkly-java-server-sdk.version>
     </properties>
     <name>Atlassian Jira Software Cloud</name>
     <description>Atlassian Jira Software Cloud Jenkins Integration</description>
@@ -98,14 +99,12 @@
         <dependency>
             <groupId>org.jenkins-ci.plugins.workflow</groupId>
             <artifactId>workflow-cps</artifactId>
-
         </dependency>
 
         <!-- SCM -->
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>scm-api</artifactId>
-
         </dependency>
 
         <!-- okhttp -->
@@ -128,22 +127,29 @@
                 </exclusion>
             </exclusions>
         </dependency>
+
         <!-- Credentials -->
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>credentials</artifactId>
-
         </dependency>
+
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>plain-credentials</artifactId>
-
         </dependency>
+
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>jackson2-api</artifactId>
         </dependency>
 
+        <!-- Launch Darkly -->
+        <dependency>
+            <groupId>com.launchdarkly</groupId>
+            <artifactId>launchdarkly-java-server-sdk</artifactId>
+            <version>${launchdarkly-java-server-sdk.version}</version>
+        </dependency>
 
         <!-- Test dependencies -->
         <dependency>
@@ -214,6 +220,12 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>RELEASE</version>
+            <scope>compile</scope>
+        </dependency>
 
         <dependency>
             <groupId>org.jenkins-ci.main</groupId>
@@ -280,6 +292,14 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>7</source>
+                    <target>7</target>
+                </configuration>
             </plugin>
         </plugins>
     </build>
