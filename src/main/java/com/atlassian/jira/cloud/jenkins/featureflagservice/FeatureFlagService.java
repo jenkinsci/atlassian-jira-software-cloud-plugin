@@ -11,7 +11,7 @@ import java.io.IOException;
 
 @Service
 public class FeatureFlagService {
-    private static final String LAUNCH_DARKLY_SDK_KEY = "<how-to-pass-in???>";
+    private static final String LAUNCH_DARKLY_SDK_KEY = "HOW-TO-DEFINE-ONE-SDK-KEY-ACROSS-ALL-PLUGIN-INSTALLATIONS?";
     private static final String PROJECT_KEY = "jenkins-for-jira";
     private final LDClient ldClient;
 
