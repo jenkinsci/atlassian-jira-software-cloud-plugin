@@ -15,8 +15,8 @@
         <revision>2.0.10</revision>
         <changelist>-SNAPSHOT</changelist>
         <!-- Baseline Jenkins version you use to build the plugin. Users must have this version or newer to run. -->
-        <jenkins.version>2.387.3</jenkins.version>
         <jenkins.baseline>2.387</jenkins.baseline>
+        <jenkins.version>2.387.3</jenkins.version>
         <gitHubRepo>jenkinsci/atlassian-jira-software-cloud-plugin</gitHubRepo>
         <filterModified>true</filterModified>
         <okhttp.version>4.0.1</okhttp.version>
@@ -231,25 +231,36 @@
 
     <build>
         <plugins>
+<!--            <plugin>-->
+<!--                <groupId>com.theoryinpractise</groupId>-->
+<!--                <artifactId>googleformatter-maven-plugin</artifactId>-->
+<!--                <version>1.6.4</version>-->
+<!--                <executions>-->
+<!--                    <execution>-->
+<!--                        <id>reformat-sources</id>-->
+<!--                        <configuration>-->
+<!--                            <includeStale>true</includeStale>-->
+<!--                            <style>AOSP</style>-->
+<!--                            <filterModified>${filterModified}</filterModified>-->
+<!--                            <skip>false</skip>-->
+<!--                        </configuration>-->
+<!--                        <goals>-->
+<!--                            <goal>format</goal>-->
+<!--                        </goals>-->
+<!--                        <phase>process-sources</phase>-->
+<!--                    </execution>-->
+<!--                </executions>-->
+<!--            </plugin>-->
+
+
             <plugin>
-                <groupId>com.theoryinpractise</groupId>
-                <artifactId>googleformatter-maven-plugin</artifactId>
-                <version>1.6.4</version>
-                <executions>
-                    <execution>
-                        <id>reformat-sources</id>
-                        <configuration>
-                            <includeStale>true</includeStale>
-                            <style>AOSP</style>
-                            <filterModified>${filterModified}</filterModified>
-                            <skip>false</skip>
-                        </configuration>
-                        <goals>
-                            <goal>format</goal>
-                        </goals>
-                        <phase>process-sources</phase>
-                    </execution>
-                </executions>
+                <groupId>org.jenkins-ci.tools</groupId>
+                <artifactId>maven-hpi-plugin</artifactId>
+                <configuration>
+                    <jettyConfig>
+                        <headerBufferSize>65536</headerBufferSize> <!-- Adjust as needed -->
+                    </jettyConfig>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

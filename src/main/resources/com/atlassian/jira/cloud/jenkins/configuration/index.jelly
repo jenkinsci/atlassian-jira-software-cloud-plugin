@@ -1,0 +1,20 @@
+
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define">
+    <html>
+        <head><title>Custom Management Page</title></head>
+        <body>
+            <h1>Welcome to Custom Management</h1>
+            <div>
+                <h1>Welcome to Custom Management</h1>
+                <p>CSRF Crumb Value:</p>
+                <p>${crumbValue}</p>
+                <form action="submitForm" method="post">
+                    <input type="text" name="data" placeholder="Enter data" />
+                    <input type="hidden" name="Jenkins-Crumb" value="${crumbValue}" />
+                    <input type="submit" value="Submit" />
+                </form>
+            </div>
+        </body>
+    </html>
+</j:jelly>
