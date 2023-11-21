@@ -1,0 +1,164 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:l="/lib/layout" xmlns:f="/lib/form">
+    <l:layout permission="${app.ADMINISTER}" title="${%title}" norefresh="true" type="one-column">
+        <l:main-panel>
+            <link rel="stylesheet" type="text/css" href="${resURL}/plugin/jira-integration/css/manage.css"/>
+            <h1>${%title}</h1>
+            <p>${%description}</p>
+            <div>
+                <f:form method="post" name="jji" action="submit">
+                    <j:if test="${!empty(error)}">
+                        <f:block>
+                            <div class="error">
+                                <p>${%error.registering.site}</p>
+                                <pre>${error}</pre>
+                            </div>
+                        </f:block>
+                    </j:if>
+                    <f:block>
+                        <st:if test="${config != null}">
+                            <form action="submitForm" method="post">
+                                <j:forEach var="site" items="${config.getSites()}">
+                                    <fieldset>
+                                        <legend>Site Configuration</legend>
+                                        <f:form>
+                                            <p>Site Name:</p>
+                                            <f:textbox name="siteName" value="${site.getSite()}" />
+
+                                            <p>Webhook URL:</p>
+                                            <f:textbox name="webhookUrl" value="${site.getWebhookUrl()}" />
+
+                                            <p>Secret:</p>
+                                            <f:password name="credentialsId" id="credentialsId" value="${site.getCredentialsId()}" />
+
+                                            <!-- Test Connection Button -->
+                                            <input type="button" class="test-connection" value="Save Site" />
+
+                                        </f:form>
+                                    </fieldset>
+                                </j:forEach>
+
+                                <!-- Other form inputs -->
+
+                                <!-- CSRF -->
+                                <f:crumb />
+
+                                <!-- Enable Debug Logging -->
+                                <f:checkbox name="${config.FIELD_NAME_DEBUG_LOGGING}" checked="${config.getDebugLogging()}" />
+                                <label>${%Enable Debug Logging}</label><br/>
+
+                                <!-- Toggle Auto Builds -->
+                                <f:checkbox name="${config.FIELD_NAME_AUTO_BUILDS}" checked="${config.getAutoBuildsEnabled()}" />
+                                <label>${%Send builds automatically}</label><br/>
+
+                                <!-- Auto Builds Regex -->
+                                <f:textbox name="${config.FIELD_NAME_AUTO_BUILDS_REGEX}" value="${config.getAutoBuildsRegex()}" />
+
+                                <!-- Toggle Auto Deployments -->
+                                <f:checkbox name="${config.FIELD_NAME_AUTO_DEPLOYMENTS}" checked="${config.getAutoDeploymentsEnabled()}" />
+                                <label>${%Send deployments automatically}</label><br/><br/>
+
+                                <!-- Auto Deployments Regex -->
+                                <f:textbox name="${config.FIELD_NAME_AUTO_DEPLOYMENTS_REGEX}" value="${config.getAutoDeploymentsRegex()}" />
+
+                                <!-- CSRF -->
+                                <f:crumb />
+
+                                <!-- Submit <f:submit /> -->
+                                <input id="saveConfiguration" type="button" class="save-configuration" value="Save Configuration" />
+
+                            </form>
+                        </st:if>
+                    </f:block>
+                </f:form>
+            </div>
+        </l:main-panel>
+    </l:layout>
+
+
+    <script>
+
+
+document.addEventListener('DOMContentLoaded', function() {
+  var saveConfiguration = document.querySelector('#saveConfiguration');
+
+    var crumb = document.querySelector('input[name="Jenkins-Crumb"]').value;
+ // Create payload data
+    var formData = {
+      'Jenkins-Crumb': crumb,
+      'siteName': siteName,
+      'webhookUrl': webhookUrl,
+      'credentialsId': credentialsId
+    };
+
+    fetch("/jenkins/manage/customManagement/saveConfiguration", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Jenkins-Crumb": crumb
+      },
+      credentials: "include"
+    })
+    .then(function(response) {
+      if (response.ok) {
+        return response.json();
+      } else {
+        throw new Error("Error: " + response.status);
+      }
+    })
+    .then(function(data) {
+      // Handle the response here
+    })
+    .catch(function(error) {
+      // Handle any errors here
+    });
+});
+
+
+
+
+document.addEventListener('DOMContentLoaded', function() {
+  var saveButton = document.querySelector('.test-connection');
+  saveButton.addEventListener('click', function() {
+    var crumb = document.querySelector('input[name="Jenkins-Crumb"]').value;
+    var siteName = document.querySelector('input[name="siteName"]').value;
+    var webhookUrl = document.querySelector('input[name="webhookUrl"]').value;
+    var credentialsId = document.querySelector('input[name="credentialsId"]').value;
+
+    // Set the CSRF token in a cookie
+    document.cookie = "Jenkins-Crumb=" + encodeURIComponent(crumb);
+
+    // Create payload data
+    var formData = {
+      'Jenkins-Crumb': crumb,
+      'siteName': siteName,
+      'webhookUrl': webhookUrl,
+      'credentialsId': credentialsId
+    };
+
+    fetch("/jenkins/manage/customManagement/saveSite", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Jenkins-Crumb": crumb
+      },
+      credentials: "include"
+    })
+    .then(function(response) {
+      if (response.ok) {
+        return response.json();
+      } else {
+        throw new Error("Error: " + response.status);
+      }
+    })
+    .then(function(data) {
+      // Handle the response here
+    })
+    .catch(function(error) {
+      // Handle any errors here
+    });
+  });
+});
+    </script>
+
+</j:jelly>

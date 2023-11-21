@@ -1,20 +1,86 @@
 
 <?jelly escape-by-default='true'?>
-<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define">
-    <html>
-        <head><title>Custom Management Page</title></head>
-        <body>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:c="/lib/credentials">
+
+    <l:layout norefresh="true" title="Custom Management Page">
+        <l:header/>
+        <l:left/>
+        <l:right>
             <h1>Welcome to Custom Management</h1>
             <div>
-                <h1>Welcome to Custom Management</h1>
                 <p>CSRF Crumb Value:</p>
                 <p>${crumbValue}</p>
-                <form action="submitForm" method="post">
-                    <input type="text" name="data" placeholder="Enter data" />
-                    <input type="hidden" name="Jenkins-Crumb" value="${crumbValue}" />
-                    <input type="submit" value="Submit" />
-                </form>
+
+                <!-- Retrieve the 'config' attribute -->
+                <st:if test="${request.getAttribute('config') != null}">
+                    <st:element name="config" value="${request.getAttribute('config')}" />
+                </st:if>
+
+                <st:if test="${config != null}">
+                    <!-- Reference 'config' properties directly -->
+                    <form action="submitForm" method="post">
+
+                        <st:out value="${config.getSites().size()}" />
+                        <st:out value="${config.getSites()}" />
+
+                        <j:forEach var="site" items="${config.getSites()}">
+                            <p>Site Name:</p>
+                            <input type="text" name="siteName" placeholder="Enter site name" value="${site.getSite()}" />
+
+                            <p>Webhook URL:</p>
+                            <input type="text" name="webhookUrl" placeholder="Enter webhook URL" value="${site.getWebhookUrl()}" />
+
+                            <p>Secret:</p>
+                            <input type="text" name="credentialsId" placeholder="Enter secret" value="${site.getCredentialsId()}" />
+
+                            <p>Secreter:</p>
+                            <p>Secreter:</p>
+                            <input type="text" id="credentialsDisplayName_${loop.index}" readonly="readonly" value="${site.getCredentialsDisplayName()}" />
+                            <button type="button" onclick="openCredentialsDialog(${loop.index})">Select Credentials</button>
+
+
+                            <p> STUFF </p>
+
+                <f:entry field="credentialsId" title="${%Credentials}">
+                    <c:select/>
+                </f:entry>
+                            <f:entry field="credentialsId" title="${%Credentials}">
+                                <c:select includeUser="true"/>
+                            </f:entry>
+                        </j:forEach>
+
+                        <!-- Enable Debug Logging -->
+                        <j:set var="debugLogging" value="${config.getDebugLogging() ? 'checked' : ''}" />
+                        <input type="checkbox" name="${config.FIELD_NAME_DEBUG_LOGGING}" checked="${debugLogging}" />
+                        <label for="${config.FIELD_NAME_DEBUG_LOGGING}">Send builds automatically</label>
+
+                        <!-- Toggle Auto Builds -->
+                        <j:set var="autoBuildChecked" value="${config.getAutoBuildsEnabled() ? 'checked' : ''}" />
+                        <input type="checkbox" name="${config.FIELD_NAME_AUTO_BUILDS}" checked="${autoBuildChecked}" />
+                        <label for="${config.FIELD_NAME_AUTO_BUILDS}">Send builds automatically</label>
+
+                        <!-- Auto Builds Regex -->
+                        <input type="text" name="${config.FIELD_NAME_AUTO_BUILDS_REGEX}" placeholder="Enter build regex" value="${config.getAutoBuildsRegex()}" />
+
+                        <!-- Toggle Auto Deployments -->
+                        <j:set var="autoDeploymentsChecked" value="${config.getAutoDeploymentsEnabled() ? 'checked' : ''}" />
+                        <input type="checkbox" name="${config.FIELD_NAME_AUTO_DEPLOYMENTS}" id="${config.FIELD_NAME_AUTO_DEPLOYMENTS}" checked="${autoDeploymentsChecked}" />
+                        <label for="${config.FIELD_NAME_AUTO_DEPLOYMENTS}">Send deployments automatically</label>
+
+                        <!-- Auto Deployments Regex -->
+                        <input type="text" name="${config.FIELD_NAME_AUTO_DEPLOYMENTS_REGEX}" placeholder="Enter deployment regex" value="${config.getAutoDeploymentsRegex()}" />
+
+                        <!-- CSRF -->
+                        <input type="hidden" name="Jenkins-Crumb" value="${crumbValue}" />
+
+                        <!-- Submit -->
+                        <input type="submit" value="Submit" />
+                    </form>
+                </st:if>
+
             </div>
-        </body>
-    </html>
+        </l:right>
+        <l:bottom/>
+    </l:layout>
+
 </j:jelly>

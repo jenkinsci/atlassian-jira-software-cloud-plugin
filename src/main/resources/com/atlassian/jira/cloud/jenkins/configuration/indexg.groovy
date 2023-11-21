@@ -3,9 +3,10 @@ package com.atlassian.jira.cloud.jenkins.configuration
 
 def f = namespace(lib.FormTagLib)
 
-f.form(action: "submit", method: "post",name: "jji", autocomplete: "off") {
+f.form(action: "submitForm", method: "post",name: "jji", autocomplete: "off") {
 
     def instance = request.getAttribute("config")
+    def crumbValue = request.getAttribute("crumbValue")
 
 
 
@@ -103,6 +104,8 @@ f.form(action: "submit", method: "post",name: "jji", autocomplete: "off") {
             }
         }
     }
+
+    f.input(type: "hidden", name: "Jenkins-Crumb", value: crumbValue)
 
     f.input(type: "submit", value: "Savessseee", style: "color: #ff00ff")
 
