@@ -21,7 +21,10 @@ public class PingApi extends JenkinsAppApi<PingResponse> {
      * app is valid.
      */
     public boolean sendPing(
-            final String webhookUrl, final String secret, final PipelineLogger pipelineLogger) {
+            final String webhookUrl,
+            final String secret,
+            final PipelineLogger pipelineLogger) {
+
         JenkinsAppPingRequest request = new JenkinsAppPingRequest();
         PingResponse response =
                 sendRequestAsJwt(webhookUrl, secret, request, PingResponse.class, pipelineLogger);

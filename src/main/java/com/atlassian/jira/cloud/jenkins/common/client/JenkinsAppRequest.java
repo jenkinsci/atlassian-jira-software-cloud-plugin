@@ -19,7 +19,8 @@ public abstract class JenkinsAppRequest {
     public enum RequestType {
         EVENT("event"),
         PING("ping"),
-        GATING_STATUS("gatingStatus");
+        GATING_STATUS("gatingStatus"),
+        PLUGIN_CONFIG("pluginConfig");
 
         private final String value;
 
