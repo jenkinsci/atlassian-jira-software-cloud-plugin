@@ -1,6 +1,7 @@
 package com.atlassian.jira.cloud.jenkins.configuration;
 
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudPluginConfig;
+import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
 import com.cloudbees.plugins.credentials.Credentials;
 import hudson.Extension;
 import hudson.model.Describable;
@@ -10,6 +11,8 @@ import hudson.security.csrf.CrumbIssuer;
 import hudson.util.ListBoxModel;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONArray;
+import net.sf.json.JSONException;
+import net.sf.json.JSONObject;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
@@ -30,60 +33,19 @@ public class CustomManagementLink extends ManagementLink implements Describable<
 
     private static final Logger LOGGER = Logger.getLogger(CustomManagementLink.class.getName());
 
-//    private JiraCloudSiteConfig jiraCloudSiteConfig = new JiraCloudSiteConfig();
+    private JiraCloudPluginConfig config;
 
-    private String selectedName;
-    private String banana;
-
-
-    // Method to fill items for the dropdown dynamically
-    public JSONArray doFillNamesItems() {
-        JSONArray items = new JSONArray();
-        // Add logic here to populate dropdown items dynamically
-        items.add("Option 1");
-        items.add("Option 2");
-        items.add("Option 3");
-        return items;
-    }
-
-    // Getter and Setter for selectedName and banana
-    public String getSelectedName() {
-        return selectedName;
-    }
-
-    public void setSelectedName(final String selectedName) {
-        this.selectedName = selectedName;
-    }
-
-    public String getBanana() {
-        return banana;
-    }
-
-    public void setBanana(final String banana) {
-        this.banana = banana;
-    }
-
-//    public static class MyDescriptor extends Descriptor<ManagementLink> {
-//
-//        // Return items for a dropdown or other configurations
-//        public ListBoxModel doFillGoalTypeItems() {
-//            ListBoxModel items = new ListBoxModel();
-//            items.add("Build Goal", "buildGoal");
-//            items.add("SpotBugs goal", "spotBugsGoal");
-//            return items;
-//        }
-//    }
     @Override
     public String getIconFileName() {
         return "gear.png";
     }
-
 
     private Category category;
 
     @DataBoundConstructor
     public CustomManagementLink() {
         super();
+        this.config = JiraCloudPluginConfig.get();
         this.category = Category.MISC;
     }
 
@@ -106,12 +68,6 @@ public class CustomManagementLink extends ManagementLink implements Describable<
             return "Custom Management";
         }
 
-        public ListBoxModel doFillGoalTypeItems() {
-            ListBoxModel items = new ListBoxModel();
-            items.add("Build Goal", "buildGoal");
-            items.add("SpotBugs goal", "spotBugsGoal");
-            return items;
-        }
     }
 
     @Override
@@ -124,47 +80,6 @@ public class CustomManagementLink extends ManagementLink implements Describable<
         return "Custom Management";
     }
 
-    public String credentialsId;
-
-    public String getCredentialsId() {
-        return credentialsId;
-    }
-
-    public void setCredentialsId(final String credentialsId) {
-        this.credentialsId = credentialsId;
-    }
-
-    @RequirePOST
-    public void doSubmitForm(final StaplerRequest req, final StaplerResponse res) throws Descriptor.FormException, IOException, ServletException {
-        // Log the message to the console
-        LOGGER.info("Form save called!!!!!!!!!!!!!.");
-        // Get the instance of JiraCloudPluginConfig
-//        JiraCloudPluginConfig config = JiraCloudPluginConfig.get();
-
-        // Retrieve form data using getParameterMap()
-        Map<String, String[]> parameterMap = req.getParameterMap();
-
-        // Log the form data
-        for (Map.Entry<String, String[]> entry : parameterMap.entrySet()) {
-            String paramName = entry.getKey();
-            String[] paramValues = entry.getValue();
-            for (String paramValue : paramValues) {
-                LOGGER.info(paramName + ": " + paramValue);
-            }
-        }
-
-        LOGGER.info("parameterMap Data: " + parameterMap);
-//
-//        LOGGER.info(String.valueOf(formData));
-//        config.configure(req, formData);
-
-        // Save the updated config
-//        config.save();
-
-        // Redirect back to the configuration page
-        res.sendRedirect2(req.getContextPath() + "/manage/customLink");
-    }
-
     public void doIndex(final StaplerRequest req, final StaplerResponse res) {
         // Get the Jenkins instance
         Jenkins jenkins = Jenkins.getInstanceOrNull();
@@ -174,7 +89,6 @@ public class CustomManagementLink extends ManagementLink implements Describable<
 
             if (crumbIssuer != null) {
                 String crumb = crumbIssuer.getCrumb(req);
-                LOGGER.info("CSRF Crumb Value: " + crumb);
 
                 if (crumb != null) {
                     // Store the crumb value in the session or request attribute
@@ -185,24 +99,8 @@ public class CustomManagementLink extends ManagementLink implements Describable<
                         // Forward to the index page
                         try {
                             //        // Get the instance of JiraCloudPluginConfig
-                            JiraCloudPluginConfig config = JiraCloudPluginConfig.get();
-                            LOGGER.info("CONFIG DATA: " + config.toString());
-                            LOGGER.info("##### config.getSites().get(0).getSite() " + config.getSites().get(0).getSite());
-                            LOGGER.info("##### config.getSites().get(0).getWebhookUrl() " + config.getSites().get(0).getWebhookUrl());
-                            LOGGER.info("##### config.getSites().get(0).getCredentialsId() " + config.getSites().get(0).getCredentialsId());
 
-                            List<Credentials> credentialsList = jenkins.getExtensionList(com.cloudbees.plugins.credentials.Credentials.class);
-
-                            LOGGER.info("Credential ID: " + credentialsList.toString());
-                            for (Credentials credential : credentialsList) {
-                                LOGGER.info("Credential ID: " + credential.toString());
-                                // Add any other details you want to display
-                            }
-
-
-                    //
-                    //        // Pass the JiraCloudPluginConfig instance to the Groovy script
-                            req.setAttribute("config", config);
+                            req.setAttribute("config", this.config);
                             res.setContentType("text/html");
                             req.getView(this, "/com/atlassian/jira/cloud/jenkins/configuration/basic.jelly").forward(req, res);
                         } catch (Exception e) {
@@ -222,17 +120,71 @@ public class CustomManagementLink extends ManagementLink implements Describable<
         }
     }
 
+    public JSONObject transformFormData(final JSONObject formData) throws JSONException {
+        JSONArray sites = new JSONArray();
 
-//    public ListBoxModel doFillCredentialsIdItems(@QueryParameter final String credentialsId) {
-//        return jiraCloudSiteConfig.doFillCredentialsIdItems(credentialsId);
-//    }
+        JSONArray siteNames = formData.getJSONArray("site");
+        JSONArray webhookUrls = formData.getJSONArray("webhookUrl");
+        JSONArray credentialsIds = formData.getJSONArray("credentialsId");
+
+        for (int i = 0; i < siteNames.size(); i++) {
+            JSONObject site = new JSONObject();
+            site.put("site", siteNames.getString(i));
+            site.put("webhookUrl", webhookUrls.getString(i));
+            site.put("includeUser", "false"); // Adding "includeUser" as "false" for each site
+            site.put("credentialsId", credentialsIds.getString(i));
+            sites.add(site);
+        }
+
+        JSONObject transformedFormData = new JSONObject();
+        transformedFormData.put("sites", sites);
+        transformedFormData.put("debugLogging", formData.getBoolean("debugLogging"));
+
+        // Check if "autoBuilds" is a boolean or an object
+        if (formData.has("autoBuilds") && formData.optString("autoBuilds").equals("true")) {
+            JSONObject autoBuilds = new JSONObject();
+            autoBuilds.put("autoBuildsRegex", formData.optString("autoBuildsRegex"));
+            transformedFormData.put("autoBuilds", autoBuilds);
+        }
+
+        // Check if "autoDeployments" is a boolean or an object
+        if (formData.has("autoDeployments") && formData.optString("autoDeployments").equals("true")) {
+            JSONObject autoDeployments = new JSONObject();
+            autoDeployments.put("autoDeploymentsRegex", formData.optString("autoDeploymentsRegex"));
+            transformedFormData.put("autoDeployments", autoDeployments);
+        }
+        return transformedFormData;
+    }
 
     @RequirePOST
-    public void doSaveSite(final StaplerRequest req, final StaplerResponse res) throws ServletException, IOException {
-        LOGGER.info("SAVE SITE HAS BEEN CALLED HURRAY");
+    public void doSaveConfiguration(final StaplerRequest req, final StaplerResponse res) throws ServletException, IOException, Descriptor.FormException {
+        LOGGER.info("SAVE CONFIG HAS BEEN CALLED HURRAY");
+
+        String siteName = req.getParameter("siteName");
+        String webhookUrl = req.getParameter("webhookUrl");
+        String credentialsId = req.getParameter("credentialsId");
+
+        // TODO - IF THESE EXIST ITS A NEW SITE
+        LOGGER.info("Site Name: " + siteName);
+        LOGGER.info("Webhook URL: " + webhookUrl);
+        LOGGER.info("Credentials ID: " + credentialsId);
+
+        // Get the JSONObject from the request body
+        JSONObject formData = req.getSubmittedForm();
+        LOGGER.info(formData.toString());
 
 
-        //
+        LOGGER.info("XXXXXXXXXXXXXX");
+        LOGGER.info(transformFormData(formData).toString());
+
+        JSONObject configData = transformFormData(formData);
+
+//
+//        LOGGER.info(String.valueOf(formData));
+        config.configure(req, configData);
+
+        // Save the updated config
+        config.save();
 
         // Set the HTTP status code to 200 OK
         res.setStatus(HttpServletResponse.SC_OK);
@@ -240,32 +192,5 @@ public class CustomManagementLink extends ManagementLink implements Describable<
         // Complete the response
         res.getOutputStream().close();
     }
-
-    // New method to save the site configuration
-    private void saveSite(final Map<String, String[]> parameterMap) {
-
-
-        LOGGER.info("SAVE SITE HAS BEEN CALLED HURRAY");
-        LOGGER.info("SAVE SITE HAS BEEN CALLED HURRAY");
-        // Extract the required data from the parameter map
-//        String crumb = parameterMap.get("Jenkins-Crumb")[0];
-//        String siteName = parameterMap.get("siteName")[0];
-//        String webhookUrl = parameterMap.get("webhookUrl")[0];
-//        String credentialsId = parameterMap.get("credentialsId")[0];
-
-        // Do whatever you need to do to save the site configuration
-        // For example, you can access the JiraCloudPluginConfig instance and update the configuration
-//        JiraCloudPluginConfig config = JiraCloudPluginConfig.get();
-        // Update the config with the extracted data
-        // config.setSiteName(siteName);
-        // config.setWebhookUrl(webhookUrl);
-        // config.setCredentialsId(credentialsId);
-        // ...
-
-        // Save the updated config
-        // config.save();
-    }
-
-
 
 }

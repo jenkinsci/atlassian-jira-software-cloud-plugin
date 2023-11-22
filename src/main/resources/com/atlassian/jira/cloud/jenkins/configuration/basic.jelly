@@ -3,162 +3,170 @@
     <l:layout permission="${app.ADMINISTER}" title="${%title}" norefresh="true" type="one-column">
         <l:main-panel>
             <link rel="stylesheet" type="text/css" href="${resURL}/plugin/jira-integration/css/manage.css"/>
-            <h1>${%title}</h1>
-            <p>${%description}</p>
+            <h1>Atlassian Software Cloud}</h1>
+            <p>Send build and deployment data to connected Jira Software Cloud sites.</p>
             <div>
-                <f:form method="post" name="jji" action="submit">
-                    <j:if test="${!empty(error)}">
+                <st:if test="${config != null}">
+<!--                    <f:form>-->
+                    <f:form method="post" name="jji" action="saveConfiguration">
+
+                        <!-- EXISTING SITES -->
                         <f:block>
-                            <div class="error">
-                                <p>${%error.registering.site}</p>
-                                <pre>${error}</pre>
+                            <table class="jenkins-table sortable jenkins-!-margin-bottom-0" style="table-layout: fixed;">
+                                <thead>
+                                    <tr>
+                                        <th>Site Name</th>
+                                        <th style="max-width: 70%;">Webhook URL</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <j:set var="sites" value="${config.getSites()}" />
+                                    <j:forEach var="site" items="${sites}" varStatus="loop">
+                                        <f:textbox name="${'sites[' + loop.index + '].site'}" value="${site.site}" />
+                                        <f:textbox name="${'sites[' + loop.index + '].webhookUrl'}" value="${site.webhookUrl}" />
+                                        <f:textbox name="${'sites[' + loop.index + '].credentialsId'}" value="${site.credentialsId}" />
+                                        <!-- Additional inputs for other attributes of JiraCloudSiteConfig -->
+                                    </j:forEach>
+                                        <!--
+                                        <td>
+                                            <a href="#" class="remove-site">
+                                                <l:icon src="symbol-trash" class="icon-sm" tooltip="Remove Site"/>
+                                            </a>
+                                        </td>
+                                        -->
+
+
+                                    <j:forEach var="site" items="${config.getSites()}">
+
+                                    </j:forEach>
+                                </tbody>
+                            </table>
+                        </f:block>
+
+
+                        <!-- ADD/UPDATE SITE DATA -->
+                        <f:block>
+                            <!-- Add Site Button -->
+                            <input type="button" id="showNewSiteForm" value="sssssss Site" onclick="saveConfiguration()" />
+                            <input type="button" id="showNewSiteForm" value="Add Site" onclick="toggleAddNewSite()" />
+                            <div id="addNewSiteContainer" style="display:none;">
+                                <!-- Form fields inside the container -->
+                                <p>Site Name:</p>
+<!--                                <f:textbox name="siteName" value="${site.getSite()}" />-->
+
+                                <p>Webhook URL:</p>
+<!--                                <f:textbox name="webhookUrl" value="${site.getWebhookUrl()}" />-->
+
+                                <p>Secret:</p>
+<!--                                <f:password name="credentialsId" id="credentialsId" value="${site.getCredentialsId()}" />-->
+
+                                <!-- Test Connection Button -->
+                                <button type="button" class="jenkins-button jenkins-button--primary" value="Save Site">Save Site</button>
+                                <!-- Cancel Site Button -->
+                                <button type="button" value="Cancel" onclick="toggleAddNewSite()" class="jenkins-button ml1" >Cancel</button>
                             </div>
                         </f:block>
-                    </j:if>
-                    <f:block>
-                        <st:if test="${config != null}">
-                            <form action="submitForm" method="post">
-                                <j:forEach var="site" items="${config.getSites()}">
-                                    <fieldset>
-                                        <legend>Site Configuration</legend>
-                                        <f:form>
-                                            <p>Site Name:</p>
-                                            <f:textbox name="siteName" value="${site.getSite()}" />
 
-                                            <p>Webhook URL:</p>
-                                            <f:textbox name="webhookUrl" value="${site.getWebhookUrl()}" />
 
-                                            <p>Secret:</p>
-                                            <f:password name="credentialsId" id="credentialsId" value="${site.getCredentialsId()}" />
+                        <!-- CONFIGURATION -->
+                        <f:block>
+                            <!-- Toggle Auto Builds -->
+                            <f:checkbox name="${config.FIELD_NAME_AUTO_BUILDS}" title="${%Send builds automatically}" checked="${config.getAutoBuildsEnabled()}" class="mt1" />
 
-                                            <!-- Test Connection Button -->
-                                            <input type="button" class="test-connection" value="Save Site" />
+                            <!-- Auto Builds Regex -->
+                            <f:textbox name="${config.FIELD_NAME_AUTO_BUILDS_REGEX}" value="${config.getAutoBuildsRegex()}" />
 
-                                        </f:form>
-                                    </fieldset>
-                                </j:forEach>
+                            <!-- Toggle Auto Deployments -->
+                            <f:checkbox name="${config.FIELD_NAME_AUTO_DEPLOYMENTS}" title="${%Send deployments automatically}" checked="${config.getAutoDeploymentsEnabled()}"  class="mt1"/>
 
-                                <!-- Other form inputs -->
+                            <!-- Auto Deployments Regex -->
+                            <f:textbox name="${config.FIELD_NAME_AUTO_DEPLOYMENTS_REGEX}" value="${config.getAutoDeploymentsRegex()}" />
 
-                                <!-- CSRF -->
-                                <f:crumb />
+                            <!-- Enable Debug Logging -->
+                            <f:checkbox name="${config.FIELD_NAME_DEBUG_LOGGING}" title="${%Enable Debug Logging}" checked="${config.getDebugLogging()}" class="mt1" />
 
-                                <!-- Enable Debug Logging -->
-                                <f:checkbox name="${config.FIELD_NAME_DEBUG_LOGGING}" checked="${config.getDebugLogging()}" />
-                                <label>${%Enable Debug Logging}</label><br/>
+                            <!-- CSRF token -->
+                            <f:crumb />
 
-                                <!-- Toggle Auto Builds -->
-                                <f:checkbox name="${config.FIELD_NAME_AUTO_BUILDS}" checked="${config.getAutoBuildsEnabled()}" />
-                                <label>${%Send builds automatically}</label><br/>
+                            <!-- Submit -->
+                            <input type="button" id="showNewSiteForm" value="SSSSSS Site" onclick="saveConfiguration()" />
+                            <button id="saveConfiguration" class="jenkins-button jenkins-button--primary" onclick="saveConfiguration()">Save Configuration</button>
+                        </f:block>
 
-                                <!-- Auto Builds Regex -->
-                                <f:textbox name="${config.FIELD_NAME_AUTO_BUILDS_REGEX}" value="${config.getAutoBuildsRegex()}" />
-
-                                <!-- Toggle Auto Deployments -->
-                                <f:checkbox name="${config.FIELD_NAME_AUTO_DEPLOYMENTS}" checked="${config.getAutoDeploymentsEnabled()}" />
-                                <label>${%Send deployments automatically}</label><br/><br/>
-
-                                <!-- Auto Deployments Regex -->
-                                <f:textbox name="${config.FIELD_NAME_AUTO_DEPLOYMENTS_REGEX}" value="${config.getAutoDeploymentsRegex()}" />
-
-                                <!-- CSRF -->
-                                <f:crumb />
-
-                                <!-- Submit <f:submit /> -->
-                                <input id="saveConfiguration" type="button" class="save-configuration" value="Save Configuration" />
-
-                            </form>
-                        </st:if>
-                    </f:block>
-                </f:form>
+                        <f:submit value="XXXXXXX"/>
+                    </f:form>
+                </st:if>
             </div>
         </l:main-panel>
     </l:layout>
 
 
     <script>
-
-
-document.addEventListener('DOMContentLoaded', function() {
-  var saveConfiguration = document.querySelector('#saveConfiguration');
-
-    var crumb = document.querySelector('input[name="Jenkins-Crumb"]').value;
- // Create payload data
-    var formData = {
-      'Jenkins-Crumb': crumb,
-      'siteName': siteName,
-      'webhookUrl': webhookUrl,
-      'credentialsId': credentialsId
-    };
-
-    fetch("/jenkins/manage/customManagement/saveConfiguration", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Jenkins-Crumb": crumb
-      },
-      credentials: "include"
-    })
-    .then(function(response) {
-      if (response.ok) {
-        return response.json();
-      } else {
-        throw new Error("Error: " + response.status);
+      function toggleAddNewSite() {
+        var addNewSiteContainer = document.getElementById('addNewSiteContainer');
+        var addNewSiteButton = document.getElementById('showNewSiteForm');
+        if (addNewSiteContainer.style.display === 'none') {
+          addNewSiteContainer.style.display = 'block';
+          addNewSiteButton.style.display = 'none';
+        } else {
+          addNewSiteContainer.style.display = 'none';
+          addNewSiteButton.style.display = 'block';
+        }
       }
-    })
-    .then(function(data) {
-      // Handle the response here
-    })
-    .catch(function(error) {
-      // Handle any errors here
-    });
-});
 
 
+      function saveConfiguration() {
+          var crumb = document.querySelector('input[name="Jenkins-Crumb"]').value;
+          var siteName = document.querySelector('input[name="siteName"]').value;
+          var webhookUrl = document.querySelector('input[name="webhookUrl"]').value;
+          var credentialsId = document.querySelector('input[name="credentialsId"]').value;
 
+          // Set the CSRF token in a cookie
+          document.cookie = "Jenkins-Crumb=" + encodeURIComponent(crumb);
 
-document.addEventListener('DOMContentLoaded', function() {
-  var saveButton = document.querySelector('.test-connection');
-  saveButton.addEventListener('click', function() {
-    var crumb = document.querySelector('input[name="Jenkins-Crumb"]').value;
-    var siteName = document.querySelector('input[name="siteName"]').value;
-    var webhookUrl = document.querySelector('input[name="webhookUrl"]').value;
-    var credentialsId = document.querySelector('input[name="credentialsId"]').value;
+          console.log("crumb");
+          console.log(crumb);
 
-    // Set the CSRF token in a cookie
-    document.cookie = "Jenkins-Crumb=" + encodeURIComponent(crumb);
+          // Create payload data
+          var formData = {
+              'Jenkins-Crumb': crumb,
+              'siteName': siteName,
+              'webhookUrl': webhookUrl,
+              'credentialsId': credentialsId
+          };
 
-    // Create payload data
-    var formData = {
-      'Jenkins-Crumb': crumb,
-      'siteName': siteName,
-      'webhookUrl': webhookUrl,
-      'credentialsId': credentialsId
-    };
-
-    fetch("/jenkins/manage/customManagement/saveSite", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Jenkins-Crumb": crumb
-      },
-      credentials: "include"
-    })
-    .then(function(response) {
-      if (response.ok) {
-        return response.json();
-      } else {
-        throw new Error("Error: " + response.status);
+          fetch("/jenkins/manage/customManagement/saveConfiguration", {
+              method: "POST",
+              headers: {
+                  "Content-Type": "application/json",
+                  "Jenkins-Crumb": crumb
+              },
+              credentials: "include"
+          })
+                  .then(function(response) {
+                      if (response.ok) {
+                          return response.json();
+                      } else {
+                          throw new Error("Error: " + response.status);
+                      }
+                  })
+                  .then(function(data) {
+                      // Handle the response here
+                  })
+                  .catch(function(error) {
+                      // Handle any errors here
+                  });
       }
-    })
-    .then(function(data) {
-      // Handle the response here
-    })
-    .catch(function(error) {
-      // Handle any errors here
-    });
-  });
-});
     </script>
+
+    <style>
+        .mt1 {
+            margin-top: 1rem!important;
+        }
+        .mt1 {
+            margin-left: 1rem!important;
+        }
+    </style>
 
 </j:jelly>
