@@ -13,16 +13,18 @@
                         <f:block>
                             <table class="jenkins-table sortable jenkins-!-margin-bottom-0" style="table-layout: fixed; width: 100%;">
                                 <colgroup>
-                                    <col style="width: 20%;" />
-                                    <col style="width: 40%;" />
+                                    <col style="width: 25%;" />
+                                    <col style="width: 35%;" />
                                     <col style="width: 30%;" />
+                                    <col style="width: 10%;" />
                                     <col style="width: 10%;" />
                                 </colgroup>
                                 <thead>
                                     <tr>
-                                        <th style="width: 30%;">Site Name</th>
-                                        <th style="width: 40%;">Webhook URL</th>
-                                        <th style="width: 30%;">Credentials ID</th>
+                                        <th style="width: 25%;">Site Name</th>
+                                        <th style="width: 35%;">Webhook URL</th>
+                                        <th style="width: 30%;">Webhook Secret</th>
+                                        <th style="width: 10%;">Status</th>
                                         <th style="width: 10%;">Actions</th>
                                     </tr>
                                 </thead>
@@ -30,16 +32,34 @@
                                     <j:set var="sites" value="${config.getSites()}" />
                                     <j:forEach var="site" items="${sites}" varStatus="loop">
                                         <tr>
-                                            <td><f:textbox name="${'sites[' + loop.index + '].site'}" value="${site.site}" /></td>
-                                            <td><f:textbox name="${'sites[' + loop.index + '].webhookUrl'}" value="${site.webhookUrl}" /></td>
-                                            <td><f:textbox name="${'sites[' + loop.index + '].credentialsId'}" value="${site.credentialsId}" /></td>
                                             <td>
+                                                <f:textbox name="${'sites[' + loop.index + '].site'}" value="${site.site}" id="siteTextbox_${loop.index}" style="display:none" />
+                                                <span class="siteData" id="siteData_${loop.index}">${site.site}</span>
+                                            </td>
+                                            <td style="white-space: nowrap; text-overflow: ellipsis; overflow: hidden">
+                                                <f:textbox name="${'sites[' + loop.index + '].webhookUrl'}" value="${site.webhookUrl}" id="webhookTextbox_${loop.index}" style="display:none" />
+                                                <span class="webhookData" id="webhookData_${loop.index}">${site.webhookUrl}</span>
+                                            </td>
+                                            <td>
+                                                <f:textbox name="${'sites[' + loop.index + '].credentialsId'}" value="${site.credentialsId}" id="credentialsTextbox_${loop.index}" style="display:none" />
+                                                <span class="credentialsData" id="credentialsData_${loop.index}">******</span>
+                                            </td>
+                                            <td>
+                                                <j:choose>
+                                                    <j:when test="${site.lastConnectionTest == 'SUCCESS'}">
+                                                        <span class="status-badge success">Connected</span>
+                                                    </j:when>
+                                                    <j:when test="${site.lastConnectionTest == 'FAIL'}">
+                                                        <span class="status-badge failure">Failed</span>
+                                                    </j:when>
+                                                </j:choose>
+                                            </td>
+                                            <td class="text-align-right">
+                                                <a href="#" onclick="toggleEdit(${loop.index}); return false;">
+                                                    <l:icon src="symbol-edit" class="icon-sm" tooltip="Edit Site details"/>
+                                                </a>
                                                 <a href="#" onclick="removeSite(${loop.index}); return false;">
                                                     <l:icon src="symbol-trash" class="icon-sm" tooltip="Remove Site"/>
-                                                </a>
-                                                <a href="#">
-                                                    <l:icon src="symbol-cloud" class="icon-sm" tooltip="Test Connection Status"/>
-                                                    lastConnectionTest - ${site.lastConnectionTest}
                                                 </a>
                                             </td>
                                         </tr>
@@ -64,7 +84,7 @@
                                 <f:textbox name="credentialsIdNew" />
 
                                 <!-- Cancel Site Button -->
-                                <button type="button" value="Cancel" onclick="toggleAddNewSite()" class="jenkins-button ml1" >Cancel</button>
+                                <button type="button" value="Cancel" onclick="toggleAddNewSite(); clearNewSiteForm();" class="jenkins-button ml1" >Cancel</button>
                             </div>
                         </f:block>
 
@@ -99,6 +119,30 @@
         </l:main-panel>
     </l:layout>
 
+    <style>
+        .text-align-right {
+            text-align: right;
+        }
+
+        .status-badge {
+            display: inline-block;
+            border-radius: 6px;
+            font-size: 12px;
+            min-width: 90px;
+            text-align: center;
+        }
+
+        .success {
+            color: #fff;
+            background-color: #198754; /* green */
+        }
+
+        .failure {
+            color: #fff;
+            background-color: #dc3545; /* Red */
+        }
+    </style>
+
 
     <script>
       function toggleAddNewSite() {
@@ -111,6 +155,15 @@
           addNewSiteContainer.style.display = 'none';
           addNewSiteButton.style.display = 'block';
         }
+      }
+
+
+      function clearNewSiteForm() {
+        console.log("CLEAR IT OOOOOT");
+          var textboxes = document.querySelectorAll('#addNewSiteContainer input[type="text"]');
+          textboxes.forEach(function (textbox) {
+              textbox.value = '';
+          });
       }
 
 
@@ -160,10 +213,34 @@
       function removeSite(index) {
           var siteRows = document.querySelectorAll('tbody tr');
           if (siteRows.length > index) {
-              siteRows[index].remove(); // Remove the row from the table
+              var siteName = siteRows[index].querySelector('.siteData').textContent; // Get the site name from the span with class siteData
+
+              var confirmation = window.confirm('Are you sure you want to delete site: ' + siteName);
+
+              if (confirmation) {
+                  siteRows[index].remove();
+              }
           }
       }
 
+      function toggleEdit(index) {
+          toggleElement('siteTextbox_' + index);
+          toggleElement('webhookTextbox_' + index);
+          toggleElement('credentialsTextbox_' + index);
+
+          toggleElement('siteData_' + index);
+          toggleElement('webhookData_' + index);
+          toggleElement('credentialsData_' + index);
+      }
+
+      function toggleElement(elementId) {
+          const element = document.getElementById(elementId);
+          if (element.style.display !== 'none') {
+              element.style.display = 'none';
+          } else {
+              element.style.display = 'inline'; // or 'block' depending on the element type
+          }
+      }
     </script>
 
     <style>

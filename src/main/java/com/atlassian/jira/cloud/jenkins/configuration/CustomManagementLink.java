@@ -18,6 +18,7 @@ import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
+import org.kohsuke.stapler.Stapler;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 import org.kohsuke.stapler.interceptor.RequirePOST;
@@ -162,7 +163,6 @@ public class CustomManagementLink extends ManagementLink implements Describable<
             site.put("webhookUrl", webhookUrl);
             site.put("includeUser", "false");
             site.put("credentialsId", credentialsId);
-            site.put("lastConnectionTest", "FAIL");
             sites.add(site);
         }
 
@@ -195,14 +195,14 @@ public class CustomManagementLink extends ManagementLink implements Describable<
     public void doSaveConfiguration(final StaplerRequest req, final StaplerResponse res) throws ServletException, IOException, Descriptor.FormException {
         LOGGER.info("SAVE CONFIG HAS BEEN CALLED HURRAY");
 
-        String siteName = req.getParameter("siteNameNew");
-        String webhookUrl = req.getParameter("webhookUrlNew");
-        String credentialsId = req.getParameter("credentialsIdNew");
+//        String siteName = req.getParameter("siteNameNew");
+//        String webhookUrlNew = req.getParameter("webhookUrlNew");
+//        String credentialsId = req.getParameter("credentialsIdNew");
 
         // TODO - IF THESE EXIST ITS A NEW SITE
-        LOGGER.info("Site Name: " + siteName);
-        LOGGER.info("Webhook URL: " + webhookUrl);
-        LOGGER.info("Credentials ID: " + credentialsId);
+//        LOGGER.info("Site Name: " + siteName);
+//        LOGGER.info("Webhook URL: " + webhookUrl);
+//        LOGGER.info("Credentials ID: " + credentialsId);
 
         // Get the JSONObject from the request body
         JSONObject formData = req.getSubmittedForm();
@@ -215,15 +215,6 @@ public class CustomManagementLink extends ManagementLink implements Describable<
         JSONObject configData = transformFormData(formData);
 
         // Get the 'sites' JSONArray from the transformed form data
-        JSONArray sitesArray = configData.getJSONArray("sites");
-
-// Check if the 'sites' array has elements
-            // Get the JSONObject at index 0
-        JSONObject firstSite = sitesArray.getJSONObject(0);
-
-        // Retrieve the 'webhookUrl' and 'credentialsId' from the first site
-        String webhookUrlAtIndexZero = firstSite.getString("webhookUrl");
-        String credentialsIdAtIndexZero = firstSite.getString("credentialsId");
 
         // 'autoDeployments' object doesn't exist, set default values
         String autoDeploymentsRegex = "";
@@ -258,35 +249,30 @@ public class CustomManagementLink extends ManagementLink implements Describable<
         PipelineLogger pipelineLogger = PipelineLogger.noopInstance();
         // TODO FOR EACH SITE
 
-        LOGGER.warning("webhookUrlAtIndexZero");
-        LOGGER.warning("webhookUrlAtIndexZero");
-        LOGGER.warning("webhookUrlAtIndexZero");
-        LOGGER.warning(webhookUrlAtIndexZero);
-        LOGGER.warning(credentialsIdAtIndexZero);
+        JSONArray sitesArray = configData.getJSONArray("sites");
+        for (int i = 0; i < sitesArray.size(); i++) {
+            JSONObject site = sitesArray.getJSONObject(i);
 
+            String webhookUrl = site.getString("webhookUrl");
+            String credentialsId = site.getString("credentialsId");
 
-        try {
-            PluginConfigResponse response = this.pluginConfigApi.sendConnectionData(webhookUrlAtIndexZero,
-                    credentialsIdAtIndexZero,
-                    "1.1.1.1",
-                    autoBuildsFlag,
-                    autoBuildsRegex,
-                    autoDeploymentsFlag,
-                    autoDeploymentsRegex,
-                    pipelineLogger);
+            try {
+                PluginConfigResponse response = this.pluginConfigApi.sendConnectionData(webhookUrl, credentialsId,
+                        "1.1.1.1", autoBuildsFlag, autoBuildsRegex, autoDeploymentsFlag, autoDeploymentsRegex,
+                        pipelineLogger);
 
+                site.put("lastConnectionTest", "SUCCESS");
 
-            firstSite.put("lastConnectionTest", "SUCCESS");
-
-            LOGGER.warning("OH YESSSS");
-            LOGGER.warning("OH YESSSS");
-            LOGGER.warning(response.toString());
-
-        } catch (Exception e) {
-            LOGGER.warning("OH NOOOOOOOOOO");
-            LOGGER.warning("OH NOOOOOOOOOO");
-            LOGGER.warning("OH NOOOOOOOOOO");
-            LOGGER.warning("OH NOOOOOOOOOO");
+                LOGGER.warning("OH YESSSS");
+                LOGGER.warning("OH YESSSS");
+                LOGGER.warning(response.toString());
+            } catch (Exception e) {
+                site.put("lastConnectionTest", "FAIL");
+                LOGGER.warning("OH NOOOOOOOOOO");
+                LOGGER.warning("OH NOOOOOOOOOO");
+                LOGGER.warning("OH NOOOOOOOOOO");
+                LOGGER.warning("OH NOOOOOOOOOO");
+            }
         }
 //
 //        LOGGER.info(String.valueOf(formData));
@@ -295,11 +281,17 @@ public class CustomManagementLink extends ManagementLink implements Describable<
         // Save the updated config
         config.save();
 
-        // Set the HTTP status code to 200 OK
-        res.setStatus(HttpServletResponse.SC_OK);
 
-        // Complete the response
-        res.getOutputStream().close();
+
+        StaplerResponse response = Stapler.getCurrentResponse();
+        response.sendRedirect("/jenkins/manage/customManagement/");
+
+//
+//        // Set the HTTP status code to 200 OK
+//        res.setStatus(HttpServletResponse.SC_OK);
+//
+//        // Complete the response
+//        res.getOutputStream().close();
     }
 
 }
