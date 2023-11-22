@@ -3,66 +3,65 @@
     <l:layout permission="${app.ADMINISTER}" title="${%title}" norefresh="true" type="one-column">
         <l:main-panel>
             <link rel="stylesheet" type="text/css" href="${resURL}/plugin/jira-integration/css/manage.css"/>
-            <h1>Atlassian Software Cloud}</h1>
+            <h1>Atlassian Software Cloud</h1>
             <p>Send build and deployment data to connected Jira Software Cloud sites.</p>
             <div>
                 <st:if test="${config != null}">
-<!--                    <f:form>-->
-                    <f:form method="post" name="jji" action="saveConfiguration">
+                    <f:form method="post" action="saveConfiguration">
 
                         <!-- EXISTING SITES -->
                         <f:block>
-                            <table class="jenkins-table sortable jenkins-!-margin-bottom-0" style="table-layout: fixed;">
+                            <table class="jenkins-table sortable jenkins-!-margin-bottom-0" style="table-layout: fixed; width: 100%;">
+                                <colgroup>
+                                    <col style="width: 20%;" />
+                                    <col style="width: 40%;" />
+                                    <col style="width: 30%;" />
+                                    <col style="width: 10%;" />
+                                </colgroup>
                                 <thead>
                                     <tr>
-                                        <th>Site Name</th>
-                                        <th style="max-width: 70%;">Webhook URL</th>
-                                        <th>Actions</th>
+                                        <th style="width: 30%;">Site Name</th>
+                                        <th style="width: 40%;">Webhook URL</th>
+                                        <th style="width: 30%;">Credentials ID</th>
+                                        <th style="width: 10%;">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <j:set var="sites" value="${config.getSites()}" />
                                     <j:forEach var="site" items="${sites}" varStatus="loop">
-                                        <f:textbox name="${'sites[' + loop.index + '].site'}" value="${site.site}" />
-                                        <f:textbox name="${'sites[' + loop.index + '].webhookUrl'}" value="${site.webhookUrl}" />
-                                        <f:textbox name="${'sites[' + loop.index + '].credentialsId'}" value="${site.credentialsId}" />
-                                        <!-- Additional inputs for other attributes of JiraCloudSiteConfig -->
-                                    </j:forEach>
-                                        <!--
-                                        <td>
-                                            <a href="#" class="remove-site">
-                                                <l:icon src="symbol-trash" class="icon-sm" tooltip="Remove Site"/>
-                                            </a>
-                                        </td>
-                                        -->
-
-
-                                    <j:forEach var="site" items="${config.getSites()}">
-
+                                        <tr>
+                                            <td><f:textbox name="${'sites[' + loop.index + '].site'}" value="${site.site}" /></td>
+                                            <td><f:textbox name="${'sites[' + loop.index + '].webhookUrl'}" value="${site.webhookUrl}" /></td>
+                                            <td><f:password name="${'sites[' + loop.index + '].credentialsId'}" value="${site.credentialsId}" /></td>
+                                            <td>
+                                                <a href="#" onclick="removeSite(${loop.index}); return false;">
+                                                    <l:icon src="symbol-trash" class="icon-sm" tooltip="Remove Site"/>
+                                                </a>
+                                                <a href="#">
+                                                    <l:icon src="symbol-cloud" class="icon-sm" tooltip="Test Connection Status"/>
+                                                </a>
+                                            </td>
+                                        </tr>
                                     </j:forEach>
                                 </tbody>
                             </table>
                         </f:block>
 
-
                         <!-- ADD/UPDATE SITE DATA -->
                         <f:block>
                             <!-- Add Site Button -->
-                            <input type="button" id="showNewSiteForm" value="sssssss Site" onclick="saveConfiguration()" />
                             <input type="button" id="showNewSiteForm" value="Add Site" onclick="toggleAddNewSite()" />
                             <div id="addNewSiteContainer" style="display:none;">
                                 <!-- Form fields inside the container -->
                                 <p>Site Name:</p>
-<!--                                <f:textbox name="siteName" value="${site.getSite()}" />-->
+                                <f:textbox name="siteNameNew" />
 
                                 <p>Webhook URL:</p>
-<!--                                <f:textbox name="webhookUrl" value="${site.getWebhookUrl()}" />-->
+                                <f:textbox name="webhookUrlNew" />
 
                                 <p>Secret:</p>
-<!--                                <f:password name="credentialsId" id="credentialsId" value="${site.getCredentialsId()}" />-->
+                                <f:password name="credentialsIdNew" />
 
-                                <!-- Test Connection Button -->
-                                <button type="button" class="jenkins-button jenkins-button--primary" value="Save Site">Save Site</button>
                                 <!-- Cancel Site Button -->
                                 <button type="button" value="Cancel" onclick="toggleAddNewSite()" class="jenkins-button ml1" >Cancel</button>
                             </div>
@@ -89,12 +88,10 @@
                             <!-- CSRF token -->
                             <f:crumb />
 
-                            <!-- Submit -->
-                            <input type="button" id="showNewSiteForm" value="SSSSSS Site" onclick="saveConfiguration()" />
-                            <button id="saveConfiguration" class="jenkins-button jenkins-button--primary" onclick="saveConfiguration()">Save Configuration</button>
                         </f:block>
 
-                        <f:submit value="XXXXXXX"/>
+                        <!-- Submit -->
+                        <f:submit value="Save"/>
                     </f:form>
                 </st:if>
             </div>
@@ -158,6 +155,14 @@
                       // Handle any errors here
                   });
       }
+
+      function removeSite(index) {
+          var siteRows = document.querySelectorAll('tbody tr');
+          if (siteRows.length > index) {
+              siteRows[index].remove(); // Remove the row from the table
+          }
+      }
+
     </script>
 
     <style>

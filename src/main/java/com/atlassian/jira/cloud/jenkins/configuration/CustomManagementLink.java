@@ -136,6 +136,28 @@ public class CustomManagementLink extends ManagementLink implements Describable<
             sites.add(site);
         }
 
+        // ADD NEW SITE IF EXISTS
+        String siteName = formData.optString("siteNameNew");
+        String webhookUrl = formData.optString("webhookUrlNew");
+        String credentialsId = formData.optString("credentialsIdNew");
+
+        if (siteName != null && !siteName.isEmpty() &&
+                webhookUrl != null && !webhookUrl.isEmpty() &&
+                credentialsId != null && !credentialsId.isEmpty()) {
+
+            JSONObject site = new JSONObject();
+            site.put("site", siteName);
+            site.put("webhookUrl", webhookUrl);
+            site.put("includeUser", "false");
+            site.put("credentialsId", credentialsId);
+            sites.add(site);
+        }
+
+        // TODO - IF THESE EXIST ITS A NEW SITE
+        LOGGER.info("Site Name: " + siteName);
+        LOGGER.info("Webhook URL: " + webhookUrl);
+        LOGGER.info("Credentials ID: " + credentialsId);
+
         JSONObject transformedFormData = new JSONObject();
         transformedFormData.put("sites", sites);
         transformedFormData.put("debugLogging", formData.getBoolean("debugLogging"));
@@ -160,9 +182,9 @@ public class CustomManagementLink extends ManagementLink implements Describable<
     public void doSaveConfiguration(final StaplerRequest req, final StaplerResponse res) throws ServletException, IOException, Descriptor.FormException {
         LOGGER.info("SAVE CONFIG HAS BEEN CALLED HURRAY");
 
-        String siteName = req.getParameter("siteName");
-        String webhookUrl = req.getParameter("webhookUrl");
-        String credentialsId = req.getParameter("credentialsId");
+        String siteName = req.getParameter("siteNameX");
+        String webhookUrl = req.getParameter("webhookUrlX");
+        String credentialsId = req.getParameter("credentialsIdX");
 
         // TODO - IF THESE EXIST ITS A NEW SITE
         LOGGER.info("Site Name: " + siteName);
