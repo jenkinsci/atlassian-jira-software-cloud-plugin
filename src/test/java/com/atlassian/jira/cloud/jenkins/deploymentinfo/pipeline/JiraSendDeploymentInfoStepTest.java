@@ -61,7 +61,7 @@ public class JiraSendDeploymentInfoStepTest {
         // setup Jira site config
         JiraCloudPluginConfig.get()
                 .setSites(
-                        ImmutableList.of(new JiraCloudSiteConfig(SITE, CLIENT_ID, CREDENTIAL_ID)));
+                        ImmutableList.of(new JiraCloudSiteConfig(SITE, CLIENT_ID, CREDENTIAL_ID, "false")));
 
         // setup credentials
         CredentialsProvider.lookupStores(jenkinsRule.getInstance())

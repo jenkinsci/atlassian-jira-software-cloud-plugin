@@ -49,11 +49,11 @@ public class JiraBuildInfoSenderImplTest {
     public static final String PIPELINE_ID = "my-pipeline-id";
     public static final int BUILD_NUMBER = 1;
     private static final JiraCloudSiteConfig JIRA_SITE_CONFIG =
-            new JiraCloudSiteConfig(SITE, "https://webhook.url?jenkins_server_uuid=foo", "credsId");
+            new JiraCloudSiteConfig(SITE, "https://webhook.url?jenkins_server_uuid=foo", "credsId", "false");
 
     private static final JiraCloudSiteConfig JIRA_SITE_CONFIG2 =
             new JiraCloudSiteConfig(
-                    SITE2, "https://webhook.url?jenkins_server_uuid=bar", "credsId2");
+                    SITE2, "https://webhook.url?jenkins_server_uuid=bar", "credsId2", "false");
 
     @Mock private JiraSiteConfigRetriever siteConfigRetriever;
 

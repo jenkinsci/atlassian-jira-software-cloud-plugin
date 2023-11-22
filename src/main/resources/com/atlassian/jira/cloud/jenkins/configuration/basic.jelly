@@ -32,13 +32,14 @@
                                         <tr>
                                             <td><f:textbox name="${'sites[' + loop.index + '].site'}" value="${site.site}" /></td>
                                             <td><f:textbox name="${'sites[' + loop.index + '].webhookUrl'}" value="${site.webhookUrl}" /></td>
-                                            <td><f:password name="${'sites[' + loop.index + '].credentialsId'}" value="${site.credentialsId}" /></td>
+                                            <td><f:textbox name="${'sites[' + loop.index + '].credentialsId'}" value="${site.credentialsId}" /></td>
                                             <td>
                                                 <a href="#" onclick="removeSite(${loop.index}); return false;">
                                                     <l:icon src="symbol-trash" class="icon-sm" tooltip="Remove Site"/>
                                                 </a>
                                                 <a href="#">
                                                     <l:icon src="symbol-cloud" class="icon-sm" tooltip="Test Connection Status"/>
+                                                    lastConnectionTest - ${site.lastConnectionTest}
                                                 </a>
                                             </td>
                                         </tr>
@@ -60,7 +61,7 @@
                                 <f:textbox name="webhookUrlNew" />
 
                                 <p>Secret:</p>
-                                <f:password name="credentialsIdNew" />
+                                <f:textbox name="credentialsIdNew" />
 
                                 <!-- Cancel Site Button -->
                                 <button type="button" value="Cancel" onclick="toggleAddNewSite()" class="jenkins-button ml1" >Cancel</button>

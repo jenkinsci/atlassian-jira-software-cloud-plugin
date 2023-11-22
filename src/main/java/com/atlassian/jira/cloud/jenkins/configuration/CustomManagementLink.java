@@ -2,6 +2,9 @@ package com.atlassian.jira.cloud.jenkins.configuration;
 
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudPluginConfig;
 import com.atlassian.jira.cloud.jenkins.config.JiraCloudSiteConfig;
+import com.atlassian.jira.cloud.jenkins.logging.PipelineLogger;
+import com.atlassian.jira.cloud.jenkins.pluginConfigApi.PluginConfigApi;
+import com.atlassian.jira.cloud.jenkins.pluginConfigApi.PluginConfigResponse;
 import com.cloudbees.plugins.credentials.Credentials;
 import hudson.Extension;
 import hudson.model.Describable;
@@ -19,10 +22,12 @@ import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 import org.kohsuke.stapler.interceptor.RequirePOST;
 
+import javax.inject.Inject;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -33,6 +38,8 @@ public class CustomManagementLink extends ManagementLink implements Describable<
 
     private static final Logger LOGGER = Logger.getLogger(CustomManagementLink.class.getName());
 
+    private transient PluginConfigApi pluginConfigApi;
+
     private JiraCloudPluginConfig config;
 
     @Override
@@ -41,6 +48,11 @@ public class CustomManagementLink extends ManagementLink implements Describable<
     }
 
     private Category category;
+
+    @Inject // Add this annotation for dependency injection
+    public void setPluginConfigApi(final PluginConfigApi pluginConfigApi) {
+        this.pluginConfigApi = pluginConfigApi;
+    }
 
     @DataBoundConstructor
     public CustomManagementLink() {
@@ -150,6 +162,7 @@ public class CustomManagementLink extends ManagementLink implements Describable<
             site.put("webhookUrl", webhookUrl);
             site.put("includeUser", "false");
             site.put("credentialsId", credentialsId);
+            site.put("lastConnectionTest", "FAIL");
             sites.add(site);
         }
 
@@ -182,9 +195,9 @@ public class CustomManagementLink extends ManagementLink implements Describable<
     public void doSaveConfiguration(final StaplerRequest req, final StaplerResponse res) throws ServletException, IOException, Descriptor.FormException {
         LOGGER.info("SAVE CONFIG HAS BEEN CALLED HURRAY");
 
-        String siteName = req.getParameter("siteNameX");
-        String webhookUrl = req.getParameter("webhookUrlX");
-        String credentialsId = req.getParameter("credentialsIdX");
+        String siteName = req.getParameter("siteNameNew");
+        String webhookUrl = req.getParameter("webhookUrlNew");
+        String credentialsId = req.getParameter("credentialsIdNew");
 
         // TODO - IF THESE EXIST ITS A NEW SITE
         LOGGER.info("Site Name: " + siteName);
@@ -201,6 +214,80 @@ public class CustomManagementLink extends ManagementLink implements Describable<
 
         JSONObject configData = transformFormData(formData);
 
+        // Get the 'sites' JSONArray from the transformed form data
+        JSONArray sitesArray = configData.getJSONArray("sites");
+
+// Check if the 'sites' array has elements
+            // Get the JSONObject at index 0
+        JSONObject firstSite = sitesArray.getJSONObject(0);
+
+        // Retrieve the 'webhookUrl' and 'credentialsId' from the first site
+        String webhookUrlAtIndexZero = firstSite.getString("webhookUrl");
+        String credentialsIdAtIndexZero = firstSite.getString("credentialsId");
+
+        // 'autoDeployments' object doesn't exist, set default values
+        String autoDeploymentsRegex = "";
+        boolean autoDeploymentsFlag = false;
+
+        if (configData.has("autoDeployments")) {
+            JSONObject autoDeployments = configData.getJSONObject("autoDeployments");
+
+            // Get the 'autoDeploymentsRegex' value or an empty string if it doesn't exist
+            autoDeploymentsRegex = autoDeployments.optString("autoDeploymentsRegex", "");
+
+            // Set 'autoDeployments' boolean based on the existence of 'autoDeploymentsRegex'
+            autoDeploymentsFlag = !autoDeploymentsRegex.isEmpty();
+        }
+
+        String autoBuildsRegex = "";
+        boolean autoBuildsFlag = false;
+
+        if (configData.has("autoDeployments")) {
+            JSONObject autoDeployments = configData.getJSONObject("autoBuilds");
+
+            // Get the 'autoDeploymentsRegex' value or an empty string if it doesn't exist
+            autoBuildsRegex = autoDeployments.optString("autoBuildsRegex", "");
+
+            // Set 'autoDeployments' boolean based on the existence of 'autoDeploymentsRegex'
+            autoBuildsFlag = !autoBuildsRegex.isEmpty();
+        }
+
+
+
+        // Now 'webhookUrlAtIndexZero' and 'credentialsIdAtIndexZero' contain the values from the first site
+        PipelineLogger pipelineLogger = PipelineLogger.noopInstance();
+        // TODO FOR EACH SITE
+
+        LOGGER.warning("webhookUrlAtIndexZero");
+        LOGGER.warning("webhookUrlAtIndexZero");
+        LOGGER.warning("webhookUrlAtIndexZero");
+        LOGGER.warning(webhookUrlAtIndexZero);
+        LOGGER.warning(credentialsIdAtIndexZero);
+
+
+        try {
+            PluginConfigResponse response = this.pluginConfigApi.sendConnectionData(webhookUrlAtIndexZero,
+                    credentialsIdAtIndexZero,
+                    "1.1.1.1",
+                    autoBuildsFlag,
+                    autoBuildsRegex,
+                    autoDeploymentsFlag,
+                    autoDeploymentsRegex,
+                    pipelineLogger);
+
+
+            firstSite.put("lastConnectionTest", "SUCCESS");
+
+            LOGGER.warning("OH YESSSS");
+            LOGGER.warning("OH YESSSS");
+            LOGGER.warning(response.toString());
+
+        } catch (Exception e) {
+            LOGGER.warning("OH NOOOOOOOOOO");
+            LOGGER.warning("OH NOOOOOOOOOO");
+            LOGGER.warning("OH NOOOOOOOOOO");
+            LOGGER.warning("OH NOOOOOOOOOO");
+        }
 //
 //        LOGGER.info(String.valueOf(formData));
         config.configure(req, configData);

@@ -143,7 +143,7 @@ public class AutoBuildsAndDeploymentsTest {
                 .setSites(
                         ImmutableList.of(
                                 new JiraCloudSiteConfig(
-                                        SITE, "https://webhook.url", CREDENTIAL_ID)));
+                                        SITE, "https://webhook.url", CREDENTIAL_ID, "false")));
     }
 
     private void givenAutoBuildsEnabled() {

@@ -17,12 +17,12 @@ public class PluginConfigApi extends JenkinsAppApi<PluginConfigResponse> {
     public PluginConfigResponse sendConnectionData(
             final String webhookUrl,
             final String secret,
-            final PipelineLogger pipelineLogger,
             final String ipAddress,
             final Boolean autoBuildsEnabled,
             final String autoBuildRegex,
             final Boolean autoDeploymentsEnabled,
-            final String autoDeploymentsRegex) {
+            final String autoDeploymentsRegex,
+            final PipelineLogger pipelineLogger) {
 
         JenkinsAppPluginConfigRequest request =
                 new JenkinsAppPluginConfigRequest(

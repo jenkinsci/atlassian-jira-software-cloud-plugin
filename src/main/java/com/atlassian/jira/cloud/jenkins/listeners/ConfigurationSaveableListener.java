@@ -28,12 +28,12 @@ public class ConfigurationSaveableListener extends SaveableListener {
         if (!(saveable instanceof com.atlassian.jira.cloud.jenkins.config.JiraCloudPluginConfig)) {
             return;
         }
-        sendPluginConfigData();
+        sendPluginConfigData(file);
     }
 
-    public void sendPluginConfigData() {
+    public void sendPluginConfigData(final XmlFile file) {
         try {
-            // TODO - get webhhokurl/secret from save xml, fire jenkins plugin data event
+            LOGGER.log(Level.INFO, "Error processing XML content", file.asString());
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Error processing XML content", e);
         }

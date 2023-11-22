@@ -103,7 +103,7 @@ public class JiraCloudPluginConfigTest {
     @Test
     public void testGetSiteConfig_whenSiteIsConfigured() {
         // given
-        JiraCloudSiteConfig siteConfig = new JiraCloudSiteConfig(SITE, CLIENT_ID, CREDENTIALS_ID);
+        JiraCloudSiteConfig siteConfig = new JiraCloudSiteConfig(SITE, CLIENT_ID, CREDENTIALS_ID, "false");
         JiraCloudPluginConfig.get().setSites(ImmutableList.of(siteConfig));
 
         // when
@@ -117,7 +117,7 @@ public class JiraCloudPluginConfigTest {
     @Test
     public void testGetSiteConfig_whenSiteIsNotProvided() {
         // given
-        JiraCloudSiteConfig siteConfig = new JiraCloudSiteConfig(SITE, CLIENT_ID, CREDENTIALS_ID);
+        JiraCloudSiteConfig siteConfig = new JiraCloudSiteConfig(SITE, CLIENT_ID, CREDENTIALS_ID, "false");
         JiraCloudPluginConfig.get().setSites(ImmutableList.of(siteConfig));
 
         // when
@@ -131,12 +131,12 @@ public class JiraCloudPluginConfigTest {
     @Test
     public void testGetSiteConfig_whenMultipleSitesConfigured() {
         // given
-        JiraCloudSiteConfig siteConfig1 = new JiraCloudSiteConfig(SITE, CLIENT_ID, CREDENTIALS_ID);
+        JiraCloudSiteConfig siteConfig1 = new JiraCloudSiteConfig(SITE, CLIENT_ID, CREDENTIALS_ID, "false");
         JiraCloudSiteConfig siteConfig2 =
                 new JiraCloudSiteConfig(
                         "foobar.atlassian.net",
                         "https://webhook.url?jenkins_server_uuid=foo",
-                        "credsId");
+                        "credsId", "false");
         JiraCloudPluginConfig.get().setSites(ImmutableList.of(siteConfig1, siteConfig2));
 
         // when
@@ -161,7 +161,7 @@ public class JiraCloudPluginConfigTest {
                         new JiraCloudSiteConfig(
                                 "mysite1.atlassian.net",
                                 "https://webhook.url?jenkins_server_uuid=foo",
-                                "myCreds1"));
+                                "myCreds1", "false"));
     }
 
     @Test
@@ -179,7 +179,7 @@ public class JiraCloudPluginConfigTest {
                         new JiraCloudSiteConfig(
                                 "mysite1.atlassian.net",
                                 "https://webhook.url?jenkins_server_uuid=foo",
-                                "myCreds1"));
+                                "myCreds1", "false"));
     }
 
     @Test
