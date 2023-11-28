@@ -57,7 +57,7 @@ public class FreeStylePostBuildStepTest {
         // setup Jira site config
         JiraCloudPluginConfig.get()
                 .setSites(
-                        ImmutableList.of(new JiraCloudSiteConfig(SITE, CLIENT_ID, CREDENTIAL_ID, "false")));
+                        ImmutableList.of(new JiraCloudSiteConfig(SITE, CLIENT_ID, CREDENTIAL_ID)));
 
         // setup credentials
         CredentialsProvider.lookupStores(jenkinsRule.getInstance())

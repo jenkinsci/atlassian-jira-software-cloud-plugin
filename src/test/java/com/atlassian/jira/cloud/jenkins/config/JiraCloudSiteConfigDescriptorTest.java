@@ -44,7 +44,7 @@ public class JiraCloudSiteConfigDescriptorTest {
         cloudIdResolver = mock(CloudIdResolver.class);
         pingApi = mock(PingApi.class);
         final JiraCloudSiteConfig siteConfig =
-                new JiraCloudSiteConfig(SITE, WEBHOOK_URL, CREDENTIALS_ID, "false");
+                new JiraCloudSiteConfig(SITE, WEBHOOK_URL, CREDENTIALS_ID);
         classUnderTest = (JiraCloudSiteConfig.DescriptorImpl) siteConfig.getDescriptor();
         classUnderTest.setCloudIdResolver(cloudIdResolver);
         classUnderTest.setPingApi(pingApi);

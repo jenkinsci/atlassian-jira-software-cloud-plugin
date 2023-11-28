@@ -28,10 +28,8 @@
                                     </thead>
                                     <tbody>
                                         <j:set var="sites" value="${config.getSites()}" />
-
                                         <j:forEach var="site" items="${sites}" varStatus="loop">
-                                            <!-- hidden values to assign to JSON tree structure-->
-                                            <div name="sites" style="display: none">
+                                            <div name="sites" id="siteData_${loop.index}" style="display: none">
                                                 <f:entry>
                                                     <f:textbox name="site"  value="${site.site}"/>
                                                 </f:entry>
@@ -41,10 +39,13 @@
                                                 <f:entry>
                                                     <f:textbox name="credentialsId"  field="credentialsId" value="${site.credentialsId}"/>
                                                 </f:entry>
+                                                <input type="hidden" name="active" value="true" />
                                                 <span id="credentialsId_${loop.index}">${site.credentialsId}</span>
                                             </div>
                                             <!-- Readonly view of site data -->
-                                            <tr  id="site_${loop.index}">
+                                            <tr id="site_${loop.index}">
+                                                <!-- hidden values to assign to JSON tree structure-->
+
                                                 <td>
                                                     <span class="siteName" id="siteName_${loop.index}">${site.site}</span>
                                                 </td>
@@ -52,7 +53,7 @@
                                                     <span id="webhookUrl_${loop.index}">${site.webhookUrl}</span>
                                                 </td>
                                                 <td class="text-align-right">
-                                                    <a href="#" onclick="toggleEdit(${loop.index}); return false;">
+                                                    <a href="#" class="mr-1" onclick="editSiteData(${loop.index}); return false;">
                                                         <l:icon src="symbol-edit" class="icon-sm" tooltip="Edit Site details"/>
                                                     </a>
                                                     <a href="#" onclick="removeSite(${loop.index}); return false;">
@@ -67,9 +68,8 @@
                         </div>
 
                         <!-- Add Site Button -->
-                        <input type="button" id="showNewSiteForm" value="Add Site" class="mb-2" onclick="toggleAddNewSite()" />
+                        <input type="button" id="showSiteForm" value="Add Site" class="mb-2" onclick="showSiteInputs();" />
 
-                        <!--                        <div id="addNewSiteContainer"   name="sites">-->
                         <div id="addNewSiteContainer" style="position:absolute; top:-10000px" name="sites">
                             <f:section title="Site Connection details">
                                 <div class="help-area">
@@ -91,13 +91,15 @@
                                     <c:select field="credentialsId" />
                                 </f:entry>
 
+                                <input type="hidden" name="active" value="false" />
+
                                 <div>
                                     <!-- Cancel Site Button -->
-                                    <input type="button" value="Cancel" onclick="toggleAddNewSite(); clearNewSiteForm();" />
+                                    <input type="button" value="Cancel" onclick="hideSiteInputs();" />
 
                                     <f:validateButton
                                             title="${%Test Connection}" progress="${%Testing...}"
-                                            method="testConnection" with="webhookUrl,credentialsId" />
+                                            method="testConnection" with="site,webhookUrl,credentialsId" />
                                 </div>
                             </f:section>
                         </div>
@@ -147,8 +149,9 @@
                         <f:crumb />
 
                         <!-- Submit -->
-                        <f:submit value="Save"/>
-                        <span id="pendingChanges" style="display: none">CHANGES</span>
+                        <div class="sticky-save-footer">
+                            <f:submit value="Save"/>
+                        </div>
                     </f:form>
                 </st:if>
             </div>

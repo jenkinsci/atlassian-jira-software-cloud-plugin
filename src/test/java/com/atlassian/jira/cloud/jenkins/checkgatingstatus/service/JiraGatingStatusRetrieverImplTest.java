@@ -37,7 +37,7 @@ public class JiraGatingStatusRetrieverImplTest {
     private static final String SITE = "example.atlassian.com";
     private static final String CLOUD_ID = UUID.randomUUID().toString();
     private static final JiraCloudSiteConfig JIRA_SITE_CONFIG =
-            new JiraCloudSiteConfig(SITE, "clientId", "credsId", "false");
+            new JiraCloudSiteConfig(SITE, "clientId", "credsId");
 
     @Mock private JiraSiteConfigRetriever siteConfigRetriever;
     @Mock private SecretRetriever secretRetriever;
