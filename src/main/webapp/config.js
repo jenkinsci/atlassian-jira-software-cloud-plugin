@@ -1,31 +1,28 @@
 function showSiteInputs() {
     restoreAllTableSites();
-    const addNewSiteContainer = document.getElementById('addNewSiteContainer');
-    const showSiteFormButton = document.getElementById('showSiteForm');
+    const siteDataContainer = document.getElementById('siteDataContainer');
+    const showSiteFormButton = document.getElementById('showSiteButton');
 
-    addNewSiteContainer.style.position = 'inherit';
-    showSiteFormButton.style.display = 'none;';
+    siteDataContainer.style.position = 'inherit';
+    showSiteFormButton.style.display = 'none';
 
     toggleSaveSiteForm("true");
 }
 
-function xx() {
-    console.log('s');
-}
-
 function hideSiteInputs() {
     restoreAllTableSites();
-    const addNewSiteContainer = document.getElementById('addNewSiteContainer');
+    const siteDataContainer = document.getElementById('siteDataContainer');
+    const showSiteFormButton = document.getElementById('showSiteButton');
 
-    addNewSiteContainer.style.position = 'absolute';
+    siteDataContainer.style.position = 'absolute';
+    showSiteFormButton.style.display = 'block';
     toggleSaveSiteForm("false");
 }
 
 function toggleSaveSiteForm(state) {
-    const activeInput = addNewSiteContainer.querySelector('[name="active"]');
+    const activeInput = document.querySelector('#siteDataContainer [name="active"]');
     activeInput.value = state;
 }
-
 
 function removeSite(index) {
     const siteRow = document.getElementById(`site_${index}`);
@@ -63,10 +60,10 @@ function editSiteData(index) {
     const webhookUrl = document.getElementById(`webhookUrl_${index}`).textContent;
     const credentialsId = document.getElementById(`credentialsId_${index}`).textContent;
 
-    const addNewSiteContainer = document.getElementById('addNewSiteContainer');
-    const siteInput = addNewSiteContainer.querySelector('[name="site"]');
-    const webhookUrlInput = addNewSiteContainer.querySelector('[name="webhookUrl"]');
-    const credentialsInput = addNewSiteContainer.querySelector('[name="_.credentialsId"]');
+    const siteDataContainer = document.getElementById('siteDataContainer');
+    const siteInput = siteDataContainer.querySelector('[name="site"]');
+    const webhookUrlInput = siteDataContainer.querySelector('[name="webhookUrl"]');
+    const credentialsInput = siteDataContainer.querySelector('[name="_.credentialsId"]');
     toggleSaveSiteForm("true")
 
     const siteData = document.querySelector('[id^="siteData_' + index + '"] [name="active"]');
@@ -77,7 +74,7 @@ function editSiteData(index) {
     webhookUrlInput.value = webhookUrl;
     credentialsInput.value = credentialsId;
 
-    addNewSiteContainer.style.position = 'inherit';
+    siteDataContainer.style.position = 'inherit';
     hideSiteFromTable(index);
     invokeOnChangeChecks();
 }
@@ -95,3 +92,15 @@ function triggerChangeEvent(element) {
         element.dispatchEvent(new Event('change'));
     }
 }
+
+
+function validateAutoBuildsRegex() {
+    return (new AtlassianRegexTester('autoBuildsRegex', 'autoBuildsRegexTestResponse', 'autoBuildsRegexTestResponse')).test('Please enter the test name of your pipeline step/stage:', []);
+}
+
+function validateAutoDeploymentsRegex() {
+    return (new AtlassianRegexTester('autoDeploymentsRegex', 'autoDeploymentsRegexTestResponse', 'autoDeploymentsRegexTestResponse')).test('Please enter the test name of your pipeline step/stage:', []);
+}
+// function validateDeploymentRegex(input, error, success) {
+//     return (new AtlassianRegexTester(input, error, success)).test('Please enter the test name of your pipeline step/stage:', ['envName']);
+// }

@@ -66,11 +66,6 @@ public class CustomManagementLink extends ManagementLink implements Describable<
         this.pluginConfigApi = pluginConfigApi;
     }
 
-//    @Inject
-//    public void setPluginConfigApi(final PingApi pingApi) {
-//        this.pingApi = pingApi;
-//    }
-
     @Inject
     public void setSecretRetriever(final SecretRetriever secretRetriever) {
         this.secretRetriever = secretRetriever;
@@ -80,17 +75,7 @@ public class CustomManagementLink extends ManagementLink implements Describable<
     public CustomManagementLink() {
         super();
         this.config = JiraCloudPluginConfig.get();
-        this.category = Category.MISC;
-    }
-
-    // TODO - Temporary null return to hide the button during testing
-    @Override
-    public String getIconFileName() {
-        return null;
-    }
-
-    public Category getCategory() {
-        return category;
+        this.category = Category.CONFIGURATION;
     }
 
     @Override
@@ -98,10 +83,108 @@ public class CustomManagementLink extends ManagementLink implements Describable<
         return new DescriptorImpl();
     }
 
+    public Category getCategory() {
+        return category;
+    }
+    @Override
+    public String getIconFileName() {
+        return "info.png";
+    }
+
+    @Override
+    public String getUrlName() {
+        return "atlassian-jira-software-cloud";
+    }
+
+    @Override
+    public String getDisplayName() {
+        return "Atlassian Jira Software Cloud";
+    }
+
+    public void doIndex(final StaplerRequest req, final StaplerResponse res) {
+        try {
+            req.setAttribute("config", this.config);
+            res.setContentType("text/html");
+            req.getView(this, "/com/atlassian/jira/cloud/jenkins/configuration/config.jelly").forward(req, res);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void SendConfigDataToJira(final JSONObject formData) {
+        JSONArray sitesArray = formData.getJSONArray("sites");
+
+        String ipAddress = getIpAddress();
+
+        boolean autoBuildsEnabled = formData.has("autoBuilds");
+        String autoBuildsRegex = autoBuildsEnabled ?
+                formData.getJSONObject("autoBuilds").optString("autoBuildsRegex", "") :
+                "";
+
+        boolean autoDeploymentsEnabled = formData.has("autoDeployments");
+        String autoDeploymentsRegex = autoDeploymentsEnabled ?
+                formData.getJSONObject("autoDeployments").optString("autoDeploymentsRegex", "") :
+                "";
+
+        for (int i = 0; i < sitesArray.size(); i++) {
+            JSONObject site = sitesArray.getJSONObject(i);
+            String webhookUrl = site.getString("webhookUrl");
+            String credentialsId = site.getString("credentialsId");
+
+            final Optional<String> maybeSecret = secretRetriever.getSecretFor(credentialsId);
+
+            try {
+                PluginConfigResponse response = this.pluginConfigApi.sendConnectionData(webhookUrl, maybeSecret.get(),
+                        ipAddress, autoBuildsEnabled, autoBuildsRegex, autoDeploymentsEnabled, autoDeploymentsRegex,
+                        PipelineLogger.noopInstance());
+
+                LOGGER.warning("OH YESSSS");
+            } catch (Exception e) {
+                LOGGER.warning("OH NOOOOOOOOOO");
+            }
+        }
+    }
+
+    // Incomplete sites or Deleted sites are marked with active=false on the client side, we want to remove them from the JSON object
+    private void removeInvalidSites(final JSONObject formData) {
+        if (formData.has("sites")) {
+            Object sites = formData.get("sites");
+            if (sites instanceof JSONArray) {
+                JSONArray sitesArray = (JSONArray) sites;
+
+                for (int i = 0; i < sitesArray.size(); i++) {
+                    JSONObject siteObject = sitesArray.getJSONObject(i);
+                    if (siteObject.has("active") && siteObject.optString("active").equals("false")) {
+                        sitesArray.remove(i);
+                        i--;
+                    }
+                }
+                formData.put("sites", sitesArray);
+            }
+        }
+    }
+
+    @RequirePOST
+    public void doSaveConfiguration(final StaplerRequest req, final StaplerResponse res) throws ServletException, IOException, Descriptor.FormException {
+        JSONObject formData = req.getSubmittedForm();
+        LOGGER.info("PRE TRANSFORM");
+        LOGGER.info(formData.toString());
+        removeInvalidSites(formData);
+        LOGGER.info("POST TRANSFORM");
+        LOGGER.info(formData.toString());
+
+        // Failure to send config data should not stop config save
+        CompletableFuture.runAsync(() -> SendConfigDataToJira(formData));
+
+        config.configure(req, formData);
+        config.save();
+
+        StaplerResponse response = Stapler.getCurrentResponse();
+        response.sendRedirect("/jenkins/manage/atlassian-jira-software-cloud/");
+    }
     // Define the descriptor class
     @Extension
     public static class DescriptorImpl extends Descriptor<CustomManagementLink> {
-
         private transient SecretRetriever secretRetriever;
         private transient PingApi pingApi;
         private transient CloudIdResolver cloudIdResolver;
@@ -116,11 +199,6 @@ public class CustomManagementLink extends ManagementLink implements Describable<
         @Inject
         public void setCloudIdResolver(final CloudIdResolver cloudIdResolver) {
             this.cloudIdResolver = cloudIdResolver;
-        }
-
-        @Override
-        public String getDisplayName() {
-            return "Custom Management";
         }
 
         @RequirePOST
@@ -192,8 +270,7 @@ public class CustomManagementLink extends ManagementLink implements Describable<
                 return FormValidation.error("Failed to retrieve secret");
             }
             try {
-                boolean pingSuccess =
-                        this.pingApi.sendPing(webhookUrl, maybeSecret.get(), PipelineLogger.noopInstance());
+                boolean pingSuccess = pingApi.sendPing(webhookUrl, maybeSecret.get(), PipelineLogger.noopInstance());
                 if (!pingSuccess) {
                     return FormValidation.error(
                             "Connection could not be established. Is the secret correct?");
@@ -208,129 +285,6 @@ public class CustomManagementLink extends ManagementLink implements Describable<
             }
             return FormValidation.ok("Successfully validated site credentials");
         }
-    }
-
-    @Override
-    public String getUrlName() {
-        return "customManagement";
-    }
-
-    @Override
-    public String getDisplayName() {
-        return "Custom Management";
-    }
-
-    private String generateCrumb(final StaplerRequest req) {
-        try {
-            Jenkins jenkins = Jenkins.getInstanceOrNull();
-            if (jenkins == null) {
-                return null;
-            }
-
-            CrumbIssuer crumbIssuer = jenkins.getCrumbIssuer();
-            if (crumbIssuer == null) {
-                return null;
-            }
-
-            return crumbIssuer.getCrumb(req);
-        } catch (Exception e) {
-            LOGGER.warning("Error generating Crumb");
-            return null;
-        }
-    }
-
-    public void doIndex(final StaplerRequest req, final StaplerResponse res) {
-        String crumb = generateCrumb(req);
-        HttpSession session = req.getSession(true);
-
-        if (crumb != null && session != null) {
-            try {
-                // Store the crumb value in the session or request attribute
-                session.setAttribute("Jenkins-Crumb", crumb); // todo do we need both of these?
-                req.setAttribute("crumbValue", crumb); // todo do we need both of these?
-                // pass through the config data to access on client side
-                req.setAttribute("config", this.config);
-                res.setContentType("text/html");
-                req.getView(this, "/com/atlassian/jira/cloud/jenkins/configuration/config.jelly").forward(req, res);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    private void SendConfigDataToJira(final JSONObject formData) {
-        // TODO COULD BE AND OBJECT IF SINGLE ITEM
-        JSONArray sitesArray = formData.getJSONArray("sites");
-
-        String ipAddress = getIpAddress();
-
-        boolean autoBuildsEnabled = formData.has("autoBuilds");
-        String autoBuildsRegex = autoBuildsEnabled ?
-                formData.getJSONObject("autoBuilds").optString("autoBuildsRegex", "") :
-                "";
-
-        boolean autoDeploymentsEnabled = formData.has("autoDeployments");
-        String autoDeploymentsRegex = autoDeploymentsEnabled ?
-                formData.getJSONObject("autoDeployments").optString("autoDeploymentsRegex", "") :
-                "";
-
-        for (int i = 0; i < sitesArray.size(); i++) {
-            JSONObject site = sitesArray.getJSONObject(i);
-            String webhookUrl = site.getString("webhookUrl");
-            String credentialsId = site.getString("credentialsId");
-
-            final Optional<String> maybeSecret = secretRetriever.getSecretFor(credentialsId);
-
-            try {
-                PluginConfigResponse response = this.pluginConfigApi.sendConnectionData(webhookUrl, maybeSecret.get(),
-                        ipAddress, autoBuildsEnabled, autoBuildsRegex, autoDeploymentsEnabled, autoDeploymentsRegex,
-                        PipelineLogger.noopInstance());
-
-                LOGGER.warning("OH YESSSS");
-                LOGGER.warning(response.toString());
-            } catch (Exception e) {
-                LOGGER.warning("OH NOOOOOOOOOO");
-            }
-        }
-    }
-
-    private void removeInvalidSites(final JSONObject formData) {
-        if (formData.has("sites")) {
-            Object sites = formData.get("sites");
-            if (sites instanceof JSONArray) {
-                JSONArray sitesArray = (JSONArray) sites;
-
-                for (int i = 0; i < sitesArray.size(); i++) {
-                    JSONObject siteObject = sitesArray.getJSONObject(i);
-                    if (siteObject.has("active") && siteObject.optString("active").equals("false")) {
-                        sitesArray.remove(i);
-                        i--;
-                    }
-                }
-                formData.put("sites", sitesArray);
-            }
-        }
-    }
-
-    @RequirePOST
-    public void doSaveConfiguration(final StaplerRequest req, final StaplerResponse res) throws ServletException, IOException, Descriptor.FormException {
-        LOGGER.info("SAVE CONFIG HAS BEEN CALLED HURRAY");
-
-        JSONObject formData = req.getSubmittedForm();
-        LOGGER.info("PRE TRANSFORM");
-        LOGGER.info(formData.toString());
-        removeInvalidSites(formData);
-        LOGGER.info("POST TRANSFORM");
-        LOGGER.info(formData.toString());
-
-//        SendConfigDataToJira(formData);
-        CompletableFuture.runAsync(() -> SendConfigDataToJira(formData));
-
-        config.configure(req, formData);
-        config.save();
-
-        StaplerResponse response = Stapler.getCurrentResponse();
-        response.sendRedirect("/jenkins/manage/customManagement/");
     }
 
 }

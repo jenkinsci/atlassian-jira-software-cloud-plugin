@@ -4,6 +4,7 @@
         <l:main-panel>
             <link rel="stylesheet" type="text/css" href="${resURL}/plugin/atlassian-jira-software-cloud/config.css"/>
             <script src="${rootURL}/plugin/atlassian-jira-software-cloud/config.js"/>
+            <script src="${rootURL}/plugin/atlassian-jira-software-cloud/regexTester.js"/>
             <j:set var="descriptor" value="${it.descriptor}" />
             <h1>Atlassian Software Cloud</h1>
             <p>Send build and deployment data to connected Jira Software Cloud sites.</p>
@@ -29,6 +30,7 @@
                                     <tbody>
                                         <j:set var="sites" value="${config.getSites()}" />
                                         <j:forEach var="site" items="${sites}" varStatus="loop">
+                                            <!-- hidden values to assign to JSON tree structure-->
                                             <div name="sites" id="siteData_${loop.index}" style="display: none">
                                                 <f:entry>
                                                     <f:textbox name="site"  value="${site.site}"/>
@@ -44,8 +46,6 @@
                                             </div>
                                             <!-- Readonly view of site data -->
                                             <tr id="site_${loop.index}">
-                                                <!-- hidden values to assign to JSON tree structure-->
-
                                                 <td>
                                                     <span class="siteName" id="siteName_${loop.index}">${site.site}</span>
                                                 </td>
@@ -68,9 +68,9 @@
                         </div>
 
                         <!-- Add Site Button -->
-                        <input type="button" id="showSiteForm" value="Add Site" class="mb-2" onclick="showSiteInputs();" />
+                        <input type="button" id="showSiteButton" value="Add Site" class="mb-2" onclick="showSiteInputs();" />
 
-                        <div id="addNewSiteContainer" style="position:absolute; top:-10000px" name="sites">
+                        <div id="siteDataContainer" style="position:absolute; top:-10000px" name="sites">
                             <f:section title="Site Connection details">
                                 <div class="help-area">
                                     <div class="help" style="display: block;">
@@ -125,7 +125,9 @@
                             <f:entry>
                                 <f:optionalBlock help="/plugin/atlassian-jira-software-cloud/help-autoBuilds.html" name="${config.FIELD_NAME_AUTO_BUILDS}" title="${%Send build data from all pipelines}" checked="${config.getAutoBuildsEnabled()}">
                                     <f:entry title="${%Build stage regex filter: (Optional)}">
-                                        <f:textbox name="${config.FIELD_NAME_AUTO_BUILDS_REGEX}" value="${config.getAutoBuildsRegex()}" />
+                                        <f:textbox id="autoBuildsRegex" name="${config.FIELD_NAME_AUTO_BUILDS_REGEX}" value="${config.getAutoBuildsRegex()}" />
+                                        <input type="button" value="Validate Regex" onclick="validateAutoBuildsRegex();" />
+                                        <p id="autoBuildsRegexTestResponse"></p>
                                     </f:entry>
                                 </f:optionalBlock>
                             </f:entry>
@@ -134,7 +136,9 @@
                             <f:entry>
                                 <f:optionalBlock help="/plugin/atlassian-jira-software-cloud/help-autoDeployments.html" name="${config.FIELD_NAME_AUTO_DEPLOYMENTS}" title="${%Send deployments automatically}" checked="${config.getAutoDeploymentsEnabled()}">
                                     <f:entry title="${%Deployment stage regex filter:}">
-                                        <f:textbox name="${config.FIELD_NAME_AUTO_DEPLOYMENTS_REGEX}" value="${config.getAutoDeploymentsRegex()}" />
+                                        <f:textbox id="autoDeploymentsRegex" name="${config.FIELD_NAME_AUTO_DEPLOYMENTS_REGEX}" value="${config.getAutoDeploymentsRegex()}" />
+                                        <input type="button" value="Validate Regex" onclick="validateAutoDeploymentsRegex();" />
+                                        <p id="autoDeploymentsRegexTestResponse"></p>
                                     </f:entry>
                                 </f:optionalBlock>
                             </f:entry>
@@ -144,9 +148,6 @@
                             <!-- Enable Debug Logging -->
                             <f:checkbox name="${config.FIELD_NAME_DEBUG_LOGGING}" title="${% Collect additional details to debug issues with sent data.}" checked="${config.getDebugLogging()}" />
                         </f:section>
-
-                        <!-- CSRF token -->
-                        <f:crumb />
 
                         <!-- Submit -->
                         <div class="sticky-save-footer">

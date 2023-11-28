@@ -15,7 +15,7 @@
 }
 
 .sticky-save-footer {
-    border-top: 1px #dddddd solid;
+    /*border-top: 1px #dddddd solid;*/
     bottom: -1px;
     margin-top: 2em;
     margin-left: -2em;
@@ -28,4 +28,9 @@
 
 .sticky-save-footer button {
     min-width: 5.625rem;
+}
+
+/* Override Jelly core layout offset issue */
+#page-body #main-panel {
+    max-width: 80vw!important;
 }
