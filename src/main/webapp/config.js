@@ -35,17 +35,17 @@ function removeSite(index) {
     }
 }
 
-function hideSiteFromTable(index) {
+function highlightSiteFromTable(index) {
     const siteElement = document.getElementById(`site_${index}`);
     if (siteElement) {
-        siteElement.style.display = 'none';
+        siteElement.classList.add('selected');
     }
 }
 
 function restoreAllTableSites() {
     const sitesRows = document.querySelectorAll('tr[id^="site_"]');
     sitesRows.forEach(site => {
-        site.style.display = 'table-row';
+        site.classList.remove('selected');
     });
     const siteData = document.querySelectorAll('[id^="siteData_"] [name="active"]');
     siteData.forEach(site => {
@@ -75,7 +75,7 @@ function editSiteData(index) {
     credentialsInput.value = credentialsId;
 
     siteDataContainer.style.position = 'inherit';
-    hideSiteFromTable(index);
+    highlightSiteFromTable(index);
     invokeOnChangeChecks();
 }
 

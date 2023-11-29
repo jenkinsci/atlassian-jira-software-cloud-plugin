@@ -45,7 +45,7 @@
                                                 <span id="credentialsId_${loop.index}">${site.credentialsId}</span>
                                             </div>
                                             <!-- Readonly view of site data -->
-                                            <tr id="site_${loop.index}">
+                                            <tr id="site_${loop.index}" class="site-data-row">
                                                 <td>
                                                     <span class="siteName" id="siteName_${loop.index}">${site.site}</span>
                                                 </td>

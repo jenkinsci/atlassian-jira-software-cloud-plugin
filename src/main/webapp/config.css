@@ -38,3 +38,10 @@ input[type=button].validate-regex-btn {
 #page-body #main-panel {
     max-width: 80vw!important;
 }
+
+tr.site-data-row.selected td {
+    background-color: #EDEDED!important;
+}
+.site-data-row {
+    background-color: #ffffff!important;
+}
