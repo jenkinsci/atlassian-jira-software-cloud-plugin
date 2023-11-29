@@ -12,6 +12,7 @@ import com.atlassian.jira.cloud.jenkins.util.WebhookUrlValidator;
 import com.cloudbees.plugins.credentials.CredentialsMatchers;
 import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
 import com.cloudbees.plugins.credentials.domains.URIRequirementBuilder;
+import com.google.common.annotations.VisibleForTesting;
 import hudson.Extension;
 import hudson.model.Describable;
 import hudson.model.Descriptor;
@@ -52,9 +53,8 @@ public class ConfigManagementLink extends ManagementLink implements Describable<
 
     private static final Logger LOGGER = Logger.getLogger(ConfigManagementLink.class.getName());
     private transient PluginConfigApi pluginConfigApi;
-    private transient PingApi pingApi;
     private transient SecretRetriever secretRetriever;
-    private JiraCloudPluginConfig config;
+    JiraCloudPluginConfig config;
     private Category category;
 
     @Inject
@@ -107,7 +107,8 @@ public class ConfigManagementLink extends ManagementLink implements Describable<
         }
     }
 
-    private void SendConfigDataToJira(final JSONObject formData) {
+    @VisibleForTesting
+    void SendConfigDataToJira(final JSONObject formData) {
         JSONArray sitesArray = formData.getJSONArray("sites");
 
         String ipAddress = getIpAddress();
@@ -142,7 +143,8 @@ public class ConfigManagementLink extends ManagementLink implements Describable<
     }
 
     // Incomplete sites or Deleted sites are marked with active=false on the client side, we want to remove them from the JSON object
-    private void removeInvalidSites(final JSONObject formData) {
+    @VisibleForTesting
+    JSONObject removeInvalidSites(final JSONObject formData) {
         if (formData.has("sites")) {
             Object sites = formData.get("sites");
             if (sites instanceof JSONArray) {
@@ -158,23 +160,24 @@ public class ConfigManagementLink extends ManagementLink implements Describable<
                 formData.put("sites", sitesArray);
             }
         }
+        return formData;
     }
 
     @RequirePOST
     public void doSaveConfiguration(final StaplerRequest req, final StaplerResponse res) throws ServletException, IOException, Descriptor.FormException {
         JSONObject formData = req.getSubmittedForm();
-        removeInvalidSites(formData);
+        JSONObject transformedFormData = removeInvalidSites(formData);
 
         // Failure to send config data should not stop config save
-        CompletableFuture.runAsync(() -> SendConfigDataToJira(formData));
+        CompletableFuture.runAsync(() -> SendConfigDataToJira(transformedFormData));
 
-        config.configure(req, formData);
+        config.configure(req, transformedFormData);
         config.save();
 
         StaplerResponse response = Stapler.getCurrentResponse();
         response.sendRedirect("/jenkins/manage/atlassian-jira-software-cloud/");
     }
-    // Define the descriptor class
+
     @Extension
     public static class DescriptorImpl extends Descriptor<ConfigManagementLink> {
         private transient SecretRetriever secretRetriever;
