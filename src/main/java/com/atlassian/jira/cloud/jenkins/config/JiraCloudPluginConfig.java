@@ -71,9 +71,6 @@ public class JiraCloudPluginConfig extends GlobalConfiguration {
     @Override
     public boolean configure(final StaplerRequest req, final JSONObject json) throws FormException {
         try {
-            log.info("WOW A SAVE EVENT");
-            log.info(json.toString());
-
             setSites(Collections.emptyList());
 
             if (json.containsKey(FIELD_NAME_SITES)) {

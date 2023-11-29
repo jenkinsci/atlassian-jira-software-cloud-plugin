@@ -46,8 +46,6 @@ public class JiraCloudSiteConfig extends AbstractDescribableImpl<JiraCloudSiteCo
     private final String webhookUrl;
     private final String credentialsId;
 
-    // Primary constructor
-// Secondary constructor
     @DataBoundConstructor
     public JiraCloudSiteConfig(
             final String site, final String webhookUrl, final String credentialsId) {
@@ -87,9 +85,6 @@ public class JiraCloudSiteConfig extends AbstractDescribableImpl<JiraCloudSiteCo
     @Override
     public int hashCode() {
         return Objects.hash(site, webhookUrl, credentialsId);
-    }
-
-    public void pingJenkinsJira() {
     }
 
     @Extension
