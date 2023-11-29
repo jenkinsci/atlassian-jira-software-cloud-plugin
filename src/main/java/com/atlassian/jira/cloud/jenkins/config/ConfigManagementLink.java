@@ -1,7 +1,6 @@
-package com.atlassian.jira.cloud.jenkins.configuration;
+package com.atlassian.jira.cloud.jenkins.config;
 
 import com.atlassian.jira.cloud.jenkins.common.client.BadRequestException;
-import com.atlassian.jira.cloud.jenkins.config.JiraCloudPluginConfig;
 import com.atlassian.jira.cloud.jenkins.logging.PipelineLogger;
 import com.atlassian.jira.cloud.jenkins.ping.PingApi;
 import com.atlassian.jira.cloud.jenkins.pluginConfigApi.PluginConfigApi;
@@ -19,9 +18,7 @@ import hudson.model.Descriptor;
 import hudson.model.Item;
 import hudson.model.ManagementLink;
 import org.apache.commons.lang.StringUtils;
-import org.springframework.security.core.userdetails.User;
 import hudson.security.ACL;
-import hudson.security.csrf.CrumbIssuer;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 import jenkins.model.Jenkins;
@@ -35,26 +32,25 @@ import org.kohsuke.stapler.Stapler;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 import org.kohsuke.stapler.interceptor.RequirePOST;
-import org.acegisecurity.Authentication;
-import org.acegisecurity.context.SecurityContextHolder;
 
 
 import javax.inject.Inject;
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 import static com.atlassian.jira.cloud.jenkins.util.IpAddressProvider.getIpAddress;
 import static com.atlassian.jira.cloud.jenkins.Config.ATLASSIAN_API_URL;
 
 
 @Extension
-public class CustomManagementLink extends ManagementLink implements Describable<CustomManagementLink> {
+public class ConfigManagementLink extends ManagementLink implements Describable<ConfigManagementLink> {
 
-    private static final Logger LOGGER = Logger.getLogger(CustomManagementLink.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(ConfigManagementLink.class.getName());
     private transient PluginConfigApi pluginConfigApi;
     private transient PingApi pingApi;
     private transient SecretRetriever secretRetriever;
@@ -72,14 +68,14 @@ public class CustomManagementLink extends ManagementLink implements Describable<
     }
 
     @DataBoundConstructor
-    public CustomManagementLink() {
+    public ConfigManagementLink() {
         super();
         this.config = JiraCloudPluginConfig.get();
         this.category = Category.CONFIGURATION;
     }
 
     @Override
-    public Descriptor<CustomManagementLink> getDescriptor() {
+    public Descriptor<ConfigManagementLink> getDescriptor() {
         return new DescriptorImpl();
     }
 
@@ -167,11 +163,7 @@ public class CustomManagementLink extends ManagementLink implements Describable<
     @RequirePOST
     public void doSaveConfiguration(final StaplerRequest req, final StaplerResponse res) throws ServletException, IOException, Descriptor.FormException {
         JSONObject formData = req.getSubmittedForm();
-        LOGGER.info("PRE TRANSFORM");
-        LOGGER.info(formData.toString());
         removeInvalidSites(formData);
-        LOGGER.info("POST TRANSFORM");
-        LOGGER.info(formData.toString());
 
         // Failure to send config data should not stop config save
         CompletableFuture.runAsync(() -> SendConfigDataToJira(formData));
@@ -184,7 +176,7 @@ public class CustomManagementLink extends ManagementLink implements Describable<
     }
     // Define the descriptor class
     @Extension
-    public static class DescriptorImpl extends Descriptor<CustomManagementLink> {
+    public static class DescriptorImpl extends Descriptor<ConfigManagementLink> {
         private transient SecretRetriever secretRetriever;
         private transient PingApi pingApi;
         private transient CloudIdResolver cloudIdResolver;
@@ -252,6 +244,28 @@ public class CustomManagementLink extends ManagementLink implements Describable<
             return FormValidation.ok();
         }
 
+        public FormValidation doCheckAutoBuildsRegex(@QueryParameter final String value) {
+            try {
+                Pattern.compile(value);
+                return FormValidation.ok();
+            } catch (PatternSyntaxException e) {
+                return FormValidation.error("Invalid regular expression: " + e.getDescription());
+            }
+        }
+
+        public FormValidation doCheckAutoDeploymentsRegex(@QueryParameter final String value) {
+            if (StringUtils.isEmpty(value)) {
+                return FormValidation.error("Deployment regex cannot be empty.");
+            }
+
+            try {
+                Pattern.compile(value);
+                return FormValidation.ok();
+            } catch (PatternSyntaxException e) {
+                return FormValidation.error("Invalid regular expression: " + e.getDescription());
+            }
+        }
+
         @RequirePOST
         public FormValidation doTestConnection(
                 @QueryParameter final String site,
@@ -279,8 +293,6 @@ public class CustomManagementLink extends ManagementLink implements Describable<
                 return FormValidation.error(
                         String.format("Error message from Jira: %s", e.getMessage()));
             } catch (Exception e) {
-                LOGGER.severe("Unexpected error when testing connection!");
-                LOGGER.severe(e.toString());
                 return FormValidation.error("Unexpected error when testing connection!");
             }
             return FormValidation.ok("Successfully validated site credentials");

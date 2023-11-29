@@ -93,7 +93,6 @@ function triggerChangeEvent(element) {
     }
 }
 
-
 function validateAutoBuildsRegex() {
     return (new AtlassianRegexTester('autoBuildsRegex', 'autoBuildsRegexTestResponse', 'autoBuildsRegexTestResponse')).test('Please enter the test name of your pipeline step/stage:', []);
 }
@@ -101,6 +100,3 @@ function validateAutoBuildsRegex() {
 function validateAutoDeploymentsRegex() {
     return (new AtlassianRegexTester('autoDeploymentsRegex', 'autoDeploymentsRegexTestResponse', 'autoDeploymentsRegexTestResponse')).test('Please enter the test name of your pipeline step/stage:', []);
 }
-// function validateDeploymentRegex(input, error, success) {
-//     return (new AtlassianRegexTester(input, error, success)).test('Please enter the test name of your pipeline step/stage:', ['envName']);
-// }

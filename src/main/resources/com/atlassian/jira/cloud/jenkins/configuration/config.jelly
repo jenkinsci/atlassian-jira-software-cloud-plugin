@@ -124,9 +124,9 @@
                             <!-- Auto Builds -->
                             <f:entry>
                                 <f:optionalBlock help="/plugin/atlassian-jira-software-cloud/help-autoBuilds.html" name="${config.FIELD_NAME_AUTO_BUILDS}" title="${%Send build data from all pipelines}" checked="${config.getAutoBuildsEnabled()}">
-                                    <f:entry title="${%Build stage regex filter: (Optional)}">
+                                    <f:entry title="${%Build stage regex filter: (Optional)}" field="autoBuildsRegex">
                                         <f:textbox id="autoBuildsRegex" name="${config.FIELD_NAME_AUTO_BUILDS_REGEX}" value="${config.getAutoBuildsRegex()}" />
-                                        <input type="button" value="Validate Regex" onclick="validateAutoBuildsRegex();" />
+                                        <input type="button" value="Validate Regex" onclick="validateAutoBuildsRegex();" class="validate-regex-btn" />
                                         <p id="autoBuildsRegexTestResponse"></p>
                                     </f:entry>
                                 </f:optionalBlock>
@@ -135,9 +135,9 @@
                             <!-- Auto Deployments -->
                             <f:entry>
                                 <f:optionalBlock help="/plugin/atlassian-jira-software-cloud/help-autoDeployments.html" name="${config.FIELD_NAME_AUTO_DEPLOYMENTS}" title="${%Send deployments automatically}" checked="${config.getAutoDeploymentsEnabled()}">
-                                    <f:entry title="${%Deployment stage regex filter:}">
+                                    <f:entry title="${%Deployment stage regex filter:}" field="autoDeploymentsRegex">
                                         <f:textbox id="autoDeploymentsRegex" name="${config.FIELD_NAME_AUTO_DEPLOYMENTS_REGEX}" value="${config.getAutoDeploymentsRegex()}" />
-                                        <input type="button" value="Validate Regex" onclick="validateAutoDeploymentsRegex();" />
+                                        <input type="button" value="Validate Regex" onclick="validateAutoDeploymentsRegex();" class="validate-regex-btn" />
                                         <p id="autoDeploymentsRegexTestResponse"></p>
                                     </f:entry>
                                 </f:optionalBlock>

@@ -15,7 +15,6 @@
 }
 
 .sticky-save-footer {
-    /*border-top: 1px #dddddd solid;*/
     bottom: -1px;
     margin-top: 2em;
     margin-left: -2em;
@@ -28,6 +27,11 @@
 
 .sticky-save-footer button {
     min-width: 5.625rem;
+}
+
+input[type=button].validate-regex-btn {
+    float: right;
+    margin-top: 0.5em;
 }
 
 /* Override Jelly core layout offset issue */
