@@ -1,32 +1,54 @@
+function toggleElementDisplay(element, display) {
+    if (element) {
+        element.style.display = display;
+    }
+}
+
+function setElementPosition(element, position) {
+    if (element) {
+        element.style.position = position;
+    }
+}
+
+function getSiteDataContainer() {
+    return document.getElementById('siteDataContainer');
+}
+
+function getShowSiteButton() {
+    return document.getElementById('showSiteButton');
+}
+
 function showSiteInputs() {
     restoreAllTableSites();
-    const siteDataContainer = document.getElementById('siteDataContainer');
-    const showSiteFormButton = document.getElementById('showSiteButton');
+    const siteDataContainer = getSiteDataContainer();
+    const showSiteFormButton = getShowSiteButton();
 
-    siteDataContainer.style.position = 'inherit';
-    showSiteFormButton.style.display = 'none';
-
+    setElementPosition(siteDataContainer, 'inherit');
+    toggleElementDisplay(showSiteFormButton, 'none');
     toggleSaveSiteForm("true");
 }
 
 function hideSiteInputs() {
     restoreAllTableSites();
-    const siteDataContainer = document.getElementById('siteDataContainer');
-    const showSiteFormButton = document.getElementById('showSiteButton');
+    const siteDataContainer = getSiteDataContainer();
+    const showSiteFormButton = getShowSiteButton();
 
-    siteDataContainer.style.position = 'absolute';
-    showSiteFormButton.style.display = 'block';
+    setElementPosition(siteDataContainer, 'absolute');
+    toggleElementDisplay(showSiteFormButton, 'block');
     toggleSaveSiteForm("false");
 }
 
 function toggleSaveSiteForm(state) {
     const activeInput = document.querySelector('#siteDataContainer [name="active"]');
-    activeInput.value = state;
+    if (activeInput) {
+        activeInput.value = state;
+    }
 }
 
 function removeSite(index) {
     const siteRow = document.getElementById(`site_${index}`);
     const siteData = document.getElementById(`siteData_${index}`);
+
     if (siteRow) {
         siteRow.remove();
     }
@@ -40,6 +62,18 @@ function highlightSiteFromTable(index) {
     if (siteElement) {
         siteElement.classList.add('selected');
     }
+}
+
+function restoreAllTableSites() {
+    const sitesRows = document.querySelectorAll('tr[id^="site_"]');
+    sitesRows.forEach(site => {
+        site.classList.remove('selected');
+    });
+
+    const siteData = document.querySelectorAll('[id^="siteData_"] [name="active"]');
+    siteData.forEach(site => {
+        site.value = "true";
+    });
 }
 
 function restoreAllTableSites() {
