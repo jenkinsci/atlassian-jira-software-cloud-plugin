@@ -89,13 +89,54 @@ public class ConfigManagementLinkTest {
         assertThat(updatedSitesArray.getJSONObject(1).optString("active")).isEqualTo("true");
     }
 
+    @Test
+    public void testGetRegexFromFormDataWhenKeyExists() {
+        // given
+        JSONObject formData = new JSONObject();
+        JSONObject autoBuilds = new JSONObject();
+        autoBuilds.put("autoBuildsRegex", "buildRegex");
+        formData.put("autoBuilds", autoBuilds);
+
+        // when
+        String regex = classUnderTest.getRegexFromFormData(formData, "autoBuilds");
+
+        // then
+        assertThat(regex).isEqualTo("buildRegex");
+    }
+
+    @Test
+    public void testGetRegexFromFormDataWhenKeyDoesNotExist() {
+        // given
+        JSONObject formData = new JSONObject();
+
+        // when
+        String regex = classUnderTest.getRegexFromFormData(formData, "nonExistingKey");
+
+        // then
+        assertThat(regex).isEmpty();
+    }
+
+    @Test
+    public void testGetRegexFromFormDataWhenKeyExistsButNoRegex() {
+        // given
+        JSONObject formData = new JSONObject();
+        JSONObject autoBuilds = new JSONObject();
+        formData.put("autoBuilds", autoBuilds);
+
+        // when
+        String regex = classUnderTest.getRegexFromFormData(formData, "autoBuilds");
+
+        // then
+        assertThat(regex).isEmpty();
+    }
 
     private void setupMocks() {
         setPluginConfigApi();
     }
 
     private void setPluginConfigApi() {
-        when(pluginConfigApi.sendConnectionData(any(), any(), any(), any(), any(), any(), any(), any())).thenReturn(null);
+        when(pluginConfigApi.sendConnectionData(
+                        any(), any(), any(), any(), any(), any(), any(), any()))
+                .thenReturn(null);
     }
-
 }

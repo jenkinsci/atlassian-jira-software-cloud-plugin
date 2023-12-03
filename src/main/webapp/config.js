@@ -79,9 +79,9 @@ function editSiteData(index) {
     invokeOnChangeChecks();
 }
 
-function invokeOnChangeChecks() {
-    const webHookUrlInput = document.querySelector('[name="webhookUrl"]');
-    const siteInput = document.querySelector('[name="site"]');
+function invokeOnChangeChecks(s, w) {
+    const webHookUrlInput = s || document.querySelector('[name="webhookUrl"]');
+    const siteInput = w || document.querySelector('[name="site"]');
 
     triggerChangeEvent(webHookUrlInput);
     triggerChangeEvent(siteInput);

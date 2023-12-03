@@ -34,7 +34,6 @@ import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 import org.kohsuke.stapler.interceptor.RequirePOST;
 
-
 import javax.inject.Inject;
 import javax.servlet.ServletException;
 import java.io.IOException;
@@ -47,9 +46,9 @@ import java.util.regex.PatternSyntaxException;
 import static com.atlassian.jira.cloud.jenkins.util.IpAddressProvider.getIpAddress;
 import static com.atlassian.jira.cloud.jenkins.Config.ATLASSIAN_API_URL;
 
-
 @Extension
-public class ConfigManagementLink extends ManagementLink implements Describable<ConfigManagementLink> {
+public class ConfigManagementLink extends ManagementLink
+        implements Describable<ConfigManagementLink> {
 
     private static final Logger LOGGER = Logger.getLogger(ConfigManagementLink.class.getName());
     private transient PluginConfigApi pluginConfigApi;
@@ -82,6 +81,7 @@ public class ConfigManagementLink extends ManagementLink implements Describable<
     public Category getCategory() {
         return category;
     }
+
     @Override
     public String getIconFileName() {
         return "info.png";
@@ -101,10 +101,18 @@ public class ConfigManagementLink extends ManagementLink implements Describable<
         try {
             req.setAttribute("config", this.config);
             res.setContentType("text/html");
-            req.getView(this, "/com/atlassian/jira/cloud/jenkins/configuration/config.jelly").forward(req, res);
+            req.getView(this, "/com/atlassian/jira/cloud/jenkins/configuration/config.jelly")
+                    .forward(req, res);
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public String getRegexFromFormData(final JSONObject formData, final String key) {
+        if (!formData.has(key)) {
+            return "";
+        }
+        return formData.getJSONObject(key).optString(key + "Regex", "");
     }
 
     @VisibleForTesting
@@ -114,35 +122,36 @@ public class ConfigManagementLink extends ManagementLink implements Describable<
         String ipAddress = getIpAddress();
 
         boolean autoBuildsEnabled = formData.has("autoBuilds");
-        String autoBuildsRegex = autoBuildsEnabled ?
-                formData.getJSONObject("autoBuilds").optString("autoBuildsRegex", "") :
-                "";
-
         boolean autoDeploymentsEnabled = formData.has("autoDeployments");
-        String autoDeploymentsRegex = autoDeploymentsEnabled ?
-                formData.getJSONObject("autoDeployments").optString("autoDeploymentsRegex", "") :
-                "";
+        String autoBuildsRegex = getRegexFromFormData(formData, "autoBuilds");
+        String autoDeploymentsRegex = getRegexFromFormData(formData, "autoDeployments");
 
-        for (int i = 0; i < sitesArray.size(); i++) {
-            JSONObject site = sitesArray.getJSONObject(i);
+        for (Object siteObject : sitesArray) {
+            JSONObject site = (JSONObject) siteObject;
             String webhookUrl = site.getString("webhookUrl");
             String credentialsId = site.getString("credentialsId");
 
             final Optional<String> maybeSecret = secretRetriever.getSecretFor(credentialsId);
 
             try {
-                PluginConfigResponse response = this.pluginConfigApi.sendConnectionData(webhookUrl, maybeSecret.get(),
-                        ipAddress, autoBuildsEnabled, autoBuildsRegex, autoDeploymentsEnabled, autoDeploymentsRegex,
+                this.pluginConfigApi.sendConnectionData(
+                        webhookUrl,
+                        maybeSecret.get(),
+                        ipAddress,
+                        autoBuildsEnabled,
+                        autoBuildsRegex,
+                        autoDeploymentsEnabled,
+                        autoDeploymentsRegex,
                         PipelineLogger.noopInstance());
 
-                LOGGER.warning("OH YESSSS");
             } catch (Exception e) {
-                LOGGER.warning("OH NOOOOOOOOOO");
+                LOGGER.warning("Failed to send Data to Jenkins for Jira");
             }
         }
     }
 
-    // Incomplete sites or Deleted sites are marked with active=false on the client side, we want to remove them from the JSON object
+    // Incomplete sites or Deleted sites are marked with active=false on the client side, we want to
+    // remove them from the JSON object
     @VisibleForTesting
     JSONObject removeInvalidSites(final JSONObject formData) {
         if (formData.has("sites")) {
@@ -152,7 +161,8 @@ public class ConfigManagementLink extends ManagementLink implements Describable<
 
                 for (int i = 0; i < sitesArray.size(); i++) {
                     JSONObject siteObject = sitesArray.getJSONObject(i);
-                    if (siteObject.has("active") && siteObject.optString("active").equals("false")) {
+                    if (siteObject.has("active")
+                            && siteObject.optString("active").equals("false")) {
                         sitesArray.remove(i);
                         i--;
                     }
@@ -164,7 +174,8 @@ public class ConfigManagementLink extends ManagementLink implements Describable<
     }
 
     @RequirePOST
-    public void doSaveConfiguration(final StaplerRequest req, final StaplerResponse res) throws ServletException, IOException, Descriptor.FormException {
+    public void doSaveConfiguration(final StaplerRequest req, final StaplerResponse res)
+            throws ServletException, IOException, Descriptor.FormException {
         JSONObject formData = req.getSubmittedForm();
         JSONObject transformedFormData = removeInvalidSites(formData);
 
@@ -183,14 +194,17 @@ public class ConfigManagementLink extends ManagementLink implements Describable<
         private transient SecretRetriever secretRetriever;
         private transient PingApi pingApi;
         private transient CloudIdResolver cloudIdResolver;
+
         @Inject
         public void setSecretRetriever(final SecretRetriever secretRetriever) {
             this.secretRetriever = secretRetriever;
         }
+
         @Inject
         public void setPingApi(final PingApi pingApi) {
             this.pingApi = pingApi;
         }
+
         @Inject
         public void setCloudIdResolver(final CloudIdResolver cloudIdResolver) {
             this.cloudIdResolver = cloudIdResolver;
@@ -198,22 +212,20 @@ public class ConfigManagementLink extends ManagementLink implements Describable<
 
         @RequirePOST
         public ListBoxModel doFillCredentialsIdItems(
-                @AncestorInPath final Item item,
-                @QueryParameter final String credentialsId
-        ) {
+                @AncestorInPath final Item item, @QueryParameter final String credentialsId) {
             Jenkins instance = Jenkins.get();
             if (!instance.hasPermission(Jenkins.ADMINISTER)) {
                 return new StandardListBoxModel().includeCurrentValue(credentialsId);
             }
 
             return new StandardListBoxModel()
-                .includeEmptyValue()
-                .includeMatchingAs(
-                    ACL.SYSTEM,
-                    instance,
-                    StringCredentials.class,
-                    URIRequirementBuilder.fromUri(ATLASSIAN_API_URL).build(),
-                    CredentialsMatchers.always());
+                    .includeEmptyValue()
+                    .includeMatchingAs(
+                            ACL.SYSTEM,
+                            instance,
+                            StringCredentials.class,
+                            URIRequirementBuilder.fromUri(ATLASSIAN_API_URL).build(),
+                            CredentialsMatchers.always());
         }
 
         public FormValidation doCheckSite(@QueryParameter final String value) {
@@ -287,7 +299,9 @@ public class ConfigManagementLink extends ManagementLink implements Describable<
                 return FormValidation.error("Failed to retrieve secret");
             }
             try {
-                boolean pingSuccess = pingApi.sendPing(webhookUrl, maybeSecret.get(), PipelineLogger.noopInstance());
+                boolean pingSuccess =
+                        pingApi.sendPing(
+                                webhookUrl, maybeSecret.get(), PipelineLogger.noopInstance());
                 if (!pingSuccess) {
                     return FormValidation.error(
                             "Connection could not be established. Is the secret correct?");
@@ -301,5 +315,4 @@ public class ConfigManagementLink extends ManagementLink implements Describable<
             return FormValidation.ok("Successfully validated site credentials");
         }
     }
-
 }

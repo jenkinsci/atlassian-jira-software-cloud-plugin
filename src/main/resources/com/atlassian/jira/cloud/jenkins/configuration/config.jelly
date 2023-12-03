@@ -12,7 +12,7 @@
                 <st:if test="${config != null}">
                     <f:form method="post" action="saveConfiguration" id="saveConfigurationForm">
                         <!-- EXISTING SITES -->
-                        <div class="mb-2">
+                        <div class="margin-bottom-2em">
                             <f:section title="Connected Sites">
                                 <table class="jenkins-table sortable jenkins-!-margin-bottom-0" style="table-layout: fixed; width: 100%;">
                                     <colgroup>
@@ -53,7 +53,7 @@
                                                     <span id="webhookUrl_${loop.index}">${site.webhookUrl}</span>
                                                 </td>
                                                 <td class="text-align-right">
-                                                    <a href="#" class="mr-1" onclick="editSiteData(${loop.index}); return false;">
+                                                    <a href="#" class="margin-right-1em" onclick="editSiteData(${loop.index}); return false;">
                                                         <l:icon src="symbol-edit" class="icon-sm" tooltip="Edit Site details"/>
                                                     </a>
                                                     <a href="#" onclick="removeSite(${loop.index}); return false;">
@@ -68,7 +68,7 @@
                         </div>
 
                         <!-- Add Site Button -->
-                        <input type="button" id="showSiteButton" value="Add Site" class="mb-2" onclick="showSiteInputs();" />
+                        <input type="button" id="showSiteButton" value="Add Site" class="margin-bottom-2em" onclick="showSiteInputs();" />
 
                         <div id="siteDataContainer" style="position:absolute; top:-10000px" name="sites">
                             <f:section title="Site Connection details">
@@ -110,13 +110,14 @@
                                     <p>To configure what build and deployment data is sent to connected Jira sites:</p>
                                     <ul>
                                         <li>
-                                            Select the options below to send build and deployment data from any pipeline run on this server to all connected Jira sites.(Connected sites will discard any build and deployment data that does not contain issue keys relevant to projects on those sites.)
+                                            Select the options below to send build and deployment data from <span class="or-separator">any pipeline</span> run on this server to <span class="or-separator">all</span> connected Jira sites.
+                                            <div>(Connected sites will discard any build and deployment data that does not contain issue keys relevant to projects on those sites.)</div>
                                         </li>
-                                        <span class="or-seperator">or</span>
+                                        <span class="or-separator">or</span>
                                         <li>
-                                            Add sendJiraBuildInfo and sendJiraDeploymentInfo steps to the Jenkinsfiles of the specific pipelines you’d like to send data to Jira.(This will also allow you to select which Jira sites data is sent to).
+                                            Add sendJiraBuildInfo and sendJiraDeploymentInfo steps to the Jenkinsfiles of <span class="or-separator">the specific pipelines</span> you’d like to send data to Jira.
+                                            <div>(This will also allow you to select which Jira sites data is sent to).</div>
                                         </li>
-
                                     </ul>
                                 </div>
                             </div>
@@ -146,7 +147,7 @@
 
                         <f:section title="Debug Logs">
                             <!-- Enable Debug Logging -->
-                            <f:checkbox name="${config.FIELD_NAME_DEBUG_LOGGING}" title="${% Collect additional details to debug issues with sent data.}" checked="${config.getDebugLogging()}" />
+                            <f:checkbox name="${config.FIELD_NAME_DEBUG_LOGGING}" title="Collect additional details to debug issues with sent data." checked="${config.getDebugLogging()}" />
                         </f:section>
 
                         <!-- Submit -->
