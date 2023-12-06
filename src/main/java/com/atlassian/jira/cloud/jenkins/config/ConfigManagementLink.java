@@ -28,7 +28,6 @@ import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
-import org.kohsuke.stapler.Stapler;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 import org.kohsuke.stapler.interceptor.RequirePOST;
@@ -52,7 +51,7 @@ public class ConfigManagementLink extends ManagementLink
     private static final Logger LOGGER = Logger.getLogger(ConfigManagementLink.class.getName());
     private transient PluginConfigApi pluginConfigApi;
     private transient SecretRetriever secretRetriever;
-    JiraCloudPluginConfig config;
+    private JiraCloudPluginConfig config;
     private Category category;
 
     @Inject
@@ -84,6 +83,7 @@ public class ConfigManagementLink extends ManagementLink
     @Override
     public String getIconFileName() {
         return null;
+        // TODO - use this assert instead when we want to expose link
         // return "notepad.png";
     }
 
@@ -94,9 +94,9 @@ public class ConfigManagementLink extends ManagementLink
 
     @Override
     public String getDisplayName() {
-        // While we want to hide the link we return null
         return null;
-        //        return "Atlassian Jira Software Cloud";
+        // TODO - use this assert instead when we want to expose link
+        // return "Atlassian Jira Software Cloud";
     }
 
     public void doIndex(final StaplerRequest req, final StaplerResponse res) {
@@ -181,7 +181,7 @@ public class ConfigManagementLink extends ManagementLink
         JSONObject formData = req.getSubmittedForm();
         JSONObject transformedFormData = removeInvalidSites(formData);
 
-        // Failure to send config data should not stop config save
+        // Failure to send config data should not stop config save, we also dont need to wait for it to complete
         CompletableFuture.runAsync(() -> SendConfigDataToJira(transformedFormData));
 
         config.configure(req, transformedFormData);
