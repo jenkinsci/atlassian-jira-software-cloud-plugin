@@ -2,19 +2,39 @@ package com.atlassian.jira.cloud.jenkins.config;
 
 import com.atlassian.jira.cloud.jenkins.pluginConfigApi.PluginConfigApi;
 import com.atlassian.jira.cloud.jenkins.util.SecretRetriever;
+import hudson.model.Descriptor;
 import hudson.model.ManagementLink;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.kohsuke.stapler.RequestImpl;
+import org.kohsuke.stapler.Stapler;
+import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.StaplerResponse;
+import org.kohsuke.stapler.WebApp;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
+
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
+import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 public class ConfigManagementLinkTest {
+    @Mock private StaplerRequest mockRequest;
+
+    @Mock private StaplerResponse mockResponse;
+    @Mock private JiraCloudPluginConfig mockedConfig;
 
     @Rule public JenkinsRule jRule = new JenkinsRule();
 
@@ -51,7 +71,10 @@ public class ConfigManagementLinkTest {
         final String displayName = classUnderTest.getDisplayName();
 
         // then
-        assertThat(displayName).isEqualTo("Atlassian Jira Software Cloud");
+        assertThat(displayName).isEqualTo(null);
+
+        // TODO - use this assert instead when we want to expose link
+        // assertThat(displayName).isEqualTo("Atlassian Jira Software Cloud");
     }
 
     @Test
@@ -61,6 +84,18 @@ public class ConfigManagementLinkTest {
 
         // then
         assertThat(urlName).isEqualTo("atlassian-jira-software-cloud");
+    }
+
+    @Test
+    public void testGetIconFileName() {
+        // when
+        final String iconFileName = classUnderTest.getIconFileName();
+
+        // then
+        assertThat(iconFileName).isEqualTo(null);
+
+        // TODO - use this assert instead when we want to expose link
+        // assertThat(iconFileName).isEqualTo("notepad.png");
     }
 
     @Test
@@ -130,8 +165,43 @@ public class ConfigManagementLinkTest {
         assertThat(regex).isEmpty();
     }
 
+    @Test
+    public void testDoIndex() throws IOException {
+
+        // when
+        classUnderTest.doIndex(mockRequest, mockResponse);
+
+        // then
+        verify(mockRequest).setAttribute(eq("config"), any());
+        verify(mockResponse).setContentType("text/html");
+    }
+
+    @Test
+    public void testDoSaveConfiguration()
+            throws ServletException, IOException, Descriptor.FormException {
+        // given
+        JSONObject formData = new JSONObject();
+        formData.put("sites", new JSONArray());
+
+        when(mockRequest.getSubmittedForm()).thenReturn(formData);
+
+        //        PowerMockito.mockStatic(Stapler.class);
+        StaplerResponse mockStaplerResponse = mock(StaplerResponse.class);
+
+        // when
+        classUnderTest.doSaveConfiguration(mockRequest, mockResponse);
+
+        // then
+        verify(mockResponse).sendRedirect("/jenkins/manage/atlassian-jira-software-cloud/");
+    }
+
     private void setupMocks() {
+        MockitoAnnotations.openMocks(this);
         setPluginConfigApi();
+        JiraCloudPluginConfig mockedConfig = Mockito.mock(JiraCloudPluginConfig.class);
+
+        doNothing().when(mockRequest).setAttribute(eq("config"), any());
+        doNothing().when(mockResponse).setContentType(eq("text/html"));
     }
 
     private void setPluginConfigApi() {

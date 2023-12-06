@@ -4,7 +4,6 @@ import com.atlassian.jira.cloud.jenkins.common.client.BadRequestException;
 import com.atlassian.jira.cloud.jenkins.logging.PipelineLogger;
 import com.atlassian.jira.cloud.jenkins.ping.PingApi;
 import com.atlassian.jira.cloud.jenkins.pluginConfigApi.PluginConfigApi;
-import com.atlassian.jira.cloud.jenkins.pluginConfigApi.PluginConfigResponse;
 import com.atlassian.jira.cloud.jenkins.tenantinfo.CloudIdResolver;
 import com.atlassian.jira.cloud.jenkins.util.SecretRetriever;
 import com.atlassian.jira.cloud.jenkins.util.SiteValidator;
@@ -84,7 +83,8 @@ public class ConfigManagementLink extends ManagementLink
 
     @Override
     public String getIconFileName() {
-        return "info.png";
+        return null;
+        // return "notepad.png";
     }
 
     @Override
@@ -94,7 +94,9 @@ public class ConfigManagementLink extends ManagementLink
 
     @Override
     public String getDisplayName() {
-        return "Atlassian Jira Software Cloud";
+        // While we want to hide the link we return null
+        return null;
+        //        return "Atlassian Jira Software Cloud";
     }
 
     public void doIndex(final StaplerRequest req, final StaplerResponse res) {
@@ -104,7 +106,7 @@ public class ConfigManagementLink extends ManagementLink
             req.getView(this, "/com/atlassian/jira/cloud/jenkins/configuration/config.jelly")
                     .forward(req, res);
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.severe(e.getMessage());
         }
     }
 
@@ -185,8 +187,7 @@ public class ConfigManagementLink extends ManagementLink
         config.configure(req, transformedFormData);
         config.save();
 
-        StaplerResponse response = Stapler.getCurrentResponse();
-        response.sendRedirect("/jenkins/manage/atlassian-jira-software-cloud/");
+        res.sendRedirect("/jenkins/manage/atlassian-jira-software-cloud/");
     }
 
     @Extension
