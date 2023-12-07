@@ -140,7 +140,6 @@ public class JiraCloudPluginConfigTest {
         JiraCloudPluginConfig.get().setSites(ImmutableList.of(siteConfig1, siteConfig2));
 
         // when
-        // when
         final Optional<JiraCloudSiteConfig> config =
                 JiraCloudPluginConfig.getJiraCloudSiteConfig(SITE);
 

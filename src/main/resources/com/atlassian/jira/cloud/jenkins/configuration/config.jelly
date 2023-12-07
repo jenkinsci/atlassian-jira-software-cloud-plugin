@@ -1,0 +1,8 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:l="/lib/layout" >
+    <l:layout permission="${app.ADMINISTER}" title="${%title}" norefresh="true" type="one-column">
+        <l:main-panel>
+            <h1>Atlassian Software Cloud</h1>
+        </l:main-panel>
+    </l:layout>
+</j:jelly>
