@@ -53,6 +53,12 @@ public class ConfigManagementLink extends ManagementLink
     private transient SecretRetriever secretRetriever;
     private JiraCloudPluginConfig config;
     private Category category;
+    private static final String AUTO_BUILDS = "autoBuilds";
+    private static final String AUTO_DEPLOYMENTS = "autoDeployments";
+    private static final String WEBHOOK_URL = "webhookUrl";
+    private static final String CREDENTIALS_ID = "credentialsId";
+    private static final String SITES = "sites";
+    private static final String ACTIVE = "active";
 
     @Inject
     public void setPluginConfigApi(final PluginConfigApi pluginConfigApi) {
@@ -118,20 +124,19 @@ public class ConfigManagementLink extends ManagementLink
     }
 
     @VisibleForTesting
-    void SendConfigDataToJira(final JSONObject formData) {
-        JSONArray sitesArray = formData.getJSONArray("sites");
-
+    private void sendConfigDataToJira(final JSONObject formData) {
+        JSONArray sitesArray = formData.getJSONArray(SITES);
         String ipAddress = getIpAddress();
 
-        boolean autoBuildsEnabled = formData.has("autoBuilds");
-        boolean autoDeploymentsEnabled = formData.has("autoDeployments");
-        String autoBuildsRegex = getRegexFromFormData(formData, "autoBuilds");
-        String autoDeploymentsRegex = getRegexFromFormData(formData, "autoDeployments");
+        boolean autoBuildsEnabled = formData.has(AUTO_BUILDS);
+        boolean autoDeploymentsEnabled = formData.has(AUTO_DEPLOYMENTS);
+        String autoBuildsRegex = getRegexFromFormData(formData, AUTO_BUILDS);
+        String autoDeploymentsRegex = getRegexFromFormData(formData, AUTO_DEPLOYMENTS);
 
         for (Object siteObject : sitesArray) {
             JSONObject site = (JSONObject) siteObject;
-            String webhookUrl = site.getString("webhookUrl");
-            String credentialsId = site.getString("credentialsId");
+            String webhookUrl = site.getString(WEBHOOK_URL);
+            String credentialsId = site.getString(CREDENTIALS_ID);
 
             final Optional<String> maybeSecret = secretRetriever.getSecretFor(credentialsId);
 
@@ -156,20 +161,20 @@ public class ConfigManagementLink extends ManagementLink
     // remove them from the JSON object
     @VisibleForTesting
     JSONObject removeInvalidSites(final JSONObject formData) {
-        if (formData.has("sites")) {
-            Object sites = formData.get("sites");
+        if (formData.has(SITES)) {
+            Object sites = formData.get(SITES);
             if (sites instanceof JSONArray) {
                 JSONArray sitesArray = (JSONArray) sites;
 
                 for (int i = 0; i < sitesArray.size(); i++) {
                     JSONObject siteObject = sitesArray.getJSONObject(i);
-                    if (siteObject.has("active")
-                            && siteObject.optString("active").equals("false")) {
+                    if (siteObject.has(ACTIVE)
+                            && siteObject.optString(ACTIVE).equals("false")) {
                         sitesArray.remove(i);
                         i--;
                     }
                 }
-                formData.put("sites", sitesArray);
+                formData.put(SITES, sitesArray);
             }
         }
         return formData;
@@ -182,11 +187,15 @@ public class ConfigManagementLink extends ManagementLink
         JSONObject transformedFormData = removeInvalidSites(formData);
 
         // Failure to send config data should not stop config save, we also dont need to wait for it to complete
-        CompletableFuture.runAsync(() -> SendConfigDataToJira(transformedFormData));
+        CompletableFuture.runAsync(() -> sendConfigDataToJira(transformedFormData));
 
-        config.configure(req, transformedFormData);
-        config.save();
-
+        try {
+            config.configure(req, transformedFormData);
+            config.save();
+        } catch (Exception e) {
+            LOGGER.severe("Failed to save data - " + e.getMessage());
+        }
+        // TODO - decorate the redirect URL with success/failure status
         res.sendRedirect("/jenkins/manage/atlassian-jira-software-cloud/");
     }
 
