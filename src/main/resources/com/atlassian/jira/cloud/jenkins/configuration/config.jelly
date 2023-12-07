@@ -53,7 +53,7 @@
                                                     <span id="webhookUrl_${loop.index}">${site.webhookUrl}</span>
                                                 </td>
                                                 <td class="text-align-right">
-                                                    <a href="#" class="margin-right-1em" onclick="editSiteData(${loop.index}); return false;">
+                                                    <a href="#" class="margin-right-1em" onclick="editSite(${loop.index}); return false;">
                                                         <l:icon src="symbol-edit" class="icon-sm" tooltip="Edit Site details"/>
                                                     </a>
                                                     <a href="#" onclick="removeSite(${loop.index}); return false;">

@@ -1,136 +1,121 @@
-function toggleElementDisplay(element, display) {
+const toggleElementDisplay = (element, display) => {
     if (element) {
         element.style.display = display;
     }
-}
+};
 
-function setElementPosition(element, position) {
+const setElementPosition = (element, position) => {
     if (element) {
         element.style.position = position;
     }
-}
+};
 
-function getSiteDataContainer() {
-    return document.getElementById('siteDataContainer');
-}
+const getSiteDataContainer = () => document.getElementById('siteDataContainer');
+const getShowSiteButton = () => document.getElementById('showSiteButton');
 
-function getShowSiteButton() {
-    return document.getElementById('showSiteButton');
-}
+const restoreTableSiteData = () => {
+    const sitesRows = document.querySelectorAll('tr[id^="site_"]');
+    sitesRows.forEach(site => {
+        site.classList.remove('selected');
+    });
 
-function showSiteInputs() {
-    restoreAllTableSites();
+    const siteData = document.querySelectorAll('[id^="siteData_"] [name="active"]');
+    siteData.forEach(site => {
+        site.value = "true";
+    });
+};
+
+const showSiteInputs = () => {
+    restoreTableSiteData();
     const siteDataContainer = getSiteDataContainer();
     const showSiteFormButton = getShowSiteButton();
 
     setElementPosition(siteDataContainer, 'inherit');
     toggleElementDisplay(showSiteFormButton, 'none');
     toggleSaveSiteForm("true");
-}
+};
 
-function hideSiteInputs() {
-    restoreAllTableSites();
+const hideSiteInputs = () => {
+    restoreTableSiteData();
     const siteDataContainer = getSiteDataContainer();
     const showSiteFormButton = getShowSiteButton();
 
     setElementPosition(siteDataContainer, 'absolute');
     toggleElementDisplay(showSiteFormButton, 'block');
     toggleSaveSiteForm("false");
-}
+};
 
-function toggleSaveSiteForm(state) {
+const toggleSaveSiteForm = (state) => {
     const activeInput = document.querySelector('#siteDataContainer [name="active"]');
     if (activeInput) {
         activeInput.value = state;
     }
-}
+};
 
-function removeSite(index) {
+// This just removes the data from the form, actual deletion is on save.
+const removeSite = (index) => {
     const siteRow = document.getElementById(`site_${index}`);
     const siteData = document.getElementById(`siteData_${index}`);
+    if(siteRow) siteRow.remove();
+    if(siteData) siteData.remove();
+};
 
-    if (siteRow) {
-        siteRow.remove();
-    }
-    if (siteData) {
-        siteData.remove();
-    }
-}
-
-function highlightSiteFromTable(index) {
+const highlightSelectedSiteFromTable = (index) => {
     const siteElement = document.getElementById(`site_${index}`);
     if (siteElement) {
         siteElement.classList.add('selected');
     }
-}
+};
 
-function restoreAllTableSites() {
-    const sitesRows = document.querySelectorAll('tr[id^="site_"]');
-    sitesRows.forEach(site => {
-        site.classList.remove('selected');
-    });
+const editSite = (index) => {
+    const siteDataContainer = document.getElementById('siteDataContainer');
+    restoreTableSiteData();
+    populateSiteForm(index);
+    toggleSaveSiteForm("true");
 
-    const siteData = document.querySelectorAll('[id^="siteData_"] [name="active"]');
-    siteData.forEach(site => {
-        site.value = "true";
-    });
-}
+    const selectedRowDataElement = document.querySelector('[id^="siteData_' + index + '"] [name="active"]');
+    selectedRowDataElement.value = "false";
 
-function restoreAllTableSites() {
-    const sitesRows = document.querySelectorAll('tr[id^="site_"]');
-    sitesRows.forEach(site => {
-        site.classList.remove('selected');
-    });
-    const siteData = document.querySelectorAll('[id^="siteData_"] [name="active"]');
-    siteData.forEach(site => {
-        site.value = "true";
-    });
-}
+    siteDataContainer.style.position = 'inherit';
+    highlightSelectedSiteFromTable(index);
+    invokeOnChangeChecks();
+};
 
-function editSiteData(index) {
-    restoreAllTableSites();
-
+const populateSiteForm = (index) => {
+    // Get selected row data
     const siteName = document.getElementById(`siteName_${index}`).textContent;
     const webhookUrl = document.getElementById(`webhookUrl_${index}`).textContent;
     const credentialsId = document.getElementById(`credentialsId_${index}`).textContent;
 
+    // get site form elements
     const siteDataContainer = document.getElementById('siteDataContainer');
     const siteInput = siteDataContainer.querySelector('[name="site"]');
     const webhookUrlInput = siteDataContainer.querySelector('[name="webhookUrl"]');
     const credentialsInput = siteDataContainer.querySelector('[name="_.credentialsId"]');
-    toggleSaveSiteForm("true")
 
-    const siteData = document.querySelector('[id^="siteData_' + index + '"] [name="active"]');
-    console.log(siteData);
-    siteData.value = "false";
-
+    // set site form values
     siteInput.value = siteName;
     webhookUrlInput.value = webhookUrl;
     credentialsInput.value = credentialsId;
-
-    siteDataContainer.style.position = 'inherit';
-    highlightSiteFromTable(index);
-    invokeOnChangeChecks();
 }
 
-function invokeOnChangeChecks(s, w) {
-    const webHookUrlInput = s || document.querySelector('[name="webhookUrl"]');
-    const siteInput = w || document.querySelector('[name="site"]');
+// This forces the serverside validation event after we populate the site form
+const invokeOnChangeChecks = () => {
+    const webHookUrlInput = document.querySelector('[name="webhookUrl"]');
+    const siteInput = document.querySelector('[name="site"]');
 
     triggerChangeEvent(webHookUrlInput);
     triggerChangeEvent(siteInput);
-}
+};
 
-function triggerChangeEvent(element) {
-    if (element) {
-        element.dispatchEvent(new Event('change'));
-    }
-}
+const triggerChangeEvent = (element) => {
+    element && element.dispatchEvent(new Event('change'));
+};
 
-function validateAutoBuildsRegex() {
+const validateAutoBuildsRegex = () => {
     return (new AtlassianRegexTester('autoBuildsRegex', 'autoBuildsRegexTestResponse', 'autoBuildsRegexTestResponse')).test('Please enter the test name of your pipeline step/stage:', []);
-}
+};
 
-function validateAutoDeploymentsRegex() {
+const validateAutoDeploymentsRegex = () => {
     return (new AtlassianRegexTester('autoDeploymentsRegex', 'autoDeploymentsRegexTestResponse', 'autoDeploymentsRegexTestResponse')).test('Please enter the test name of your pipeline step/stage:', []);
-}
+};

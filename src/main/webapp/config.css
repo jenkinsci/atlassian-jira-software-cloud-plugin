@@ -46,12 +46,3 @@ tr.site-data-row.selected td {
 .site-data-row {
     background-color: #ffffff!important;
 }
-
-.line-break-after:after {
-    content: "\A"; /* Unicode for new line */
-    white-space: pre;
-}
-
-.line-break {
-     white-space: pre;
- }
