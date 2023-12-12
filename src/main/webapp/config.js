@@ -21,7 +21,7 @@ const restoreTableSiteData = () => {
 
     const siteData = document.querySelectorAll('[id^="siteData_"] [name="active"]');
     siteData.forEach(site => {
-        site.value = "true";
+        site.value = 'true';
     });
 };
 
@@ -32,7 +32,7 @@ const showSiteInputs = () => {
 
     setElementPosition(siteDataContainer, 'inherit');
     toggleElementDisplay(showSiteFormButton, 'none');
-    toggleSaveSiteForm("true");
+    toggleSaveSiteForm('true');
 };
 
 const hideSiteInputs = () => {
@@ -42,7 +42,7 @@ const hideSiteInputs = () => {
 
     setElementPosition(siteDataContainer, 'absolute');
     toggleElementDisplay(showSiteFormButton, 'block');
-    toggleSaveSiteForm("false");
+    toggleSaveSiteForm('false');
 };
 
 const toggleSaveSiteForm = (state) => {
@@ -71,10 +71,10 @@ const editSite = (index) => {
     const siteDataContainer = document.getElementById('siteDataContainer');
     restoreTableSiteData();
     populateSiteForm(index);
-    toggleSaveSiteForm("true");
+    toggleSaveSiteForm('true');
 
     const selectedRowDataElement = document.querySelector('[id^="siteData_' + index + '"] [name="active"]');
-    selectedRowDataElement.value = "false";
+    selectedRowDataElement.value = 'false';
 
     siteDataContainer.style.position = 'inherit';
     highlightSelectedSiteFromTable(index);
