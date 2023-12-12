@@ -14,6 +14,23 @@
     margin-right: 1em;
 }
 
+.site-table {
+    table-layout: fixed;
+    width: 100%;
+}
+
+.col-25 {
+    width: 25%;
+}
+
+.col-35 {
+    width: 35%;
+}
+
+.col-10 {
+    width: 10%;
+}
+
 .sticky-save-footer {
     position: sticky;
     bottom: -1px;

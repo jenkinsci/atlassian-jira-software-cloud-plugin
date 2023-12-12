@@ -1,7 +1,12 @@
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:l="/lib/layout" xmlns:f="/lib/form" xmlns:c="/lib/credentials">
+
     <l:layout permission="${app.ADMINISTER}" title="${%title}" norefresh="true" type="one-column">
         <l:main-panel>
+            <link rel="stylesheet" type="text/css" href="${resURL}/plugin/atlassian-jira-software-cloud/config.css"/>
+            <script src="${resURL}/plugin/atlassian-jira-software-cloud/config.js"/>
+            <script src="${resURL}/plugin/atlassian-jira-software-cloud/regexTester.js"/>
+
             <h1>Atlassian Software Cloud</h1>
             <p>Send build and deployment data to connected Jira Software Cloud sites.</p>
             <div>
@@ -10,17 +15,12 @@
                         <!-- EXISTING SITES -->
                         <div class="margin-bottom-2em">
                             <f:section title="Connected Sites">
-                                <table class="jenkins-table sortable jenkins-!-margin-bottom-0" style="table-layout: fixed; width: 100%;">
-                                    <colgroup>
-                                        <col style="width: 45%;" />
-                                        <col style="width: 45%;" />
-                                        <col style="width: 10%;" />
-                                    </colgroup>
+                                <table class="jenkins-table sortable jenkins-!-margin-bottom-0 site-table">
                                     <thead>
                                         <tr>
-                                            <th style="width: 25%;">Site Name</th>
-                                            <th style="width: 35%;">Webhook URL</th>
-                                            <th style="width: 10%;">Actions</th>
+                                            <th class="col-25">Site Name</th>
+                                            <th class="col-35">Webhook URL</th>
+                                            <th class="col-10">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody>
