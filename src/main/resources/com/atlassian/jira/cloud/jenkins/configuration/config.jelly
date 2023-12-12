@@ -2,10 +2,6 @@
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:l="/lib/layout" xmlns:f="/lib/form" xmlns:c="/lib/credentials">
     <l:layout permission="${app.ADMINISTER}" title="${%title}" norefresh="true" type="one-column">
         <l:main-panel>
-            <link rel="stylesheet" type="text/css" href="${resURL}/plugin/atlassian-jira-software-cloud/config.css"/>
-            <script src="${rootURL}/plugin/atlassian-jira-software-cloud/config.js"/>
-            <script src="${rootURL}/plugin/atlassian-jira-software-cloud/regexTester.js"/>
-            <j:set var="descriptor" value="${it.descriptor}" />
             <h1>Atlassian Software Cloud</h1>
             <p>Send build and deployment data to connected Jira Software Cloud sites.</p>
             <div>
@@ -159,5 +155,4 @@
             </div>
         </l:main-panel>
     </l:layout>
-
 </j:jelly>
