@@ -27,7 +27,7 @@
                                         <j:set var="sites" value="${config.getSites()}" />
                                         <j:forEach var="site" items="${sites}" varStatus="loop">
                                             <!-- hidden values to assign to JSON tree structure-->
-                                            <div name="sites" id="siteData_${loop.index}" style="display: none">
+                                            <div name="sites" id="siteData_${loop.index}" class="hidden">
                                                 <f:entry>
                                                     <f:textbox name="site"  value="${site.site}"/>
                                                 </f:entry>
@@ -45,7 +45,7 @@
                                                 <td>
                                                     <span class="siteName" id="siteName_${loop.index}">${site.site}</span>
                                                 </td>
-                                                <td style="white-space: nowrap; text-overflow: ellipsis; overflow: hidden">
+                                                <td>
                                                     <span id="webhookUrl_${loop.index}">${site.webhookUrl}</span>
                                                 </td>
                                                 <td class="text-align-right">
@@ -66,10 +66,10 @@
                         <!-- Add Site Button -->
                         <input type="button" id="showSiteButton" value="Add Site" class="margin-bottom-2em" onclick="showSiteInputs();" />
 
-                        <div id="siteDataContainer" style="position:absolute; top:-10000px" name="sites">
+                        <div id="siteDataContainer" class="site-data-default" name="sites">
                             <f:section title="Site Connection details">
                                 <div class="help-area">
-                                    <div class="help" style="display: block;">
+                                    <div class="help display-block">
                                         <div>A Jira admin will provide the credentials needed to connect to this site.</div>
                                         <div>Once you've entered these details, select <b>Save</b> to connect.</div>
                                     </div>
@@ -102,7 +102,7 @@
 
                         <f:section title="Builds and deployments">
                             <div class="help-area">
-                                <div class="help" style="display: block;">
+                                <div class="help display-block">
                                     <p>To configure what build and deployment data is sent to connected Jira sites:</p>
                                     <ul>
                                         <li>

@@ -1,3 +1,7 @@
+.hidden {
+    display: none;
+}
+
 .text-align-right {
     text-align: right;
 }
@@ -62,4 +66,19 @@ tr.site-data-row.selected td {
 
 .site-data-row {
     background-color: #ffffff!important;
+}
+
+.site-data-row td {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+.site-data-default {
+    position:absolute;
+    top:-10000px;
+}
+
+.help.display-block {
+    display: block;
 }
