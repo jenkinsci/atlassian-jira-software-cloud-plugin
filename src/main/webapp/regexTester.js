@@ -1,7 +1,7 @@
 //
 // Please maintain tests in config.js.test.html
 // THIS IS A DULICATION OF atlassian-jira-software-cloud-plugin/src/main/resources/com/atlassian/jira/cloud/jenkins/config/JiraCloudPluginConfig/config.js
-// We have moved it here to allow access from the Jelly file
+// We have included it here to allow access from the Jelly file
 //
 
 var AtlassianRegexTester = function(regexTextboxId, errorDivId, successDivId) {

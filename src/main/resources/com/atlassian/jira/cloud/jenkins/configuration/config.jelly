@@ -13,14 +13,14 @@
                 <st:if test="${config != null}">
                     <f:form method="post" action="saveConfiguration" id="saveConfigurationForm">
                         <!-- EXISTING SITES -->
-                        <div class="margin-bottom-2em">
+                        <div class="connected-sites-container">
                             <f:section title="Connected Sites">
                                 <table class="jenkins-table sortable jenkins-!-margin-bottom-0 site-table">
                                     <thead>
                                         <tr>
-                                            <th class="col-25">Site Name</th>
-                                            <th class="col-35">Webhook URL</th>
-                                            <th class="col-10">Actions</th>
+                                            <th class="sitename-col">Site Name</th>
+                                            <th class="webhook-url-col">Webhook URL</th>
+                                            <th class="actions-col">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -48,8 +48,8 @@
                                                 <td>
                                                     <span id="webhookUrl_${loop.index}">${site.webhookUrl}</span>
                                                 </td>
-                                                <td class="text-align-right">
-                                                    <a href="#" class="margin-right-1em" onclick="editSite(${loop.index}); return false;">
+                                                <td class="actions-table-data">
+                                                    <a href="#" class="edit-site-icon" onclick="editSite(${loop.index}); return false;">
                                                         <l:icon src="symbol-edit" class="icon-sm" tooltip="Edit Site details"/>
                                                     </a>
                                                     <a href="#" onclick="removeSite(${loop.index}); return false;">
@@ -64,7 +64,7 @@
                         </div>
 
                         <!-- Add Site Button -->
-                        <input type="button" id="showSiteButton" value="Add Site" class="margin-bottom-2em" onclick="showSiteInputs();" />
+                        <input type="button" id="showSiteButton" value="Add Site" class="show-site-button" onclick="showSiteInputs();" />
 
                         <div id="siteDataContainer" class="site-data-default" name="sites">
                             <f:section title="Site Connection details">

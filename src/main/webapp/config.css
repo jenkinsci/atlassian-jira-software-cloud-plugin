@@ -2,7 +2,7 @@
     display: none;
 }
 
-.text-align-right {
+.actions-table-data {
     text-align: right;
 }
 
@@ -10,11 +10,11 @@
     font-weight: bold;
 }
 
-.margin-bottom-2em {
+.connected-sites-container, show-site-button {
     margin-bottom: 2em;
 }
 
-.margin-right-1em {
+.edit-site-icon {
     margin-right: 1em;
 }
 
@@ -23,15 +23,15 @@
     width: 100%;
 }
 
-.col-25 {
+.sitename-col {
     width: 25%;
 }
 
-.col-35 {
+.webhook-url-col {
     width: 35%;
 }
 
-.col-10 {
+.actions-col {
     width: 10%;
 }
 
@@ -57,15 +57,15 @@ input[type=button].validate-regex-btn {
 
 /* Override Jelly core layout offset issue */
 #page-body #main-panel {
-    max-width: 80vw!important;
+    max-width: 80vw !important;
 }
 
 tr.site-data-row.selected td {
-    background-color: #EDEDED!important;
+    background-color: #EDEDED !important;
 }
 
 .site-data-row {
-    background-color: #ffffff!important;
+    background-color: #ffffff !important;
 }
 
 .site-data-row td {
