@@ -10,7 +10,11 @@
     font-weight: bold;
 }
 
-.connected-sites-container, show-site-button {
+.connected-sites-container {
+    margin-bottom: 2em;
+}
+
+.show-site-button {
     margin-bottom: 2em;
 }
 
