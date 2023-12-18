@@ -17,8 +17,8 @@ import static com.atlassian.jira.cloud.jenkins.util.IpAddressProvider.getIpAddre
 
 public class InitializePluginListener extends Plugin {
     private static final Logger LOGGER = Logger.getLogger(InitializePluginListener.class.getName());
-    private transient PluginConfigApi pluginConfigApi;
-    private transient SecretRetriever secretRetriever;
+    transient PluginConfigApi pluginConfigApi;
+    transient SecretRetriever secretRetriever;
 
     public InitializePluginListener() {
         this.secretRetriever = new SecretRetriever();
@@ -28,14 +28,11 @@ public class InitializePluginListener extends Plugin {
     @Override
     public void postInitialize() throws Exception {
         super.postInitialize();
-        Jenkins jenkins = Jenkins.getInstanceOrNull();
-        if (jenkins != null) {
-            JiraCloudPluginConfig config = JiraCloudPluginConfig.get();
-            sendConfigDataToJira(config);
-        }
+        JiraCloudPluginConfig config = JiraCloudPluginConfig.get();
+        sendConfigDataToJira(config);
     }
 
-    private void sendConfigDataToJira(final JiraCloudPluginConfig config) {
+    void sendConfigDataToJira(final JiraCloudPluginConfig config) {
         for (JiraCloudSiteConfig siteConfig : config.getSites()) {
             String webhookUrl = siteConfig.getWebhookUrl();
             String credentialsId = siteConfig.getCredentialsId();
@@ -43,14 +40,14 @@ public class InitializePluginListener extends Plugin {
             final Optional<String> maybeSecret = this.secretRetriever.getSecretFor(credentialsId);
             try {
                 this.pluginConfigApi.sendConnectionData(
-                    webhookUrl,
-                    maybeSecret.get(),
-                    getIpAddress(),
-                    config.getAutoBuildsEnabled(),
-                    config.getAutoBuildsRegex(),
-                    config.getAutoDeploymentsEnabled(),
-                    config.getAutoDeploymentsRegex(),
-                    PipelineLogger.noopInstance());
+                        webhookUrl,
+                        maybeSecret.get(),
+                        getIpAddress(),
+                        config.getAutoBuildsEnabled(),
+                        config.getAutoBuildsRegex(),
+                        config.getAutoDeploymentsEnabled(),
+                        config.getAutoDeploymentsRegex(),
+                        PipelineLogger.noopInstance());
             } catch (Exception e) {
                 LOGGER.severe(e.getMessage());
             }
