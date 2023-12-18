@@ -38,10 +38,12 @@ public class InitializePluginListener extends Plugin {
             String credentialsId = siteConfig.getCredentialsId();
 
             final Optional<String> maybeSecret = this.secretRetriever.getSecretFor(credentialsId);
+            String secret = maybeSecret.orElse("");
+            
             try {
                 this.pluginConfigApi.sendConnectionData(
                         webhookUrl,
-                        maybeSecret.get(),
+                        secret,
                         getIpAddress(),
                         config.getAutoBuildsEnabled(),
                         config.getAutoBuildsRegex(),

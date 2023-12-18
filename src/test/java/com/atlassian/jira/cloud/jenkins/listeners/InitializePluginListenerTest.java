@@ -44,27 +44,24 @@ public class InitializePluginListenerTest {
 
     @Test
     public void testSendConfigDataToJira() throws Exception {
-        // Create a mock JiraCloudPluginConfig
+        // Given
         JiraCloudPluginConfig config = mock(JiraCloudPluginConfig.class);
         when(config.getAutoBuildsRegex()).thenReturn("Cat");
         when(config.getAutoBuildsEnabled()).thenReturn(true);
         when(config.getAutoDeploymentsRegex()).thenReturn("Dog");
         when(config.getAutoDeploymentsEnabled()).thenReturn(true);
 
-        // Create a mock JiraCloudSiteConfig
         JiraCloudSiteConfig siteConfig = mock(JiraCloudSiteConfig.class);
         when(siteConfig.getWebhookUrl()).thenReturn("https://example.com/webhook");
         when(siteConfig.getCredentialsId()).thenReturn("creds");
 
-        // Add the mock site config to the plugin config
         List<JiraCloudSiteConfig> sites = new ArrayList<>();
         sites.add(siteConfig);
         when(config.getSites()).thenReturn(sites);
 
-        // Mock the behavior of the secret retriever
         when(secretRetriever.getSecretFor(anyString())).thenReturn(Optional.of("secret"));
 
-        // Fire the "test"
+        // When
         initializePluginListener.sendConfigDataToJira(config);
 
         // Then

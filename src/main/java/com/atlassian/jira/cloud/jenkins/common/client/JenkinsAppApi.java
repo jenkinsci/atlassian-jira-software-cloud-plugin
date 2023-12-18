@@ -25,8 +25,6 @@ import java.util.logging.Logger;
 
 public abstract class JenkinsAppApi<ResponseEntity> {
 
-    // TODO TEMP CODE REMOVE - IF THIS MAKES IT TO PR TSK TSK
-    private static final Logger LOGGER = Logger.getLogger(JenkinsAppApi.class.getName());
     private static final MediaType JSON_CONTENT_TYPE =
             MediaType.get("application/json; charset=utf-8");
     private static final MediaType JWT_CONTENT_TYPE = MediaType.get("application/jwt");
@@ -77,18 +75,8 @@ public abstract class JenkinsAppApi<ResponseEntity> {
             Request request = new Request.Builder().url(webhookUrl).post(body).build();
             final Response response = httpClient.newCall(request).execute();
             checkForErrorResponse(response, pipelineLogger);
-            LOGGER.info("SUCCESSFUL SAVE");
-            LOGGER.info("SUCCESSFUL SAVE");
-            LOGGER.info("SUCCESSFUL SAVE");
-            LOGGER.info("SUCCESSFUL SAVE");
-            LOGGER.info("SUCCESSFUL SAVE");
-            LOGGER.info("SUCCESSFUL SAVE");
             return handleResponseBody(response, responseClass);
         } catch (Exception e) {
-            LOGGER.info("WE HAD A PROBLEM WITH THE SAVE");
-            LOGGER.info("WE HAD A PROBLEM WITH THE SAVE");
-            LOGGER.info("WE HAD A PROBLEM WITH THE SAVE");
-            LOGGER.info(e.getMessage());
             throw handleError(e);
         }
     }
