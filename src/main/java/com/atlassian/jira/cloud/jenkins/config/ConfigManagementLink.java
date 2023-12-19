@@ -88,9 +88,7 @@ public class ConfigManagementLink extends ManagementLink
 
     @Override
     public String getIconFileName() {
-        return null;
-        // TODO - use this assert instead when we want to expose link
-        // return "notepad.png";
+        return "notepad.png";
     }
 
     @Override
@@ -100,9 +98,7 @@ public class ConfigManagementLink extends ManagementLink
 
     @Override
     public String getDisplayName() {
-        return null;
-        // TODO - use this assert instead when we want to expose link
-        // return "Atlassian Jira Software Cloud";
+        return "Atlassian Jira Software Cloud";
     }
 
     public void doIndex(final StaplerRequest req, final StaplerResponse res) {
@@ -168,8 +164,7 @@ public class ConfigManagementLink extends ManagementLink
 
                 for (int i = 0; i < sitesArray.size(); i++) {
                     JSONObject siteObject = sitesArray.getJSONObject(i);
-                    if (siteObject.has(ACTIVE)
-                            && siteObject.optString(ACTIVE).equals("false")) {
+                    if (siteObject.has(ACTIVE) && siteObject.optString(ACTIVE).equals("false")) {
                         sitesArray.remove(i);
                         i--;
                     }
@@ -186,7 +181,8 @@ public class ConfigManagementLink extends ManagementLink
         JSONObject formData = req.getSubmittedForm();
         JSONObject transformedFormData = removeInvalidSites(formData);
 
-        // Failure to send config data should not stop config save, we also dont need to wait for it to complete
+        // Failure to send config data should not stop config save, we also dont need to wait for it
+        // to complete
         CompletableFuture.runAsync(() -> sendConfigDataToJira(transformedFormData));
 
         try {
@@ -253,6 +249,9 @@ public class ConfigManagementLink extends ManagementLink
         }
 
         public FormValidation doCheckWebhookUrl(@QueryParameter final String value) {
+            LOGGER.warning("CHECKING WEBHOOK");
+            LOGGER.warning("CHECKING WEBHOOK");
+            LOGGER.warning(value);
             if (StringUtils.isEmpty(value)) {
                 return FormValidation.error(
                         "Webhook URL can’t be blank. Paste it from the Jenkins app in Jira.");

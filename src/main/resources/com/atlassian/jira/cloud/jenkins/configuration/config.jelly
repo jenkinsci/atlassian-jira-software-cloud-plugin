@@ -6,6 +6,7 @@
             <link rel="stylesheet" type="text/css" href="${resURL}/plugin/atlassian-jira-software-cloud/config.css"/>
             <script src="${resURL}/plugin/atlassian-jira-software-cloud/config.js"/>
             <script src="${resURL}/plugin/atlassian-jira-software-cloud/regexTester.js"/>
+            <j:set var="descriptor" value="${it.descriptor}" />
 
             <h1>Atlassian Software Cloud</h1>
             <p>Send build and deployment data to connected Jira Software Cloud sites.</p>
@@ -49,12 +50,14 @@
                                                     <span id="webhookUrl_${loop.index}">${site.webhookUrl}</span>
                                                 </td>
                                                 <td class="actions-table-data">
-                                                    <a href="#" class="edit-site-icon" onclick="editSite(${loop.index}); return false;">
-                                                        <l:icon src="symbol-edit" class="icon-sm" tooltip="Edit Site details"/>
-                                                    </a>
-                                                    <a href="#" onclick="removeSite(${loop.index}); return false;">
-                                                        <l:icon src="symbol-trash" class="icon-sm" tooltip="Remove Site"/>
-                                                    </a>
+                                                    <div id="actionsContainer">
+                                                        <a href="#" class="edit-site-icon" onclick="editSite(${loop.index}); return false;">
+                                                            <l:icon src="symbol-edit" class="icon-sm" tooltip="Edit Site details"/>
+                                                        </a>
+                                                        <a href="#" onclick="removeSite(${loop.index}); return false;">
+                                                            <l:icon src="symbol-trash" class="icon-sm" tooltip="Remove Site"/>
+                                                        </a>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         </j:forEach>
@@ -76,7 +79,7 @@
                                 </div>
 
                                 <f:entry title="Site Name:" help="/plugin/atlassian-jira-software-cloud/help-siteName.html" field="site">
-                                    <f:textbox name="site" default="sitename.atlassian.net" />
+                                    <f:textbox name="site" placeholder="sitename.atlassian.net" />
                                 </f:entry>
 
                                 <f:entry title="Webhook URL:" help="/plugin/atlassian-jira-software-cloud/help-webhookUrl.html" field="webhookUrl">
@@ -149,6 +152,7 @@
                         <!-- Submit -->
                         <div class="sticky-save-footer">
                             <f:submit value="Save"/>
+                            <span style="display: none;" id="pendingChanges" class="pending-changes-alert">Pending Changes</span>
                         </div>
                     </f:form>
                 </st:if>

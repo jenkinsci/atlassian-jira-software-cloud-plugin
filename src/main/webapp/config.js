@@ -1,3 +1,60 @@
+let initialFormData = {};
+
+let webHookUrlInput;
+let siteInput ;
+
+window.addEventListener('DOMContentLoaded', () => {
+
+
+    webHookUrlInput = document.querySelector('[name="webhookUrl"]');
+    siteInput = document.querySelector('[name="site"]');
+
+
+    const form = document.getElementById('saveConfigurationForm');
+    const formData = new FormData(form);
+
+    for (const [key, value] of formData.entries()) {
+        const element = form.elements[key];
+        if (element.type !== 'hidden') {
+            initialFormData[value] = value;
+        }
+    }
+
+    form.addEventListener('change', handleFormChange);
+});
+
+function handleFormChange() {
+    const form = document.getElementById('saveConfigurationForm');
+    const formData = new FormData(form);
+    let currentFormData = {};
+
+    for (const [key, value] of formData.entries()) {
+        const element = form.elements[key];
+        if (element.type !== 'hidden') {
+            currentFormData[value] = value;
+        }
+    }
+
+    const pendingChangesElement = document.getElementById('pendingChanges');
+
+    if (JSON.stringify(currentFormData) !== JSON.stringify(initialFormData) ) {
+        console.log("Form data has changed.");
+        console.log("Initial data:", initialFormData);
+        console.log("Current data:", currentFormData);
+
+        // Show pending changes element
+        pendingChangesElement.style.display = 'inline';
+    } else {
+        console.log("Form data remains unchanged.");
+
+        // Hide pending changes element
+        pendingChangesElement.style.display = 'none';
+    }
+
+    invokeOnChangeChecks();
+
+}
+
 const toggleElementDisplay = (element, display) => {
     if (element) {
         element.style.display = display;
@@ -33,6 +90,7 @@ const showSiteInputs = () => {
     setElementPosition(siteDataContainer, 'inherit');
     toggleElementDisplay(showSiteFormButton, 'none');
     toggleSaveSiteForm('true');
+    handleFormChange();
 };
 
 const hideSiteInputs = () => {
@@ -43,6 +101,8 @@ const hideSiteInputs = () => {
     setElementPosition(siteDataContainer, 'absolute');
     toggleElementDisplay(showSiteFormButton, 'block');
     toggleSaveSiteForm('false');
+    setSiteFormContent();
+    handleFormChange();
 };
 
 const toggleSaveSiteForm = (state) => {
@@ -58,6 +118,7 @@ const removeSite = (index) => {
     const siteData = document.getElementById(`siteData_${index}`);
     if(siteRow) siteRow.remove();
     if(siteData) siteData.remove();
+    handleFormChange();
 };
 
 const highlightSelectedSiteFromTable = (index) => {
@@ -78,7 +139,7 @@ const editSite = (index) => {
 
     siteDataContainer.style.position = 'inherit';
     highlightSelectedSiteFromTable(index);
-    invokeOnChangeChecks();
+   invokeOnChangeChecks();
 };
 
 const populateSiteForm = (index) => {
@@ -89,6 +150,8 @@ const populateSiteForm = (index) => {
 
     // get site form elements
     const siteDataContainer = document.getElementById('siteDataContainer');
+
+    // TODO use setSiteFormContent
     const siteInput = siteDataContainer.querySelector('[name="site"]');
     const webhookUrlInput = siteDataContainer.querySelector('[name="webhookUrl"]');
     const credentialsInput = siteDataContainer.querySelector('[name="_.credentialsId"]');
@@ -97,19 +160,30 @@ const populateSiteForm = (index) => {
     siteInput.value = siteName;
     webhookUrlInput.value = webhookUrl;
     credentialsInput.value = credentialsId;
+    invokeOnChangeChecks();
+
+}
+
+const setSiteFormContent = (site = "", webhook = "", credentials = "") => {
+    const siteInput = siteDataContainer.querySelector('[name="site"]');
+    const webhookUrlInput = siteDataContainer.querySelector('[name="webhookUrl"]');
+    const credentialsInput = siteDataContainer.querySelector('[name="_.credentialsId"]');
+
+    // set site form values
+    siteInput.value = site;
+    webhookUrlInput.value = webhook;
+    credentialsInput.value = credentials;
+
 }
 
 // This forces the serverside validation event after we populate the site form
 const invokeOnChangeChecks = () => {
-    const webHookUrlInput = document.querySelector('[name="webhookUrl"]');
-    const siteInput = document.querySelector('[name="site"]');
+    const siteDataContainer = document.getElementById('siteDataContainer');
+    const siteInput = siteDataContainer.querySelector('[name="site"]');
+    const webHookUrlInput = siteDataContainer.querySelector('[name="webhookUrl"]');
 
-    triggerChangeEvent(webHookUrlInput);
-    triggerChangeEvent(siteInput);
-};
-
-const triggerChangeEvent = (element) => {
-    element && element.dispatchEvent(new Event('change'));
+    siteInput.onchange();
+    webHookUrlInput.onchange();
 };
 
 const validateAutoBuildsRegex = () => {
