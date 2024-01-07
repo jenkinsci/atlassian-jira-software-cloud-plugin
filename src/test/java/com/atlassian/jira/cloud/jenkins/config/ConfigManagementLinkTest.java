@@ -64,7 +64,7 @@ public class ConfigManagementLinkTest {
         final String displayName = classUnderTest.getDisplayName();
 
         // then
-         assertThat(displayName).isEqualTo("Atlassian Jira Software Cloud");
+        assertThat(displayName).isEqualTo("Atlassian Jira Software Cloud");
     }
 
     @Test
@@ -82,7 +82,7 @@ public class ConfigManagementLinkTest {
         final String iconFileName = classUnderTest.getIconFileName();
 
         // then
-         assertThat(iconFileName).isEqualTo("notepad.png");
+        assertThat(iconFileName).isEqualTo("notepad.png");
     }
 
     @Test
@@ -179,7 +179,7 @@ public class ConfigManagementLinkTest {
         classUnderTest.doSaveConfiguration(mockRequest, mockResponse);
 
         // then
-        verify(mockResponse).sendRedirect("/jenkins/manage/atlassian-jira-software-cloud/");
+        verify(mockResponse).sendRedirect("/jenkins/manage/");
     }
 
     private void setupMocks() {
