@@ -1,14 +1,22 @@
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:l="/lib/layout" xmlns:f="/lib/form" xmlns:c="/lib/credentials">
 
-    <l:layout permission="${app.ADMINISTER}" title="${%title}" norefresh="true" type="one-column">
+    <l:layout permission="${app.ADMINISTER}" title="Atlassian Jira Software Cloud" norefresh="true" type="one-column">
         <l:main-panel>
             <link rel="stylesheet" type="text/css" href="${resURL}/plugin/atlassian-jira-software-cloud/config.css"/>
             <script src="${resURL}/plugin/atlassian-jira-software-cloud/config.js"/>
             <script src="${resURL}/plugin/atlassian-jira-software-cloud/regexTester.js"/>
             <j:set var="descriptor" value="${it.descriptor}" />
 
-            <h1>Atlassian Software Cloud</h1>
+            <h1>Atlassian Jira Software Cloud</h1>
+            <j:if test="${!empty(error)}">
+                <f:block>
+                    <div class="error">
+                        <p>Error Saving Connection</p>
+                        <pre>${error}</pre>
+                    </div>
+                </f:block>
+            </j:if>
             <p>Send build and deployment data to connected Jira Software Cloud sites.</p>
             <div>
                 <st:if test="${config != null}">
@@ -152,7 +160,6 @@
                         <!-- Submit -->
                         <div class="sticky-save-footer">
                             <f:submit value="Save"/>
-                            <span style="display: none;" id="pendingChanges" class="pending-changes-alert">Pending Changes</span>
                         </div>
                     </f:form>
                 </st:if>

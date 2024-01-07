@@ -35,24 +35,7 @@ function handleFormChange() {
         }
     }
 
-    const pendingChangesElement = document.getElementById('pendingChanges');
-
-    if (JSON.stringify(currentFormData) !== JSON.stringify(initialFormData) ) {
-        console.log("Form data has changed.");
-        console.log("Initial data:", initialFormData);
-        console.log("Current data:", currentFormData);
-
-        // Show pending changes element
-        pendingChangesElement.style.display = 'inline';
-    } else {
-        console.log("Form data remains unchanged.");
-
-        // Hide pending changes element
-        pendingChangesElement.style.display = 'none';
-    }
-
     invokeOnChangeChecks();
-
 }
 
 const toggleElementDisplay = (element, display) => {
@@ -139,7 +122,6 @@ const editSite = (index) => {
 
     siteDataContainer.style.position = 'inherit';
     highlightSelectedSiteFromTable(index);
-   invokeOnChangeChecks();
 };
 
 const populateSiteForm = (index) => {
@@ -148,23 +130,12 @@ const populateSiteForm = (index) => {
     const webhookUrl = document.getElementById(`webhookUrl_${index}`).textContent;
     const credentialsId = document.getElementById(`credentialsId_${index}`).textContent;
 
-    // get site form elements
-    const siteDataContainer = document.getElementById('siteDataContainer');
-
-    // TODO use setSiteFormContent
-    const siteInput = siteDataContainer.querySelector('[name="site"]');
-    const webhookUrlInput = siteDataContainer.querySelector('[name="webhookUrl"]');
-    const credentialsInput = siteDataContainer.querySelector('[name="_.credentialsId"]');
-
-    // set site form values
-    siteInput.value = siteName;
-    webhookUrlInput.value = webhookUrl;
-    credentialsInput.value = credentialsId;
-    invokeOnChangeChecks();
-
+    setSiteFormContent(siteName, webhookUrl, credentialsId);
 }
 
 const setSiteFormContent = (site = "", webhook = "", credentials = "") => {
+    const siteDataContainer = document.getElementById('siteDataContainer');
+
     const siteInput = siteDataContainer.querySelector('[name="site"]');
     const webhookUrlInput = siteDataContainer.querySelector('[name="webhookUrl"]');
     const credentialsInput = siteDataContainer.querySelector('[name="_.credentialsId"]');
@@ -174,17 +145,18 @@ const setSiteFormContent = (site = "", webhook = "", credentials = "") => {
     webhookUrlInput.value = webhook;
     credentialsInput.value = credentials;
 
+    // Run input validation
+    invokeOnChangeChecks(siteInput, webhookUrlInput);
 }
 
 // This forces the serverside validation event after we populate the site form
-const invokeOnChangeChecks = () => {
-    const siteDataContainer = document.getElementById('siteDataContainer');
-    const siteInput = siteDataContainer.querySelector('[name="site"]');
-    const webHookUrlInput = siteDataContainer.querySelector('[name="webhookUrl"]');
-
-    siteInput.onchange();
-    webHookUrlInput.onchange();
-};
+const invokeOnChangeChecks = (...args) => {
+    args.forEach(arg => {
+        if (arg && typeof arg.onchange === 'function') {
+            arg.onchange();
+        }
+    });
+}
 
 const validateAutoBuildsRegex = () => {
     return (new AtlassianRegexTester('autoBuildsRegex', 'autoBuildsRegexTestResponse', 'autoBuildsRegexTestResponse')).test('Please enter the test name of your pipeline step/stage:', []);
