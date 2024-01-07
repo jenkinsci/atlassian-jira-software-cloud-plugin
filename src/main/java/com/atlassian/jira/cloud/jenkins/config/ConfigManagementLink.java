@@ -150,7 +150,7 @@ public class ConfigManagementLink extends ManagementLink
                         autoDeploymentsRegex,
                         PipelineLogger.noopInstance());
             } catch (Exception e) {
-                throw new RuntimeException(
+                throw new Exception(
                         String.format("Connection failed for site: %s", siteName));
             }
         }
@@ -261,7 +261,6 @@ public class ConfigManagementLink extends ManagementLink
         }
 
         public FormValidation doCheckWebhookUrl(@QueryParameter final String value) {
-            LOGGER.warning(value);
             if (StringUtils.isEmpty(value)) {
                 return FormValidation.error(
                         "Webhook URL can’t be blank. Paste it from the Jenkins app in Jira.");
