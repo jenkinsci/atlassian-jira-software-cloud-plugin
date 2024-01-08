@@ -1,5 +1,6 @@
 package com.atlassian.jira.cloud.jenkins.common.client;
 
+import com.atlassian.jira.cloud.jenkins.listeners.InitializePluginListener;
 import com.atlassian.jira.cloud.jenkins.logging.PipelineLogger;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
@@ -20,6 +21,7 @@ import java.io.NotSerializableException;
 import java.time.Instant;
 import java.util.Date;
 import java.util.Objects;
+import java.util.logging.Logger;
 
 public abstract class JenkinsAppApi<ResponseEntity> {
 

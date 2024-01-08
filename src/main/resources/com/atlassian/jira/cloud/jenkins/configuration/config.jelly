@@ -6,6 +6,7 @@
             <link rel="stylesheet" type="text/css" href="${resURL}/plugin/atlassian-jira-software-cloud/config.css"/>
             <script src="${resURL}/plugin/atlassian-jira-software-cloud/config.js"/>
             <script src="${resURL}/plugin/atlassian-jira-software-cloud/regexTester.js"/>
+            <j:set var="descriptor" value="${it.descriptor}" />
 
             <h1>Atlassian Software Cloud</h1>
             <p>Send build and deployment data to connected Jira Software Cloud sites.</p>

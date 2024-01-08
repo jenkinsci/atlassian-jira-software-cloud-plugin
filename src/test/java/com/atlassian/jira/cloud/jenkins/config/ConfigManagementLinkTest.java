@@ -178,7 +178,6 @@ public class ConfigManagementLinkTest {
 
         when(mockRequest.getSubmittedForm()).thenReturn(formData);
 
-        //        PowerMockito.mockStatic(Stapler.class);
         StaplerResponse mockStaplerResponse = mock(StaplerResponse.class);
 
         // when
