@@ -1,6 +1,7 @@
 package com.atlassian.jira.cloud.jenkins.config;
 
 import com.atlassian.jira.cloud.jenkins.common.client.BadRequestException;
+import com.atlassian.jira.cloud.jenkins.exceptions.JiraConnectionFailedException;
 import com.atlassian.jira.cloud.jenkins.logging.PipelineLogger;
 import com.atlassian.jira.cloud.jenkins.ping.PingApi;
 import com.atlassian.jira.cloud.jenkins.pluginConfigApi.PluginConfigApi;
@@ -25,7 +26,6 @@ import jenkins.model.Jenkins;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.jenkinsci.plugins.plaincredentials.StringCredentials;
-import org.jenkinsci.plugins.workflow.flow.GraphListener;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
@@ -37,7 +37,6 @@ import javax.inject.Inject;
 import javax.servlet.ServletException;
 import java.io.IOException;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -150,8 +149,10 @@ public class ConfigManagementLink extends ManagementLink
                         autoDeploymentsRegex,
                         PipelineLogger.noopInstance());
             } catch (Exception e) {
-                throw new Exception(
-                        String.format("Connection failed for site: %s", siteName));
+                String exceptionClass = e.getClass().getName();
+                throw new JiraConnectionFailedException(
+                        String.format(
+                                "%s - Connection failed for site: %s", exceptionClass, siteName));
             }
         }
     }
