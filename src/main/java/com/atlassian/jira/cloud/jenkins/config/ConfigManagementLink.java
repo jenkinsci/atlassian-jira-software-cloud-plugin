@@ -122,7 +122,7 @@ public class ConfigManagementLink extends ManagementLink
     }
 
     @VisibleForTesting
-    private void sendConfigDataToJira(final JSONObject formData) throws Exception {
+    private void sendConfigDataToJira(final JSONObject formData) throws JiraConnectionFailedException {
         JSONArray sitesArray = formData.getJSONArray(SITES);
         String ipAddress = getIpAddress();
 
