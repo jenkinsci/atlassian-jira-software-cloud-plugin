@@ -50,6 +50,11 @@
     padding: 1em 0em 1em 2em;
 }
 
+.pending-changes-alert {
+    margin-left: 2em;
+    color: red;
+}
+
 .sticky-save-footer button {
     min-width: 5.625rem;
 }
@@ -66,6 +71,10 @@ input[type=button].validate-regex-btn {
 
 tr.site-data-row.selected td {
     background-color: #EDEDED !important;
+}
+
+tr.site-data-row.selected td #actionsContainer {
+    display: none;
 }
 
 .site-data-row {

@@ -1,14 +1,22 @@
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:l="/lib/layout" xmlns:f="/lib/form" xmlns:c="/lib/credentials">
 
-    <l:layout permission="${app.ADMINISTER}" title="${%title}" norefresh="true" type="one-column">
+    <l:layout permission="${app.ADMINISTER}" title="Atlassian Jira Software Cloud" norefresh="true" type="one-column">
         <l:main-panel>
             <link rel="stylesheet" type="text/css" href="${resURL}/plugin/atlassian-jira-software-cloud/config.css"/>
             <script src="${resURL}/plugin/atlassian-jira-software-cloud/config.js"/>
             <script src="${resURL}/plugin/atlassian-jira-software-cloud/regexTester.js"/>
             <j:set var="descriptor" value="${it.descriptor}" />
 
-            <h1>Atlassian Software Cloud</h1>
+            <h1>Atlassian Jira Software Cloud</h1>
+            <j:if test="${!empty(error)}">
+                <f:block>
+                    <div class="error">
+                        <p>Error Saving Connection</p>
+                        <pre>${error}</pre>
+                    </div>
+                </f:block>
+            </j:if>
             <p>Send build and deployment data to connected Jira Software Cloud sites.</p>
             <div>
                 <st:if test="${config != null}">
@@ -50,12 +58,14 @@
                                                     <span id="webhookUrl_${loop.index}">${site.webhookUrl}</span>
                                                 </td>
                                                 <td class="actions-table-data">
-                                                    <a href="#" class="edit-site-icon" onclick="editSite(${loop.index}); return false;">
-                                                        <l:icon src="symbol-edit" class="icon-sm" tooltip="Edit Site details"/>
-                                                    </a>
-                                                    <a href="#" onclick="removeSite(${loop.index}); return false;">
-                                                        <l:icon src="symbol-trash" class="icon-sm" tooltip="Remove Site"/>
-                                                    </a>
+                                                    <div id="actionsContainer">
+                                                        <a href="#" class="edit-site-icon" onclick="editSite(${loop.index}); return false;">
+                                                            <l:icon src="symbol-edit" class="icon-sm" tooltip="Edit Site details"/>
+                                                        </a>
+                                                        <a href="#" onclick="removeSite(${loop.index}); return false;">
+                                                            <l:icon src="symbol-trash" class="icon-sm" tooltip="Remove Site"/>
+                                                        </a>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         </j:forEach>
@@ -77,7 +87,7 @@
                                 </div>
 
                                 <f:entry title="Site Name:" help="/plugin/atlassian-jira-software-cloud/help-siteName.html" field="site">
-                                    <f:textbox name="site" default="sitename.atlassian.net" />
+                                    <f:textbox name="site" placeholder="sitename.atlassian.net" />
                                 </f:entry>
 
                                 <f:entry title="Webhook URL:" help="/plugin/atlassian-jira-software-cloud/help-webhookUrl.html" field="webhookUrl">

@@ -1,6 +1,7 @@
 package com.atlassian.jira.cloud.jenkins.config;
 
 import com.atlassian.jira.cloud.jenkins.common.client.BadRequestException;
+import com.atlassian.jira.cloud.jenkins.exceptions.JiraConnectionFailedException;
 import com.atlassian.jira.cloud.jenkins.logging.PipelineLogger;
 import com.atlassian.jira.cloud.jenkins.ping.PingApi;
 import com.atlassian.jira.cloud.jenkins.pluginConfigApi.PluginConfigApi;
@@ -36,7 +37,7 @@ import javax.inject.Inject;
 import javax.servlet.ServletException;
 import java.io.IOException;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -58,6 +59,7 @@ public class ConfigManagementLink extends ManagementLink
     private static final String WEBHOOK_URL = "webhookUrl";
     private static final String CREDENTIALS_ID = "credentialsId";
     private static final String SITES = "sites";
+    private static final String SITE = "site";
     private static final String ACTIVE = "active";
 
     @Inject
@@ -88,9 +90,7 @@ public class ConfigManagementLink extends ManagementLink
 
     @Override
     public String getIconFileName() {
-        return null;
-        // TODO - use this assert instead when we want to expose link
-        // return "notepad.png";
+        return "notepad.png";
     }
 
     @Override
@@ -100,9 +100,7 @@ public class ConfigManagementLink extends ManagementLink
 
     @Override
     public String getDisplayName() {
-        return null;
-        // TODO - use this assert instead when we want to expose link
-        // return "Atlassian Jira Software Cloud";
+        return "Atlassian Jira Software Cloud";
     }
 
     public void doIndex(final StaplerRequest req, final StaplerResponse res) {
@@ -124,7 +122,7 @@ public class ConfigManagementLink extends ManagementLink
     }
 
     @VisibleForTesting
-    private void sendConfigDataToJira(final JSONObject formData) {
+    private void sendConfigDataToJira(final JSONObject formData) throws JiraConnectionFailedException {
         JSONArray sitesArray = formData.getJSONArray(SITES);
         String ipAddress = getIpAddress();
 
@@ -135,11 +133,11 @@ public class ConfigManagementLink extends ManagementLink
 
         for (Object siteObject : sitesArray) {
             JSONObject site = (JSONObject) siteObject;
+            String siteName = site.getString(SITE);
             String webhookUrl = site.getString(WEBHOOK_URL);
             String credentialsId = site.getString(CREDENTIALS_ID);
 
             final Optional<String> maybeSecret = secretRetriever.getSecretFor(credentialsId);
-
             try {
                 this.pluginConfigApi.sendConnectionData(
                         webhookUrl,
@@ -150,9 +148,11 @@ public class ConfigManagementLink extends ManagementLink
                         autoDeploymentsEnabled,
                         autoDeploymentsRegex,
                         PipelineLogger.noopInstance());
-
             } catch (Exception e) {
-                LOGGER.warning("Failed to send Data to Jenkins for Jira");
+                String exceptionClass = e.getClass().getName();
+                throw new JiraConnectionFailedException(
+                        String.format(
+                                "%s - Connection failed for site: %s", exceptionClass, siteName));
             }
         }
     }
@@ -168,8 +168,7 @@ public class ConfigManagementLink extends ManagementLink
 
                 for (int i = 0; i < sitesArray.size(); i++) {
                     JSONObject siteObject = sitesArray.getJSONObject(i);
-                    if (siteObject.has(ACTIVE)
-                            && siteObject.optString(ACTIVE).equals("false")) {
+                    if (siteObject.has(ACTIVE) && siteObject.optString(ACTIVE).equals("false")) {
                         sitesArray.remove(i);
                         i--;
                     }
@@ -186,17 +185,27 @@ public class ConfigManagementLink extends ManagementLink
         JSONObject formData = req.getSubmittedForm();
         JSONObject transformedFormData = removeInvalidSites(formData);
 
-        // Failure to send config data should not stop config save, we also dont need to wait for it to complete
-        CompletableFuture.runAsync(() -> sendConfigDataToJira(transformedFormData));
-
+        // Save form data first to avoid losing data
         try {
             config.configure(req, transformedFormData);
             config.save();
         } catch (Exception e) {
-            LOGGER.severe("Failed to save data - " + e.getMessage());
+            LOGGER.severe("Failed to submit form, please try again." + e.getMessage());
+            req.setAttribute("error", e.getMessage());
+            doIndex(req, res);
+            return;
         }
-        // TODO - decorate the redirect URL with success/failure status
-        res.sendRedirect("/jenkins/manage/atlassian-jira-software-cloud/");
+
+        // validate connection data
+        try {
+            sendConfigDataToJira(transformedFormData);
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Connection to Jira site failed", e);
+            req.setAttribute("error", e.getMessage());
+            doIndex(req, res);
+            return;
+        }
+        res.sendRedirect("/jenkins/manage/");
     }
 
     @Extension
