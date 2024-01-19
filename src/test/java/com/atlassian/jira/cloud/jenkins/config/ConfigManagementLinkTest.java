@@ -172,14 +172,13 @@ public class ConfigManagementLinkTest {
 
         when(mockRequest.getSubmittedForm()).thenReturn(formData);
 
-        //        PowerMockito.mockStatic(Stapler.class);
         StaplerResponse mockStaplerResponse = mock(StaplerResponse.class);
 
         // when
         classUnderTest.doSaveConfiguration(mockRequest, mockResponse);
 
         // then
-        verify(mockResponse).sendRedirect("/jenkins/manage/");
+        verify(mockResponse).sendRedirect(matches(".*/manage/"));
     }
 
     private void setupMocks() {

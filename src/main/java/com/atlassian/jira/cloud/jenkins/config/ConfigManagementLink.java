@@ -36,7 +36,11 @@ import org.kohsuke.stapler.interceptor.RequirePOST;
 import javax.inject.Inject;
 import javax.servlet.ServletException;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -103,6 +107,11 @@ public class ConfigManagementLink extends ManagementLink
         return "Atlassian Jira Software Cloud";
     }
 
+    @Override
+    public String getDescription() {
+        return "Set up connections to Jira sites and send those sites build and deployment statuses.";
+    }
+
     public void doIndex(final StaplerRequest req, final StaplerResponse res) {
         try {
             req.setAttribute("config", this.config);
@@ -122,7 +131,9 @@ public class ConfigManagementLink extends ManagementLink
     }
 
     @VisibleForTesting
-    private void sendConfigDataToJira(final JSONObject formData) throws JiraConnectionFailedException {
+    private void sendConfigDataToJira(final JSONObject formData)
+            throws JiraConnectionFailedException {
+        List<String> failedSitesList = new ArrayList<>();
         JSONArray sitesArray = formData.getJSONArray(SITES);
         String ipAddress = getIpAddress();
 
@@ -131,30 +142,65 @@ public class ConfigManagementLink extends ManagementLink
         String autoBuildsRegex = getRegexFromFormData(formData, AUTO_BUILDS);
         String autoDeploymentsRegex = getRegexFromFormData(formData, AUTO_DEPLOYMENTS);
 
-        for (Object siteObject : sitesArray) {
-            JSONObject site = (JSONObject) siteObject;
-            String siteName = site.getString(SITE);
-            String webhookUrl = site.getString(WEBHOOK_URL);
-            String credentialsId = site.getString(CREDENTIALS_ID);
+        List<CompletableFuture<Void>> futures = new ArrayList<>();
 
-            final Optional<String> maybeSecret = secretRetriever.getSecretFor(credentialsId);
-            try {
-                this.pluginConfigApi.sendConnectionData(
-                        webhookUrl,
-                        maybeSecret.get(),
-                        ipAddress,
-                        autoBuildsEnabled,
-                        autoBuildsRegex,
-                        autoDeploymentsEnabled,
-                        autoDeploymentsRegex,
-                        PipelineLogger.noopInstance());
-            } catch (Exception e) {
-                String exceptionClass = e.getClass().getName();
-                throw new JiraConnectionFailedException(
-                        String.format(
-                                "%s - Connection failed for site: %s", exceptionClass, siteName));
+        for (int i = 0; i < sitesArray.size(); i++) {
+            JSONObject currentsite = sitesArray.getJSONObject(i);
+
+            String siteName = currentsite.getString(SITE);
+            String webhookUrl = currentsite.getString(WEBHOOK_URL);
+            String credentialsId = currentsite.getString(CREDENTIALS_ID);
+
+            CompletableFuture<Void> future =
+                    CompletableFuture.runAsync(
+                            () -> {
+                                try {
+                                    final Optional<String> maybeSecret =
+                                            secretRetriever.getSecretFor(credentialsId);
+                                    this.pluginConfigApi.sendConnectionData(
+                                            webhookUrl,
+                                            maybeSecret.get(),
+                                            ipAddress,
+                                            autoBuildsEnabled,
+                                            autoBuildsRegex,
+                                            autoDeploymentsEnabled,
+                                            autoDeploymentsRegex,
+                                            PipelineLogger.noopInstance());
+                                } catch (Exception e) {
+                                    String exceptionClass = e.getClass().getName();
+                                    failedSitesList.add(siteName);
+                                }
+                            });
+
+            futures.add(future);
+        }
+
+        // Wait for all CompletableFuture instances to complete
+        CompletableFuture<Void> allOf =
+                CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
+
+        try {
+            allOf.get();
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        }
+
+        if (!failedSitesList.isEmpty()) {
+            String failedSites = String.join(", ", failedSitesList);
+            throw new JiraConnectionFailedException(
+                    String.format("Check webhook URL and secret for: %s", failedSites));
+        }
+    }
+
+    @VisibleForTesting
+    private Optional<JSONObject> getEditingEntry(final JSONArray sitesArray) {
+        for (int i = 0; i < sitesArray.size(); i++) {
+            JSONObject site = sitesArray.getJSONObject(i);
+            if (site.has("editingEntry")) {
+                return Optional.of(site);
             }
         }
+        return Optional.empty();
     }
 
     // Incomplete sites or Deleted sites are marked with active=false on the client side, we want to
@@ -202,10 +248,24 @@ public class ConfigManagementLink extends ManagementLink
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Connection to Jira site failed", e);
             req.setAttribute("error", e.getMessage());
+            //            req.setAttribute("error", "Check your webhook URL and secret");
             doIndex(req, res);
             return;
         }
-        res.sendRedirect("/jenkins/manage/");
+        redirectToManagePage(req, res);
+    }
+
+    public void redirectToManagePage(final StaplerRequest req, final StaplerResponse res) {
+        String jenkinsRootUrl = Jenkins.get().getRootUrl();
+
+        try {
+            if (jenkinsRootUrl != null) {
+                res.sendRedirect(jenkinsRootUrl + "manage/");
+            }
+        } catch (IOException e) {
+            LOGGER.log(Level.SEVERE, "Success redirect failed", e);
+            doIndex(req, res);
+        }
     }
 
     @Extension

@@ -1,5 +1,5 @@
 <div>
-    Enable this setting to send build data to Jira whenever any pipeline on this server completes a build stage with a name matching the regex filter specified.<br>
-    If no filter is specified, build data will be sent whenever any pipeline on this server is run successfully.<br>
-    Only use this setting with a regex filter if your teams have a consistent naming convention for build stages in their Jenkinsfiles.
+    Enable this setting to send build data to Jira whenever this server runs a pipeline with a <b>build stage</b> matching the regex specified.<br>
+    For example, stage('build')<br>
+    If you don’t specify a regex filter, build data will be sent whenever any pipeline on this server is run successfully.
 </div>
