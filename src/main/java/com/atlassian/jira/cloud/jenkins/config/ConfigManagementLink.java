@@ -175,7 +175,6 @@ public class ConfigManagementLink extends ManagementLink
             futures.add(future);
         }
 
-        // Wait for all CompletableFuture instances to complete
         CompletableFuture<Void> allOf =
                 CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
 
@@ -190,17 +189,6 @@ public class ConfigManagementLink extends ManagementLink
             throw new JiraConnectionFailedException(
                     String.format("Check webhook URL and secret for: %s", failedSites));
         }
-    }
-
-    @VisibleForTesting
-    private Optional<JSONObject> getEditingEntry(final JSONArray sitesArray) {
-        for (int i = 0; i < sitesArray.size(); i++) {
-            JSONObject site = sitesArray.getJSONObject(i);
-            if (site.has("editingEntry")) {
-                return Optional.of(site);
-            }
-        }
-        return Optional.empty();
     }
 
     // Incomplete sites or Deleted sites are marked with active=false on the client side, we want to
@@ -242,13 +230,11 @@ public class ConfigManagementLink extends ManagementLink
             return;
         }
 
-        // validate connection data
         try {
             sendConfigDataToJira(transformedFormData);
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Connection to Jira site failed", e);
             req.setAttribute("error", e.getMessage());
-            //            req.setAttribute("error", "Check your webhook URL and secret");
             doIndex(req, res);
             return;
         }

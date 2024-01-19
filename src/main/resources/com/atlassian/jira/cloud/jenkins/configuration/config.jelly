@@ -99,7 +99,6 @@
                                 </f:entry>
 
                                 <input type="hidden" name="active" value="false" />
-                                <input type="hidden" name="editingEntry" />
 
                                 <div>
                                     <!-- Cancel Site Button -->
