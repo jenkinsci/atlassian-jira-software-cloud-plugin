@@ -174,14 +174,14 @@ public class JiraCloudSiteConfig extends AbstractDescribableImpl<JiraCloudSiteCo
             }
 
             final Optional<String> maybeSecret = secretRetriever.getSecretFor(credentialsId);
-
             if (!maybeSecret.isPresent()) {
                 return FormValidation.error("Failed to retrieve secret");
             }
 
             try {
                 boolean pingSuccess =
-                        pingApi.sendPing(webhookUrl, maybeSecret.get(), PipelineLogger.noopInstance());
+                        pingApi.sendPing(
+                                webhookUrl, maybeSecret.get(), PipelineLogger.noopInstance());
                 if (!pingSuccess) {
                     return FormValidation.error(
                             "Connection could not be established. Is the secret correct?");

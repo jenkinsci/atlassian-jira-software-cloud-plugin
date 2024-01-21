@@ -15,8 +15,8 @@
         <revision>2.0.10</revision>
         <changelist>-SNAPSHOT</changelist>
         <!-- Baseline Jenkins version you use to build the plugin. Users must have this version or newer to run. -->
-        <jenkins.version>2.387.3</jenkins.version>
         <jenkins.baseline>2.387</jenkins.baseline>
+        <jenkins.version>2.387.3</jenkins.version>
         <gitHubRepo>jenkinsci/atlassian-jira-software-cloud-plugin</gitHubRepo>
         <filterModified>true</filterModified>
         <okhttp.version>4.0.1</okhttp.version>
@@ -25,7 +25,7 @@
         <archunit.version>0.9.2</archunit.version>
         <jsonassert.version>1.5.1</jsonassert.version>
         <resilience4j.version>1.4.0</resilience4j.version>
-        <jwt.version>3.18.3</jwt.version>
+        <jwt.version>3.19.4</jwt.version>
     </properties>
     <name>Atlassian Jira Software Cloud</name>
     <description>Atlassian Jira Software Cloud Jenkins Integration</description>

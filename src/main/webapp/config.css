@@ -1,0 +1,88 @@
+.hidden {
+    display: none;
+}
+
+.actions-table-data {
+    text-align: right;
+}
+
+.or-separator {
+    font-weight: bold;
+}
+
+.connected-sites-container {
+    margin-bottom: 2em;
+}
+
+.show-site-button {
+    margin-bottom: 2em;
+}
+
+.edit-site-icon {
+    margin-right: 1em;
+}
+
+.site-table {
+    table-layout: fixed;
+    width: 100%;
+}
+
+.sitename-col {
+    width: 25%;
+}
+
+.webhook-url-col {
+    width: 35%;
+}
+
+.actions-col {
+    width: 10%;
+}
+
+.sticky-save-footer {
+    position: sticky;
+    bottom: -1px;
+    margin-top: 2em;
+    margin-left: -2em;
+    width: 100vw;
+    z-index: 998;
+    background: #fff;
+    padding: 1em 0em 1em 2em;
+}
+
+.sticky-save-footer button {
+    min-width: 5.625rem;
+}
+
+input[type=button].validate-regex-btn {
+    float: right;
+    margin-top: 0.5em;
+}
+
+/* Override Jelly core layout offset issue */
+#page-body #main-panel {
+    max-width: 80vw !important;
+}
+
+tr.site-data-row.selected td {
+    background-color: #EDEDED !important;
+}
+
+.site-data-row {
+    background-color: #ffffff !important;
+}
+
+.site-data-row td {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+.site-data-default {
+    position:absolute;
+    top:-10000px;
+}
+
+.help.display-block {
+    display: block;
+}
