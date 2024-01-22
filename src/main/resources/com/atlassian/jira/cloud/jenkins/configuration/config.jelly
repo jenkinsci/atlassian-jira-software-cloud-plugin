@@ -114,14 +114,14 @@
                         <f:section title="Builds and deployments">
                             <div class="help-area">
                                 <div class="help display-block">
-                                    <p>Configure what builds and deployment data is sent to connected Jira sites.</p>
+                                    <p>Configure what data is sent to connected Jira sites.</p>
                                     <ul>
                                         <li>
                                             If you select the options below, build and deployment data will be sent to all connected Jira sites whenever this server runs pipelines that match criteria you specify.
                                         </li>
                                         <span class="or-separator">or</span>
                                         <li>
-                                            If you don’t select the options below, you can setup individual pipelines to send data to Jira using JiraBuildInfo and sendJiraDeploymentInfo instructions in those pipelines’ Jenkinsfiles. See <a href="https://plugins.jenkins.io/atlassian-jira-software-cloud" target="_blank">https://plugins.jenkins.io/atlassian-jira-software-cloud</a> for more information
+                                            If you don’t select the options below, you can setup individual pipelines to send data to Jira using instructions in their Jenkinsfiles. See <a href="https://plugins.jenkins.io/atlassian-jira-software-cloud" target="_blank">https://plugins.jenkins.io/atlassian-jira-software-cloud</a> for more information.
                                         </li>
                                     </ul>
                                 </div>
