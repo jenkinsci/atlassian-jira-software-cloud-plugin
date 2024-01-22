@@ -94,7 +94,7 @@ public class ConfigManagementLink extends ManagementLink
 
     @Override
     public String getIconFileName() {
-        return "notepad.png";
+        return "/plugin/atlassian-jira-software-cloud/images/icon.png";
     }
 
     @Override

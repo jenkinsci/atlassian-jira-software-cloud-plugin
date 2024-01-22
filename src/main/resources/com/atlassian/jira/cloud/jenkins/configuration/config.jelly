@@ -102,7 +102,7 @@
 
                                 <div>
                                     <!-- Cancel Site Button -->
-                                    <input type="button" value="Cancel" onclick="hideSiteInputs();" />
+                                    <input type="button" value="Cancel" class="cancel-site-edit-btn" onclick="hideSiteInputs();" />
 
                                     <f:validateButton
                                             title="${%Test Connection}" progress="${%Testing...}"
