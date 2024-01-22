@@ -22,16 +22,29 @@ import java.io.StringReader;
  */
 public class XmlUtils {
 
-    public Element parseXmlFile(final XmlFile file)
-            throws ParserConfigurationException, IOException, SAXException {
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-        DocumentBuilder builder = factory.newDocumentBuilder();
-        Document document = builder.parse(new InputSource(new StringReader(file.asString())));
-        return document.getDocumentElement();
+    private final DocumentBuilder builder;
+
+    public XmlUtils() {
+        try {
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            this.builder = factory.newDocumentBuilder();
+        } catch (ParserConfigurationException e) {
+            throw new RuntimeException("Error initializing XmlUtils", e);
+        }
+    }
+
+    public Element parseXmlFile(final XmlFile file) {
+        try {
+            Document document = builder.parse(new InputSource(new StringReader(file.asString())));
+            return document.getDocumentElement();
+        } catch (SAXException | IOException e) {
+            throw new RuntimeException("Error parsing XML file", e);
+        }
     }
 
     public String extractXmlValue(final Element parentElement, final String tagName) {
-        NodeList nodeList = parentElement.getElementsByTagName(tagName);
+        String sanitizedTagName = sanitizeTagName(tagName);
+        NodeList nodeList = parentElement.getElementsByTagName(sanitizedTagName);
         if (nodeList.getLength() > 0) {
             return nodeList.item(0).getTextContent();
         }
@@ -45,5 +58,9 @@ public class XmlUtils {
             return Boolean.parseBoolean(value);
         }
         return false;
+    }
+
+    String sanitizeTagName(final String tagName) {
+        return tagName.replaceAll("[^a-zA-Z0-9_]", "");
     }
 }

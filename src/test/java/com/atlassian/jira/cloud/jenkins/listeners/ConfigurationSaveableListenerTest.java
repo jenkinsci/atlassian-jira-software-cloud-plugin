@@ -1,4 +1,3 @@
-
 package com.atlassian.jira.cloud.jenkins.listeners;
 
 import com.atlassian.jira.cloud.jenkins.common.model.PluginSiteData;
@@ -30,14 +29,11 @@ import static org.junit.Assert.fail;
 import static org.mockito.Mockito.*;
 
 public class ConfigurationSaveableListenerTest {
-    @Mock
-    private SecretRetriever secretRetriever;
+    @Mock private SecretRetriever secretRetriever;
 
-    @Mock
-    private PluginConfigApi pluginConfigApi;
+    @Mock private PluginConfigApi pluginConfigApi;
 
-    @Mock
-    private XmlUtils xmlUtils;
+    @Mock private XmlUtils xmlUtils;
 
     private ConfigurationSaveableListener listener;
 
@@ -57,7 +53,8 @@ public class ConfigurationSaveableListenerTest {
         Saveable saveable = Mockito.mock(JiraCloudPluginConfig.class);
         XmlFile file = Mockito.mock(XmlFile.class);
 
-        ConfigurationSaveableListener configurationSaveableListener = new ConfigurationSaveableListener();
+        ConfigurationSaveableListener configurationSaveableListener =
+                new ConfigurationSaveableListener();
         ConfigurationSaveableListener spyListener = Mockito.spy(configurationSaveableListener);
 
         Mockito.doNothing().when(spyListener).sendPluginConfigData(file);
@@ -79,21 +76,20 @@ public class ConfigurationSaveableListenerTest {
         listener.sendPluginConfigData(file);
 
         // Assert
-        verify(pluginConfigApi).sendConnectionData(
-                eq("url"),
-                eq("secret"),
-                any(PipelineLogger.class),
-                anyString(),
-                eq(true),
-                eq("regex"),
-                eq(true),
-                eq("regex")
-        );
+        verify(pluginConfigApi)
+                .sendConnectionData(
+                        eq("url"),
+                        eq("secret"),
+                        anyString(),
+                        eq(true),
+                        eq("regex"),
+                        eq(true),
+                        eq("regex"),
+                        any(PipelineLogger.class));
     }
 
     @Test
     public void testSendPluginConfigData_FailsSendsWhenNoSecret() throws Exception {
-
 
         // Arrange
         XmlFile file = mock(XmlFile.class);
@@ -106,16 +102,16 @@ public class ConfigurationSaveableListenerTest {
         listener.sendPluginConfigData(file);
 
         // Assert
-        verify(pluginConfigApi, never()).sendConnectionData(
-                anyString(),
-                anyString(),
-                any(PipelineLogger.class),
-                anyString(),
-                anyBoolean(),
-                anyString(),
-                anyBoolean(),
-                anyString()
-        );
+        verify(pluginConfigApi, never())
+                .sendConnectionData(
+                        anyString(),
+                        anyString(),
+                        anyString(),
+                        anyBoolean(),
+                        anyString(),
+                        anyBoolean(),
+                        anyString(),
+                        any(PipelineLogger.class));
     }
 
     @Test
@@ -132,7 +128,8 @@ public class ConfigurationSaveableListenerTest {
         when(xmlUtils.extractBooleanValue(rootElement, "autoBuildsEnabled")).thenReturn(true);
         when(xmlUtils.extractBooleanValue(rootElement, "autoDeploymentsEnabled")).thenReturn(true);
         when(xmlUtils.extractXmlValue(rootElement, "autoDeploymentsRegex")).thenReturn("regex");
-        when(rootElement.getElementsByTagName("atl-jsw-site-configuration")).thenReturn(siteElements);
+        when(rootElement.getElementsByTagName("atl-jsw-site-configuration"))
+                .thenReturn(siteElements);
         when(siteElements.getLength()).thenReturn(0);
         when(siteElements.item(0)).thenReturn(null);
         when(xmlUtils.extractXmlValue(siteElement, "webhookUrl")).thenReturn("url");
@@ -143,16 +140,16 @@ public class ConfigurationSaveableListenerTest {
         listener.sendPluginConfigData(file);
 
         // Assert
-        verify(pluginConfigApi, never()).sendConnectionData(
-                anyString(),
-                anyString(),
-                any(PipelineLogger.class),
-                anyString(),
-                anyBoolean(),
-                anyString(),
-                anyBoolean(),
-                anyString()
-        );
+        verify(pluginConfigApi, never())
+                .sendConnectionData(
+                        anyString(),
+                        anyString(),
+                        anyString(),
+                        anyBoolean(),
+                        anyString(),
+                        anyBoolean(),
+                        anyString(),
+                        any(PipelineLogger.class));
     }
 
     @Test
@@ -162,7 +159,8 @@ public class ConfigurationSaveableListenerTest {
         arrangeMockData(file);
 
         // ahh throw a error
-        when(xmlUtils.parseXmlFile(file)).thenThrow(new RuntimeException("Error during XML parsing"));
+        when(xmlUtils.parseXmlFile(file))
+                .thenThrow(new RuntimeException("Error during XML parsing"));
 
         // Act
         try {
@@ -171,19 +169,20 @@ public class ConfigurationSaveableListenerTest {
         }
 
         // Assert
-        verify(pluginConfigApi, never()).sendConnectionData(
-                anyString(),
-                anyString(),
-                any(PipelineLogger.class),
-                anyString(),
-                anyBoolean(),
-                anyString(),
-                anyBoolean(),
-                anyString()
-        );
+        verify(pluginConfigApi, never())
+                .sendConnectionData(
+                        anyString(),
+                        anyString(),
+                        anyString(),
+                        anyBoolean(),
+                        anyString(),
+                        anyBoolean(),
+                        anyString(),
+                        any(PipelineLogger.class));
     }
 
-    private void arrangeMockData(final XmlFile file) throws ParserConfigurationException, IOException, SAXException {
+    private void arrangeMockData(final XmlFile file)
+            throws ParserConfigurationException, IOException, SAXException {
         Element rootElement = mock(Element.class);
         NodeList siteElements = mock(NodeList.class);
         Element siteElement = mock(Element.class);
@@ -193,13 +192,12 @@ public class ConfigurationSaveableListenerTest {
         when(xmlUtils.extractBooleanValue(rootElement, "autoBuildsEnabled")).thenReturn(true);
         when(xmlUtils.extractBooleanValue(rootElement, "autoDeploymentsEnabled")).thenReturn(true);
         when(xmlUtils.extractXmlValue(rootElement, "autoDeploymentsRegex")).thenReturn("regex");
-        when(rootElement.getElementsByTagName("atl-jsw-site-configuration")).thenReturn(siteElements);
+        when(rootElement.getElementsByTagName("atl-jsw-site-configuration"))
+                .thenReturn(siteElements);
         when(siteElements.getLength()).thenReturn(1);
         when(siteElements.item(0)).thenReturn(siteElement);
         when(xmlUtils.extractXmlValue(siteElement, "webhookUrl")).thenReturn("url");
         when(xmlUtils.extractXmlValue(siteElement, "credentialsId")).thenReturn("id");
         when(secretRetriever.getSecretFor(eq("id"))).thenReturn(Optional.of("secret"));
-
     }
-
 }

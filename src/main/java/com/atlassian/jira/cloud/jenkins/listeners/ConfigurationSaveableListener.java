@@ -38,6 +38,10 @@ public class ConfigurationSaveableListener extends SaveableListener {
     private PluginConfigApi pluginConfigApi;
     private SecretRetriever secretRetriever;
     private XmlUtils xmlUtils;
+    private static final String AUTO_BUILDS_REGEX_TAG = "autoBuildsRegex";
+    private static final String AUTO_BUILDS_ENABLED_TAG = "autoBuildsEnabled";
+    private static final String AUTO_DEPLOYMENTS_ENABLED_TAG = "autoDeploymentsEnabled";
+    private static final String AUTO_DEPLOYMENTS_REGEX_TAG = "autoDeploymentsRegex";
 
     @Inject
     public void setSecretRetriever(final SecretRetriever secretRetriever) {
@@ -74,13 +78,14 @@ public class ConfigurationSaveableListener extends SaveableListener {
         try {
             Element rootElement = this.xmlUtils.parseXmlFile(file);
             List<PluginSiteData> siteDataList = createSiteDataList(rootElement);
-            String autoBuildsRegex = this.xmlUtils.extractXmlValue(rootElement, "autoBuildsRegex");
+            String autoBuildsRegex =
+                    this.xmlUtils.extractXmlValue(rootElement, AUTO_BUILDS_REGEX_TAG);
             boolean autoBuildsEnabled =
-                    this.xmlUtils.extractBooleanValue(rootElement, "autoBuildsEnabled");
+                    this.xmlUtils.extractBooleanValue(rootElement, AUTO_BUILDS_ENABLED_TAG);
             boolean autoDeploymentsEnabled =
-                    this.xmlUtils.extractBooleanValue(rootElement, "autoDeploymentsEnabled");
+                    this.xmlUtils.extractBooleanValue(rootElement, AUTO_DEPLOYMENTS_ENABLED_TAG);
             String autoDeploymentsRegex =
-                    this.xmlUtils.extractXmlValue(rootElement, "autoDeploymentsRegex");
+                    this.xmlUtils.extractXmlValue(rootElement, AUTO_DEPLOYMENTS_REGEX_TAG);
 
             for (PluginSiteData data : siteDataList) {
                 Optional<String> maybeSecret =
@@ -95,7 +100,7 @@ public class ConfigurationSaveableListener extends SaveableListener {
                                         autoDeploymentsRegex,
                                         secret));
             }
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.log(Level.SEVERE, "Error processing plugin configuration data", e);
         }
     }
@@ -124,12 +129,12 @@ public class ConfigurationSaveableListener extends SaveableListener {
             pluginConfigApi.sendConnectionData(
                     data.getWebhookUrl(),
                     secret,
-                    PipelineLogger.noopInstance(),
                     getIpAddress(),
                     autoBuildsEnabled,
                     autoBuildsRegex,
                     autoDeploymentsEnabled,
-                    autoDeploymentsRegex);
+                    autoDeploymentsRegex,
+                    PipelineLogger.noopInstance());
         } catch (Exception e) {
             logger.log(
                     Level.SEVERE,
