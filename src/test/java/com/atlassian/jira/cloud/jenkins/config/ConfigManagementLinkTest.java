@@ -82,7 +82,7 @@ public class ConfigManagementLinkTest {
         final String iconFileName = classUnderTest.getIconFileName();
 
         // then
-        assertThat(iconFileName).isEqualTo("notepad.png");
+        assertThat(iconFileName).isEqualTo("/plugin/atlassian-jira-software-cloud/images/icon.png");
     }
 
     @Test

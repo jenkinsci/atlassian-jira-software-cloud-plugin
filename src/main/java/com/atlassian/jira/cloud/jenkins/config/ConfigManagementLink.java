@@ -249,7 +249,7 @@ public class ConfigManagementLink extends ManagementLink
                 res.sendRedirect(jenkinsRootUrl + "manage/");
             }
         } catch (IOException e) {
-            LOGGER.log(Level.SEVERE, "Success redirect failed", e);
+            LOGGER.log(Level.SEVERE, "Failed to redirect after save.", e);
             doIndex(req, res);
         }
     }
