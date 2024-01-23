@@ -102,7 +102,7 @@
 
                                 <div>
                                     <!-- Cancel Site Button -->
-                                    <input type="button" value="Cancel" onclick="hideSiteInputs();" />
+                                    <input type="button" value="Cancel" class="cancel-site-edit-btn" onclick="hideSiteInputs();" />
 
                                     <f:validateButton
                                             title="${%Test Connection}" progress="${%Testing...}"
@@ -114,16 +114,14 @@
                         <f:section title="Builds and deployments">
                             <div class="help-area">
                                 <div class="help display-block">
-                                    <p>To configure what build and deployment data is sent to connected Jira sites:</p>
+                                    <p>Configure what data is sent to connected Jira sites.</p>
                                     <ul>
                                         <li>
-                                            Select the options below to send build and deployment data from <span class="or-separator">any pipeline</span> run on this server to <span class="or-separator">all</span> connected Jira sites.
-                                            <div>(Connected sites will discard any build and deployment data that does not contain issue keys relevant to projects on those sites.)</div>
+                                            If you select the options below, build and deployment data will be sent to all connected Jira sites whenever this server runs pipelines that match criteria you specify.
                                         </li>
                                         <span class="or-separator">or</span>
                                         <li>
-                                            Add sendJiraBuildInfo and sendJiraDeploymentInfo steps to the Jenkinsfiles of <span class="or-separator">the specific pipelines</span> you’d like to send data to Jira.
-                                            <div>(This will also allow you to select which Jira sites data is sent to).</div>
+                                            If you don’t select the options below, you can setup individual pipelines to send data to Jira using instructions in their Jenkinsfiles. See <a href="https://plugins.jenkins.io/atlassian-jira-software-cloud" target="_blank">https://plugins.jenkins.io/atlassian-jira-software-cloud</a> for more information.
                                         </li>
                                     </ul>
                                 </div>
@@ -131,7 +129,7 @@
 
                             <!-- Auto Builds -->
                             <f:entry>
-                                <f:optionalBlock help="/plugin/atlassian-jira-software-cloud/help-autoBuilds.html" name="${config.FIELD_NAME_AUTO_BUILDS}" title="${%Send build data from all pipelines}" checked="${config.getAutoBuildsEnabled()}">
+                                <f:optionalBlock help="/plugin/atlassian-jira-software-cloud/help-autoBuilds.html" name="${config.FIELD_NAME_AUTO_BUILDS}" title="${%Send build data automatically}" checked="${config.getAutoBuildsEnabled()}">
                                     <f:entry title="${%Build stage regex filter: (Optional)}" field="autoBuildsRegex">
                                         <f:textbox id="autoBuildsRegex" name="${config.FIELD_NAME_AUTO_BUILDS_REGEX}" value="${config.getAutoBuildsRegex()}" />
                                         <input type="button" value="Validate Regex" onclick="validateAutoBuildsRegex();" class="validate-regex-btn" />
@@ -142,7 +140,7 @@
 
                             <!-- Auto Deployments -->
                             <f:entry>
-                                <f:optionalBlock help="/plugin/atlassian-jira-software-cloud/help-autoDeployments.html" name="${config.FIELD_NAME_AUTO_DEPLOYMENTS}" title="${%Send deployments automatically}" checked="${config.getAutoDeploymentsEnabled()}">
+                                <f:optionalBlock help="/plugin/atlassian-jira-software-cloud/help-autoDeployments.html" name="${config.FIELD_NAME_AUTO_DEPLOYMENTS}" title="${%Send deployment data automatically}" checked="${config.getAutoDeploymentsEnabled()}">
                                     <f:entry title="${%Deployment stage regex filter:}" field="autoDeploymentsRegex">
                                         <f:textbox id="autoDeploymentsRegex" name="${config.FIELD_NAME_AUTO_DEPLOYMENTS_REGEX}" value="${config.getAutoDeploymentsRegex()}" />
                                         <input type="button" value="Validate Regex" onclick="validateAutoDeploymentsRegex();" class="validate-regex-btn" />

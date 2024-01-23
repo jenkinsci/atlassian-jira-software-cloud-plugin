@@ -1,5 +1,6 @@
 <div>
-    Enable this setting to send deployment data to Jira whenever any pipeline on this server completes a deployment stage with a name matching the regex filter specified.<br>
-    Deployment stages must include an environment name (for example "deploy to prod") to send environment data to Jira. Use (?&lt;envname&gt;.*)$ in the regex filter to extract and send environment names.<br>
-    Only use this setting if your teams have a consistent naming convention for deployment stages in their Jenkinsfiles.
+    <div>
+        Enable this setting to send deployment data to Jira whenever this server runs a pipeline with a <b>deployment stage</b> matching the regex specified.<br>
+        Deployment stages must include an environment name (for example "deploy to prod") to send environment data to Jira. Use (?&lt;envname&gt;.*)$ in the regex filter to extract and send environment names.
+    </div>
 </div>

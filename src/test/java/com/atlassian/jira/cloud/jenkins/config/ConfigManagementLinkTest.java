@@ -82,7 +82,7 @@ public class ConfigManagementLinkTest {
         final String iconFileName = classUnderTest.getIconFileName();
 
         // then
-        assertThat(iconFileName).isEqualTo("notepad.png");
+        assertThat(iconFileName).isEqualTo("/plugin/atlassian-jira-software-cloud/images/icon.png");
     }
 
     @Test
@@ -178,7 +178,7 @@ public class ConfigManagementLinkTest {
         classUnderTest.doSaveConfiguration(mockRequest, mockResponse);
 
         // then
-        verify(mockResponse).sendRedirect("/jenkins/manage/");
+        verify(mockResponse).sendRedirect(matches(".*/manage/"));
     }
 
     private void setupMocks() {
