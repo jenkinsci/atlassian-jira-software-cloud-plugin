@@ -72,6 +72,29 @@ input[type=button].validate-regex-btn {
     margin-top: 0.5em;
 }
 
+.advanced-options-accordian {
+    padding: 10px;
+    border-radius: 6px;
+    background-color: whitesmoke;
+    font-weight: bold;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.advanced-options-accordian:hover {
+    cursor: pointer;
+    color: #0062d1;
+}
+
+.advanced-options-chevron {
+    margin-top: 3px;
+}
+
+.help-area {
+    margin-bottom: 3em;
+}
+
 /* Override Jelly core layout offset issue */
 #page-body #main-panel {
     max-width: 80vw !important;
@@ -95,11 +118,15 @@ tr.site-data-row.selected td #actionsContainer {
     overflow: hidden;
 }
 
-.site-data-default {
+.site-data-default, .advanced-block-default {
     position:absolute;
     top:-10000px;
 }
 
 .help.display-block {
     display: block;
+}
+
+.jenkins-form-item {
+    margin-bottom: 0;
 }
