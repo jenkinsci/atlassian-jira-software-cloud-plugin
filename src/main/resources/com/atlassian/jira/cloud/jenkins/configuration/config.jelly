@@ -116,14 +116,12 @@
                             <l:icon id="advancedOptionsChevron" src="symbol-chevron-up" class="advanced-options-chevron icon-sm"/>
                         </div>
                         <div class="advanced-block advanced-block-default" id="advancedOptionsContainer">
-<!--                            <f:entry>-->
-<!--                                <f:optionalBlock name="advance" title="Advanced settings (optional)">-->
                                     <f:section title="Builds and deployments">
                                         <div class="help-area">
                                             <div class="help display-block">
-                                                <p>This plugin will always look for explicit instructions in your pipelines to send build and deployment information to connected Jira sites.</p>
-                                                <p>Some teams may find it more convenient to send build and deployment data to Jira based on the names of build and deployment stages in your pipelines. Use the options below to set up this plugin to look for those, too.  (This setting that applies to all connected Jira sites)</p>
-                                                <p>For more information on how this plugin works with Jira sites, see https://plugins.jenkins.io/atlassian-jira-software-cloud</p>
+                                                When this server runs a pipeline, the Atlassian Jira Software Cloud plugin will look for explicit instructions in that pipeline’s Jenkinsfile to send information to Jira.<br/>
+                                                In addition, you can set this plugin to look for particular stage names in that Jenkinsfile, and use those as a trigger to send information.<br/>
+                                                <a href="https://plugins.jenkins.io/atlassian-jira-software-cloud/#plugin-content-how-jenkins-for-jira-works" target="_blank">Learn more about these options</a><br/>
                                             </div>
                                         </div>
                                     </f:section>
@@ -154,8 +152,6 @@
                                         <!-- Enable Debug Logging -->
                                         <f:checkbox name="${config.FIELD_NAME_DEBUG_LOGGING}" title="Collect additional details to debug issues with sent data." checked="${config.getDebugLogging()}" />
                                     </f:section>
-<!--                                </f:optionalBlock>-->
-<!--                            </f:entry>-->
                         </div>
 
 
