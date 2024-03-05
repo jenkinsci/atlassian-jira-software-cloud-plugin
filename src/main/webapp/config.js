@@ -93,9 +93,6 @@ const hideSiteInputs = () => {
 const toggleAdvancedOptions = () => {
     const advancedOptionsContainer = getAdvancedOptionsContainer();
     const advancedOptionsChevron = getAdvancedOptionsChevron();
-    console.log(advancedOptionsContainer.style.position);
-    console.log(advancedOptionsContainer.style.position);
-    console.log(advancedOptionsContainer.style.position);
     if (advancedOptionsContainer.style.position === 'inherit') {
         setElementPosition(advancedOptionsContainer, 'absolute');
         advancedOptionsChevron.style.transform = 'rotate(0deg)';
