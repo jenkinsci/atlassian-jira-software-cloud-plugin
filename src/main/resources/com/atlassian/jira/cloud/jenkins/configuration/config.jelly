@@ -79,11 +79,9 @@
 
                         <div id="siteDataContainer" class="site-data-default" name="sites">
                             <f:section title="Site Connection details">
-                                <div class="help-area">
-                                    <div class="help display-block">
-                                        <div>A Jira admin will provide the credentials needed to connect to this site.</div>
-                                        <div>Once you've entered these details, select <b>Save</b> to connect.</div>
-                                    </div>
+                                <div class="help display-block">
+                                    <div>A Jira admin will provide the credentials needed to connect to this site.</div>
+                                    <div>Once you've entered these details, select <b>Save</b> to connect.</div>
                                 </div>
 
                                 <f:entry title="Site Name:" help="/plugin/atlassian-jira-software-cloud/help-siteName.html" field="site">
@@ -111,21 +109,20 @@
                             </f:section>
                         </div>
 
-                        <f:section title="Builds and deployments">
-                            <div class="help-area">
-                                <div class="help display-block">
-                                    <p>Configure what data is sent to connected Jira sites.</p>
-                                    <ul>
-                                        <li>
-                                            If you select the options below, build and deployment data will be sent to all connected Jira sites whenever this server runs pipelines that match criteria you specify.
-                                        </li>
-                                        <span class="or-separator">or</span>
-                                        <li>
-                                            If you don’t select the options below, you can setup individual pipelines to send data to Jira using instructions in their Jenkinsfiles. See <a href="https://plugins.jenkins.io/atlassian-jira-software-cloud" target="_blank">https://plugins.jenkins.io/atlassian-jira-software-cloud</a> for more information.
-                                        </li>
-                                    </ul>
+                        <div class="advanced-options-accordian" onclick="toggleAdvancedOptions();">
+                            <span>Advanced settings (optional)</span>
+                            <l:icon id="advancedOptionsChevron" src="symbol-chevron-up" class="advanced-options-chevron icon-sm"/>
+                        </div>
+                        <div class="advanced-block advanced-block-default" id="advancedOptionsContainer">
+                            <f:section title="Builds and deployments">
+                                <div class="help-area">
+                                    <div class="help display-block">
+                                        When this server runs a pipeline, the Atlassian Jira Software Cloud plugin will look for explicit instructions in that pipeline’s Jenkinsfile to send information to Jira.<br/>
+                                        In addition, you can set this plugin to look for particular stage names in that Jenkinsfile, and use those as a trigger to send information.<br/>
+                                        <a href="https://plugins.jenkins.io/atlassian-jira-software-cloud/#plugin-content-how-jenkins-for-jira-works" target="_blank">Learn more about these options</a><br/>
+                                    </div>
                                 </div>
-                            </div>
+                            </f:section>
 
                             <!-- Auto Builds -->
                             <f:entry>
@@ -148,12 +145,12 @@
                                     </f:entry>
                                 </f:optionalBlock>
                             </f:entry>
-                        </f:section>
 
-                        <f:section title="Debug Logs">
-                            <!-- Enable Debug Logging -->
-                            <f:checkbox name="${config.FIELD_NAME_DEBUG_LOGGING}" title="Collect additional details to debug issues with sent data." checked="${config.getDebugLogging()}" />
-                        </f:section>
+                            <f:section title="Debug Logs">
+                                <!-- Enable Debug Logging -->
+                                <f:checkbox name="${config.FIELD_NAME_DEBUG_LOGGING}" title="Collect additional details to debug issues with sent data." checked="${config.getDebugLogging()}" />
+                            </f:section>
+                        </div>
 
                         <!-- Submit -->
                         <div class="sticky-save-footer">

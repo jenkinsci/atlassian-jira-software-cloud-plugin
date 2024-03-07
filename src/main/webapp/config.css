@@ -64,12 +64,27 @@
 }
 
 .sticky-save-footer button {
-    min-width: 5.625rem;
+    min-width: 5.625em;
 }
 
 input[type=button].validate-regex-btn {
     float: right;
     margin-top: 0.5em;
+}
+
+.advanced-options-accordian {
+    padding: 1em;
+    border-radius: 6px;
+    background-color: whitesmoke;
+    font-weight: bold;
+    display: flex;
+    justify-content: space-between;
+    margin: 2em 0;
+}
+
+.advanced-options-accordian:hover {
+    cursor: pointer;
+    color: #0062d1;
 }
 
 /* Override Jelly core layout offset issue */
@@ -95,11 +110,12 @@ tr.site-data-row.selected td #actionsContainer {
     overflow: hidden;
 }
 
-.site-data-default {
+.site-data-default, .advanced-block-default {
     position:absolute;
     top:-10000px;
 }
 
 .help.display-block {
     display: block;
+    margin-bottom: 3em;
 }
