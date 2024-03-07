@@ -71,4 +71,41 @@ public class ChangeLogIssueKeyExtractorTest extends TestCase {
         assertTrue(issueKeys.contains("TEST-2"));
         assertFalse(issueKeys.contains("TEST-3"));
     }
+
+    @Test
+    public void testExtractIssueKeysWhenCurrentAndFirstPreviousChangeSetsEmpty() {
+
+        WorkflowRun current = mock(WorkflowRun.class);
+        WorkflowRun previous1 = mock(WorkflowRun.class);
+        WorkflowRun previous2 = mock(WorkflowRun.class);
+
+        when(current.getPreviousBuild()).thenReturn(previous1);
+        when(previous1.getPreviousBuild()).thenReturn(previous2);
+        when(previous2.getPreviousBuild()).thenReturn(null);
+
+        EntryImpl e1 = new EntryImpl().withMsg("TEST-1 Some message");
+        EntryImpl e2 = new EntryImpl().withMsg("TEST-2 Another message");
+
+        List<EntryImpl> entryListPrevious2 = new ArrayList<>();
+        entryListPrevious2.add(e1);
+        entryListPrevious2.add(e2);
+
+        FakeChangeLogSet changeLogSetPrevious2 =
+                new FakeChangeLogSet(previous2, entryListPrevious2);
+
+        List<ChangeLogSet<? extends ChangeLogSet.Entry>> changeSetsCurrent = new ArrayList<>();
+        List<ChangeLogSet<? extends ChangeLogSet.Entry>> changeSetsPrevious1 = new ArrayList<>();
+        List<ChangeLogSet<? extends ChangeLogSet.Entry>> changeSetsPrevious2 = new ArrayList<>();
+        changeSetsPrevious2.add(changeLogSetPrevious2);
+
+        when(current.getChangeSets()).thenReturn(changeSetsCurrent);
+        when(previous1.getChangeSets()).thenReturn(changeSetsPrevious1);
+        when(previous2.getChangeSets()).thenReturn(changeSetsPrevious2);
+
+        ChangeLogIssueKeyExtractor extractor = new ChangeLogIssueKeyExtractor();
+        Set<String> issueKeys = extractor.extractIssueKeys(current, PipelineLogger.noopInstance());
+
+        assertTrue(issueKeys.contains("TEST-1"));
+        assertTrue(issueKeys.contains("TEST-2"));
+    }
 }
