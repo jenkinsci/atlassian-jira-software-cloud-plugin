@@ -1,3 +1,4 @@
+# Jenkins Plugin for Jira Cloud
 
 Used together, the **Atlassian Jira Software Cloud** plugin for Jenkins and the **Jenkins for Jira** app for Jira provide a free, secure, and reliable way to connect your Jenkins server, running behind the firewall, with either Jira Software Cloud or Jira Service Management Cloud.
 
@@ -181,14 +182,14 @@ The regular expression `^build$` would match the `build` stage in the following 
 
 ```
 pipeline { 
-	agent any 
-	stages { 
-		stage('build') { 
-			steps { 
-				echo 'build done' 
-			} 
-		}
-	}
+  agent any 
+  stages { 
+    stage('build') { 
+      steps { 
+        echo 'build done' 
+      } 
+    }
+  }
 }
 ```
 
@@ -210,7 +211,24 @@ For this to work, the deployment steps in your Jenkinsfile must contain the envi
 Let's look at an example `Jenkinsfile`:
 ```
 pipeline { 
-agent any stages { stage('deployments') { parallel { stage('deploy to stg') { steps { echo stg deployment done' } } stage('deploy to prod') { steps { echo 'prod deployment done' } } } } } }
+  agent any 
+  stages { 
+    stage('deployments') { 
+      parallel { 
+        stage('deploy to stg') { 
+          steps { 
+            echo 'stg deployment done'
+          }
+        } 
+        stage('deploy to prod') { 
+          steps { 
+            echo 'prod deployment done' 
+          } 
+        } 
+      } 
+    } 
+  } 
+}
 ```
 
 If the checkbox "Send deployments automatically" is enabled and the regular expression is set to `^deploy to (?<envName>.*)$`, a run of the above Jenkinsfile will send "in progress" deployment events for the `stg` and `prod` environments to all configured Jira Cloud sites, followed by respective "success" deployment events once the build steps are finished.
@@ -220,7 +238,8 @@ If the checkbox "Send deployments automatically" is enabled and the regular expr
 If you want more control over when to send build events, you can use the `jiraSendBuildInfo` build step:
 
 ```
-pipeline { agent any stages { stage('Build') { steps { echo 'Building...' } post { always { // previous to version 2.0.0 you must provide parameters to this command (see below)! jiraSendBuildInfo() } } } } }
+pipeline { 
+agent any stages { stage('Build') { steps { echo 'Building...' } post { always { // previous to version 2.0.0 you must provide parameters to this command (see below)! jiraSendBuildInfo() } } } } }
 ```
 
 This will send a "success" or "failure" build event to all configured Jira Cloud sites after the `Build` stage has finished successfully or with an error. The Jenkins plugin will automatically extract Jira issue keys from the branch name.
@@ -228,7 +247,22 @@ This will send a "success" or "failure" build event to all configured Jira Cloud
 You can also specify a Jira site URL and instruct the plugin to only send build events to this Jira site (rather than to all configured Jira sites).
 
 ```
-pipeline { agent any stages { stage('Build') { steps { echo 'Building...' } post { always { jiraSendBuildInfo site: 'example.atlassian.net', branch: 'TEST-123-awesome-feature' } } } } }
+pipeline { 
+  agent any 
+  stages { 
+    stage('Build') { 
+      steps { 
+        echo 'Building...' 
+      } 
+      post { 
+        always { 
+          // previous to version 2.0.0 you must provide parameters to this command (see below)!
+          jiraSendBuildInfo() 
+        } 
+      } 
+    } 
+  } 
+}
 ```
 
 ## Use explicit instructions to send deployment data to Jira
@@ -236,7 +270,37 @@ pipeline { agent any stages { stage('Build') { steps { echo 'Building...' } post
 If you want more control over when to send deployment events, you can use the `jiraSendDeploymentInfo` build step:
 
 ```
-pipeline { agent any stages { stage('Deploy - Staging') { when { branch 'master' } steps { echo 'Deploying to Staging from master...' } post { always { jiraSendDeploymentInfo environmentId: 'us-stg-1', environmentName: 'us-stg-1', environmentType: 'staging' } } } stage('Deploy - Production') { when { branch 'master' } steps { echo 'Deploying to Production from master...' } post { always { jiraSendDeploymentInfo environmentId: 'us-prod-1', environmentName: 'us-prod-1', environmentType: 'production' } } } }
+pipeline { 
+  agent any 
+  stages { 
+    stage('Deploy - Staging') { 
+      when { 
+        branch 'master' 
+      } 
+      steps { 
+        echo 'Deploying to Staging from master...' 
+      } 
+      post { 
+        always { 
+          jiraSendDeploymentInfo environmentId: 'us-stg-1', environmentName: 'us-stg-1', environmentType: 'staging' 
+        } 
+      } 
+    } 
+    stage('Deploy - Production') { 
+      when { 
+        branch 'master' 
+      } 
+      steps { 
+        echo 'Deploying to Production from master...' 
+      } 
+      post { 
+        always { 
+          jiraSendDeploymentInfo environmentId: 'us-prod-1', environmentName: 'us-prod-1', environmentType: 'production' 
+        } 
+      } 
+    } 
+  } 
+}
 ```
 
 This will send a "success" or "failure" deployment event to all configured Jira sites at the end of the stages `Deploy - Staging` and `Deploy - Production`.
@@ -254,7 +318,47 @@ You can also specify a branch with the `branch` parameter to define the branch f
 You can mix build and deployments as in the `Jenkinsfile` below:
 
 ```
-pipeline { agent any stages { stage('Build') { steps { echo 'Building...' } post { always { jiraSendBuildInfo site: 'example.atlassian.net' } } } stage('Deploy - Staging') { when { branch 'master' } steps { echo 'Deploying to Staging from master...' } post { always { jiraSendDeploymentInfo environmentId: 'us-stg-1', environmentName: 'us-stg-1', environmentType: 'staging' } } } stage('Deploy - Production') { when { branch 'master' } steps { echo 'Deploying to Production from master...' } post { always { jiraSendDeploymentInfo environmentId: 'us-prod-1', environmentName: 'us-prod-1', environmentType: 'production' } } } } }
+pipeline { 
+  agent any 
+  stages { 
+    stage('Build') { 
+      steps { 
+        echo 'Building...' 
+      } 
+      post { 
+        always { 
+          jiraSendBuildInfo site: 'example.atlassian.net' 
+        } 
+      } 
+    } 
+    stage('Deploy - Staging') { 
+      when { 
+        branch 'master' 
+      } 
+      steps { 
+        echo 'Deploying to Staging from master...' 
+      } 
+      post { 
+        always { 
+          jiraSendDeploymentInfo environmentId: 'us-stg-1', environmentName: 'us-stg-1', environmentType: 'staging' 
+        } 
+      } 
+    } 
+    stage('Deploy - Production') { 
+      when { 
+        branch 'master' 
+      } 
+      steps { 
+        echo 'Deploying to Production from master...' 
+      } 
+      post { 
+        always { 
+          jiraSendDeploymentInfo environmentId: 'us-prod-1', environmentName: 'us-prod-1', environmentType: 'production' 
+        } 
+      } 
+    } 
+  } 
+}
 ```
 
 ### View development information in Jira
