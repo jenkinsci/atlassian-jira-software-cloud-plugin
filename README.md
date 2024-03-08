@@ -239,7 +239,21 @@ If you want more control over when to send build events, you can use the `jiraSe
 
 ```
 pipeline { 
-agent any stages { stage('Build') { steps { echo 'Building...' } post { always { // previous to version 2.0.0 you must provide parameters to this command (see below)! jiraSendBuildInfo() } } } } }
+  agent any 
+  stages { 
+    stage('Build') { 
+      steps { 
+        echo 'Building...' 
+      } 
+      post { 
+        always { 
+          // previous to version 2.0.0 you must provide parameters to this command (see below)!
+          jiraSendBuildInfo() 
+        } 
+      } 
+    } 
+  } 
+}
 ```
 
 This will send a "success" or "failure" build event to all configured Jira Cloud sites after the `Build` stage has finished successfully or with an error. The Jenkins plugin will automatically extract Jira issue keys from the branch name.
