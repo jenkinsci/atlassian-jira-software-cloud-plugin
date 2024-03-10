@@ -33,8 +33,8 @@ public final class ChangeLogIssueKeyExtractor implements IssueKeyExtractor {
         final List<ChangeLogSet<? extends ChangeLogSet.Entry>> changeSets =
                 new ArrayList<>(workflowRun.getChangeSets());
 
-        addFirstNonEmptyChangeSetFromPreviousBuilds(workflowRun, changeSets);
         addChangeSetsFromFailedPreviousBuilds(workflowRun, changeSets);
+        addFirstNonEmptyChangeSetFromPreviousBuilds(workflowRun, changeSets);
 
         for (ChangeLogSet<? extends ChangeLogSet.Entry> changeSet : changeSets) {
             final Object[] changeSetEntries = changeSet.getItems();
