@@ -137,7 +137,7 @@ To access the set up guide for a server:
 5.  Once your team has set up what build events your Jenkins server should send to Jira, you’ll start seeing those events populate the **Recent events** tab in your server.
 
 
-## How Jenkins sends data to Jira
+## How Jenkins for Jira works
 
 Whenever a pipeline runs in Jenkins, the **Atlassian Jira Software Cloud** plugin will look in that pipeline’s Jenkinsfile for signs it should send data to Jira.
 
