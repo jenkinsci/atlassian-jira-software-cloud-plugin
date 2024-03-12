@@ -1,0 +1,42 @@
+name: Java Maven Build and Test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up JDK
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: '8'
+
+      - name: Configure Maven settings
+        env:
+          MAVEN_SETTINGS_PATH: .github/maven/settings.xml
+        run: |
+          mkdir -p $HOME/.m2
+          cp $GITHUB_WORKSPACE/$MAVEN_SETTINGS_PATH $HOME/.m2/settings.xml
+
+          # Debug output
+          echo "Current directory: $(pwd)"
+          echo "Contents of $HOME/.m2 directory:"
+          ls -la $HOME/.m2
+          echo "Contents of settings.xml:"
+          cat $HOME/.m2/settings.xml
+
+          echo "Maven settings have been configured."
+
+      - name: Build with test
+        run: mvn clean package
