@@ -33,7 +33,12 @@ public final class ChangeLogIssueKeyExtractor implements IssueKeyExtractor {
         final List<ChangeLogSet<? extends ChangeLogSet.Entry>> changeSets =
                 new ArrayList<>(workflowRun.getChangeSets());
 
-        addChangeSetsFromFailedPreviousBuilds(workflowRun, changeSets);
+        if (changeSets.size() == 0) {
+            // When promoting a deployment or deploying to another environment, the Git change set won't be available.
+            // This is because Jenkins checks for Git changes since the last build, and there won't be any.
+            // To address this, we traverse back to retrieve the last change so we have the changes to inspect for issue keys.
+            addChangeSetsFromFailedPreviousBuilds(workflowRun, changeSets);
+        }
         addFirstNonEmptyChangeSetFromPreviousBuilds(workflowRun, changeSets);
 
         for (ChangeLogSet<? extends ChangeLogSet.Entry> changeSet : changeSets) {
@@ -79,12 +84,10 @@ public final class ChangeLogIssueKeyExtractor implements IssueKeyExtractor {
     private void addFirstNonEmptyChangeSetFromPreviousBuilds(
             final WorkflowRun workflowRun,
             final List<ChangeLogSet<? extends ChangeLogSet.Entry>> changeSets) {
-        if (changeSets.size() == 0) {
-            WorkflowRun previous = workflowRun.getPreviousBuild();
-            while (Objects.nonNull(previous) && changeSets.isEmpty()) {
-                changeSets.addAll(previous.getChangeSets());
-                previous = previous.getPreviousBuild();
-            }
+        WorkflowRun previous = workflowRun.getPreviousBuild();
+        while (Objects.nonNull(previous) && changeSets.isEmpty()) {
+            changeSets.addAll(previous.getChangeSets());
+            previous = previous.getPreviousBuild();
         }
     }
 
