@@ -82,6 +82,7 @@ public class ChangeLogIssueKeyExtractorTest extends TestCase {
         when(current.getPreviousBuild()).thenReturn(previous1);
         when(previous1.getPreviousBuild()).thenReturn(previous2);
         when(previous2.getPreviousBuild()).thenReturn(null);
+        when(previous1.getResult()).thenReturn(Result.SUCCESS);
 
         EntryImpl e1 = new EntryImpl().withMsg("TEST-1 Some message");
         EntryImpl e2 = new EntryImpl().withMsg("TEST-2 Another message");
