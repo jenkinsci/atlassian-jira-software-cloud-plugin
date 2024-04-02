@@ -33,12 +33,14 @@ public final class ChangeLogIssueKeyExtractor implements IssueKeyExtractor {
         final List<ChangeLogSet<? extends ChangeLogSet.Entry>> changeSets =
                 new ArrayList<>(workflowRun.getChangeSets());
 
-        // Go through all previously failed builds and collect their changesets.
-        WorkflowRun previous = workflowRun.getPreviousBuild();
-        while (Objects.nonNull(previous) && !isBuildSuccessful(previous)) {
-            changeSets.addAll(previous.getChangeSets());
-            previous = previous.getPreviousBuild();
+        // When promoting a deployment or deploying to another environment, the Git change set won't be available.
+        // This is because Jenkins checks for Git changes since the last build, and there won't be any.
+        // To address this, we traverse back to retrieve the last change so we have the changes to inspect for issue keys
+        if (changeSets.size() == 0) {
+            addFirstNonEmptyChangeSetFromPreviousBuilds(workflowRun, changeSets);
         }
+        // Go through all previously failed builds and collect their changesets.
+        addChangeSetsFromFailedPreviousBuilds(workflowRun, changeSets);
 
         for (ChangeLogSet<? extends ChangeLogSet.Entry> changeSet : changeSets) {
             final Object[] changeSetEntries = changeSet.getItems();
@@ -78,6 +80,28 @@ public final class ChangeLogIssueKeyExtractor implements IssueKeyExtractor {
                 .limit(ISSUE_KEY_MAX_LIMIT)
                 .map(IssueKey::toString)
                 .collect(Collectors.toSet());
+    }
+
+    private void addFirstNonEmptyChangeSetFromPreviousBuilds(
+            final WorkflowRun workflowRun,
+            final List<ChangeLogSet<? extends ChangeLogSet.Entry>> changeSets) {
+
+        WorkflowRun previous = workflowRun.getPreviousBuild();
+        while (Objects.nonNull(previous) && changeSets.isEmpty()) {
+            changeSets.addAll(previous.getChangeSets());
+            previous = previous.getPreviousBuild();
+        }
+    }
+
+    private void addChangeSetsFromFailedPreviousBuilds(
+            final WorkflowRun workflowRun,
+            final List<ChangeLogSet<? extends ChangeLogSet.Entry>> changeSets) {
+
+        WorkflowRun previous = workflowRun.getPreviousBuild();
+        while (Objects.nonNull(previous) && !isBuildSuccessful(previous)) {
+            changeSets.addAll(previous.getChangeSets());
+            previous = previous.getPreviousBuild();
+        }
     }
 
     private boolean isBuildSuccessful(@CheckForNull final WorkflowRun workflowRun) {
