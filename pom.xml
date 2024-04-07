@@ -9,10 +9,10 @@
     </parent>
     <groupId>com.atlassian.jira.software.cloud.jenkins</groupId>
     <artifactId>atlassian-jira-software-cloud</artifactId>
-    <version>2.0.14</version>
+    <version>${revision}${changelist}</version>
     <packaging>hpi</packaging>
     <properties>
-        <revision>2.0.14</revision>
+        <revision>2.0.15</revision>
         <changelist>-SNAPSHOT</changelist>
         <!-- Baseline Jenkins version you use to build the plugin. Users must have this version or newer to run. -->
         <jenkins.baseline>2.387</jenkins.baseline>
