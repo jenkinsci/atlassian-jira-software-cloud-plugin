@@ -215,8 +215,7 @@ public class ConfigManagementLink extends ManagementLink
         return formData;
     }
 
-    @VisibleForTesting
-    JSONArray getSitesFromFormInArray(JSONObject formData) {
+    JSONArray getSitesFromFormInArray(final JSONObject formData) {
         JSONArray sitesArray = new JSONArray();
 
         if (formData.get(SITES) instanceof JSONArray) {
