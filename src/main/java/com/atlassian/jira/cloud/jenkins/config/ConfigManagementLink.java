@@ -37,6 +37,7 @@ import javax.inject.Inject;
 import javax.servlet.ServletException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -134,7 +135,8 @@ public class ConfigManagementLink extends ManagementLink
     private void sendConfigDataToJira(final JSONObject formData)
             throws JiraConnectionFailedException {
         List<String> failedSitesList = new ArrayList<>();
-        JSONArray sitesArray = formData.getJSONArray(SITES);
+        JSONArray sitesArray = getSitesFromFormInArray(formData);
+
         String ipAddress = getIpAddress();
 
         boolean autoBuildsEnabled = formData.has(AUTO_BUILDS);
@@ -211,6 +213,18 @@ public class ConfigManagementLink extends ManagementLink
             }
         }
         return formData;
+    }
+
+    JSONArray getSitesFromFormInArray(final JSONObject formData) {
+        JSONArray sitesArray = new JSONArray();
+
+        if (formData.get(SITES) instanceof JSONArray) {
+            sitesArray = formData.getJSONArray(SITES);
+        } else if (formData.get(SITES) instanceof JSONObject) {
+            sitesArray.add(0, formData.getJSONObject(SITES));
+        }
+
+        return sitesArray;
     }
 
     @RequirePOST
