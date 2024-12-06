@@ -144,3 +144,19 @@ function atlWatchNotEmpty(inputId, errorDivId, errorMessage) {
     }, 100);
 }
 
+document.addEventListener("DOMContentLoaded", () => {
+    atlWatchNotEmpty('atlDeploymentsRegex', 'atlTestDeploymentRegexBlankError', 'Pipeline step regex cannot be empty!');
+
+    document.querySelectorAll(".jira-scp-regex-tester").forEach((button) => {
+        button.addEventListener("click", (event) => {
+            event.preventDefault();
+
+            const data = event.target.dataset;
+            const { regexTextboxId, errorDivId, successDivId, promptMessage } = data;
+            const expectedGroupsArray = JSON.parse(data.expectedGroupsArray);
+
+            new AtlassianRegexTester(regexTextboxId, errorDivId, successDivId)
+                .test(promptMessage, expectedGroupsArray);
+        });
+    });
+});

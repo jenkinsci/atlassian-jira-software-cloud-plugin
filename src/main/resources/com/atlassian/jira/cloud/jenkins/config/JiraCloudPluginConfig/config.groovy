@@ -2,15 +2,9 @@ package com.atlassian.jira.cloud.jenkins.config.JiraCloudPluginConfig
 
 def f = namespace(lib.FormTagLib);
 def c = namespace(lib.CredentialsTagLib)
+def st = namespace("jelly:stapler")
 
-raw(
-"<script>" +
-    getClass().getResourceAsStream(
-            "/com/atlassian/jira/cloud/jenkins/config/JiraCloudPluginConfig/config.js"
-    ).readLines().join("\n") +
-"</script>"
-)
-
+st.adjunct(includes: "com.atlassian.jira.cloud.jenkins.config.JiraCloudPluginConfig.config")
 
 f.section(title: "Jira Software Cloud Integration") {
     f.entry(title: _("Jira Cloud Sites"),
@@ -52,17 +46,16 @@ f.section(title: "Jira Software Cloud Integration") {
 
             }
 
-            span(
-                    class: "yui-button",
-                    onClick: "return (new AtlassianRegexTester('atlBuildsRegex', 'atlTestBuildRegexError', 'atlTextBuildRegexSuccess'))" +
-                                ".test('Please enter the test name of your pipeline step/stage:', []);"
-            ) {
-                button(
-                        onClick: "return false;"
-                ) {
-                    text(_("Test Pipeline step regex"))
-                }
-            }
+            button(
+                    "style": "float: right;",
+                    class: "jenkins-button jira-scp-regex-tester",
+                    "data-regex-textbox-id": "atlBuildsRegex",
+                    "data-error-div-id": "atlTestBuildRegexError",
+                    "data-success-div-id": "atlTextBuildRegexSuccess",
+                    "data-prompt-message": "Please enter the test name of your pipeline step/stage:",
+                    "data-expected-groups-array": "[]",
+                    ("Test Pipeline step regex")
+            )
         }
     }
 
@@ -93,20 +86,15 @@ f.section(title: "Jira Software Cloud Integration") {
 
             // NOTE: in Java underscores in the names of the groups are forbidden! See:
             // https://stackoverflow.com/questions/21271972/i-cant-use-a-group-name-like-this-abc-def-using-patterns
-            span(
-                    class: "yui-button",
-                    onClick: "return (new AtlassianRegexTester('atlDeploymentsRegex', 'atlTestDeploymentRegexError', 'atlTextDeploymentRegexSuccess'))" +
-                            ".test('Please enter the test name of your pipeline step/stage:', ['envName']);"
-            ) {
-                button(
-                        onClick: "return false;"
-                ) {
-                    text(_("Test Pipeline step regex"))
-                }
-            }
-
-            raw(
-                    "<script>atlWatchNotEmpty('atlDeploymentsRegex', 'atlTestDeploymentRegexBlankError', 'Pipeline step regex cannot be empty!');</script>"
+            button(
+                    "style": "float: right;",
+                    class: "jenkins-button jira-scp-regex-tester",
+                    "data-regex-textbox-id": "atlDeploymentsRegex",
+                    "data-error-div-id": "atlTestDeploymentRegexError",
+                    "data-success-div-id": "atlTextDeploymentRegexSuccess",
+                    "data-prompt-message": "Please enter the test name of your pipeline step/stage:",
+                    "data-expected-groups-array": "[\"envName\"]",
+                    ("Test Pipeline step regex")
             )
         }
     }
