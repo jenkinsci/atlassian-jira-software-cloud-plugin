@@ -67,7 +67,7 @@
     min-width: 5.625em;
 }
 
-input[type=button].validate-regex-btn {
+button[type=button].validate-regex-btn {
     float: right;
     margin-top: 0.5em;
 }

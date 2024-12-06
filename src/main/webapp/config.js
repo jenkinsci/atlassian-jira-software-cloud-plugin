@@ -172,10 +172,47 @@ const invokeOnChangeChecks = (...args) => {
     });
 }
 
-const validateAutoBuildsRegex = () => {
-    return (new AtlassianRegexTester('autoBuildsRegex', 'autoBuildsRegexTestResponse', 'autoBuildsRegexTestResponse')).test('Please enter the test name of your pipeline step/stage:', []);
-};
+document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll(".validate-regex-btn").forEach((button) => {
+        button.addEventListener("click", (event) => {
+            event.preventDefault();
 
-const validateAutoDeploymentsRegex = () => {
-    return (new AtlassianRegexTester('autoDeploymentsRegex', 'autoDeploymentsRegexTestResponse', 'autoDeploymentsRegexTestResponse')).test('Please enter the test name of your pipeline step/stage:', []);
-};
+            const data = event.target.dataset;
+            const { regexTextboxId, errorDivId, successDivId, promptMessage } = data;
+            const expectedGroupsArray = JSON.parse(data.expectedGroupsArray);
+
+            new AtlassianRegexTester(regexTextboxId, errorDivId, successDivId)
+                .test(promptMessage, expectedGroupsArray);
+        });
+    });
+
+    document.querySelectorAll(".edit-site-icon").forEach((button) => {
+        button.addEventListener("click", (event) => {
+            event.preventDefault();
+
+            const siteIndex = parseInt(event.target.closest(".edit-site-icon").dataset.siteIndex);
+            editSite(siteIndex);
+        });
+    });
+
+    document.querySelectorAll(".jira-remove-site").forEach((button) => {
+        button.addEventListener("click", (event) => {
+            event.preventDefault();
+
+            const siteIndex = parseInt(event.target.closest(".jira-remove-site").dataset.siteIndex);
+            removeSite(siteIndex);
+        });
+    });
+
+    document.querySelector(".show-site-button").addEventListener("click", () => {
+        showSiteInputs();
+    });
+
+    document.querySelector(".cancel-site-edit-btn").addEventListener("click", () => {
+        hideSiteInputs();
+    });
+
+    document.querySelector(".advanced-options-accordian").addEventListener("click", () => {
+        toggleAdvancedOptions();
+    });
+});

@@ -59,10 +59,10 @@
                                                 </td>
                                                 <td class="actions-table-data">
                                                     <div id="actionsContainer">
-                                                        <a href="#" class="edit-site-icon" onclick="editSite(${loop.index}); return false;">
+                                                        <a href="#" class="edit-site-icon" data-site-index="${loop.index}">
                                                             <l:icon src="symbol-edit" class="icon-sm" tooltip="Edit Site details"/>
                                                         </a>
-                                                        <a href="#" onclick="removeSite(${loop.index}); return false;">
+                                                        <a href="#" class="jira-remove-site" data-site-index="${loop.index}">
                                                             <l:icon src="symbol-trash" class="icon-sm" tooltip="Remove Site"/>
                                                         </a>
                                                     </div>
@@ -75,7 +75,7 @@
                         </div>
 
                         <!-- Add Site Button -->
-                        <input type="button" id="showSiteButton" value="Add Site" class="show-site-button" onclick="showSiteInputs();" />
+                        <button type="button" id="showSiteButton" class="show-site-button jenkins-button">Add Site</button>
 
                         <div id="siteDataContainer" class="site-data-default" name="sites">
                             <f:section title="Site Connection details">
@@ -100,7 +100,7 @@
 
                                 <div>
                                     <!-- Cancel Site Button -->
-                                    <input type="button" value="Cancel" class="cancel-site-edit-btn" onclick="hideSiteInputs();" />
+                                    <button type="button" class="cancel-site-edit-btn jenkins-button">Cancel</button>
 
                                     <f:validateButton
                                             title="${%Test Connection}" progress="${%Testing...}"
@@ -109,7 +109,7 @@
                             </f:section>
                         </div>
 
-                        <div class="advanced-options-accordian" onclick="toggleAdvancedOptions();">
+                        <div class="advanced-options-accordian">
                             <span>Advanced settings (optional)</span>
                             <l:icon id="advancedOptionsChevron" src="symbol-chevron-up" class="advanced-options-chevron icon-sm"/>
                         </div>
@@ -129,7 +129,10 @@
                                 <f:optionalBlock help="/plugin/atlassian-jira-software-cloud/help-autoBuilds.html" name="${config.FIELD_NAME_AUTO_BUILDS}" title="${%Send build data automatically}" checked="${config.getAutoBuildsEnabled()}">
                                     <f:entry title="${%Build stage regex filter: (Optional)}" field="autoBuildsRegex">
                                         <f:textbox id="autoBuildsRegex" name="${config.FIELD_NAME_AUTO_BUILDS_REGEX}" value="${config.getAutoBuildsRegex()}" />
-                                        <input type="button" value="Validate Regex" onclick="validateAutoBuildsRegex();" class="validate-regex-btn" />
+                                        <button type="button" class="jenkins-button validate-regex-btn"
+                                                data-regex-textbox-id="autoBuildsRegex" data-error-div-id="autoBuildsRegexTestResponse"
+                                                data-success-div-id="autoBuildsRegexTestResponse" data-prompt-message="Please enter the test name of your pipeline step/stage:'"
+                                                data-expected-groups-array="[]">Validate Regex</button>
                                         <p id="autoBuildsRegexTestResponse"></p>
                                     </f:entry>
                                 </f:optionalBlock>
@@ -140,7 +143,10 @@
                                 <f:optionalBlock help="/plugin/atlassian-jira-software-cloud/help-autoDeployments.html" name="${config.FIELD_NAME_AUTO_DEPLOYMENTS}" title="${%Send deployment data automatically}" checked="${config.getAutoDeploymentsEnabled()}">
                                     <f:entry title="${%Deployment stage regex filter:}" field="autoDeploymentsRegex">
                                         <f:textbox id="autoDeploymentsRegex" name="${config.FIELD_NAME_AUTO_DEPLOYMENTS_REGEX}" value="${config.getAutoDeploymentsRegex()}" />
-                                        <input type="button" value="Validate Regex" onclick="validateAutoDeploymentsRegex();" class="validate-regex-btn" />
+                                        <button type="button" class="jenkins-button validate-regex-btn"
+                                                data-regex-textbox-id="autoDeploymentsRegex" data-error-div-id="autoDeploymentsRegexTestResponse"
+                                                data-success-div-id="autoDeploymentsRegexTestResponse" data-prompt-message="Please enter the test name of your pipeline step/stage:"
+                                                data-expected-groups-array="[&quot;envName&quot;]">Validate Regex</button>
                                         <p id="autoDeploymentsRegexTestResponse"></p>
                                     </f:entry>
                                 </f:optionalBlock>
