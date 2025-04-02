@@ -52,8 +52,6 @@ const setElementPosition = (element, position) => {
 
 const getSiteDataContainer = () => document.getElementById('siteDataContainer');
 const getShowSiteButton = () => document.getElementById('showSiteButton');
-const getAdvancedOptionsContainer = () => document.getElementById('advancedOptionsContainer');
-const getAdvancedOptionsChevron = () => document.getElementById('advancedOptionsChevron');
 
 const restoreTableSiteData = () => {
     const sitesRows = document.querySelectorAll('tr[id^="site_"]');
@@ -89,18 +87,6 @@ const hideSiteInputs = () => {
     setSiteFormContent();
     handleFormChange();
 };
-
-const toggleAdvancedOptions = () => {
-    const advancedOptionsContainer = getAdvancedOptionsContainer();
-    const advancedOptionsChevron = getAdvancedOptionsChevron();
-    if (advancedOptionsContainer.style.position === 'inherit') {
-        setElementPosition(advancedOptionsContainer, 'absolute');
-        advancedOptionsChevron.style.transform = 'rotate(0deg)';
-    } else {
-        setElementPosition(advancedOptionsContainer, 'inherit');
-        advancedOptionsChevron.style.transform = 'rotate(180deg)';
-    }
-}
 
 const toggleSaveSiteForm = (state) => {
     const activeInput = document.querySelector('#siteDataContainer [name="active"]');

@@ -109,11 +109,7 @@
                             </f:section>
                         </div>
 
-                        <div class="advanced-options-accordian" onclick="toggleAdvancedOptions();">
-                            <span>Advanced settings (optional)</span>
-                            <l:icon id="advancedOptionsChevron" src="symbol-chevron-up" class="advanced-options-chevron icon-sm"/>
-                        </div>
-                        <div class="advanced-block advanced-block-default" id="advancedOptionsContainer">
+                        <f:advanced>
                             <f:section title="Builds and deployments">
                                 <div class="help-area">
                                     <div class="help display-block">
@@ -150,12 +146,12 @@
                                 <!-- Enable Debug Logging -->
                                 <f:checkbox name="${config.FIELD_NAME_DEBUG_LOGGING}" title="Collect additional details to debug issues with sent data." checked="${config.getDebugLogging()}" />
                             </f:section>
-                        </div>
+                        </f:advanced>
 
                         <!-- Submit -->
-                        <div class="sticky-save-footer">
+                        <f:bottomButtonBar>
                             <f:submit value="Save"/>
-                        </div>
+                        </f:bottomButtonBar>
                     </f:form>
                 </st:if>
             </div>
