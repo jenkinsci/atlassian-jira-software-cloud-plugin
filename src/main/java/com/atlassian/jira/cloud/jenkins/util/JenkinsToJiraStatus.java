@@ -10,13 +10,38 @@ import javax.annotation.Nullable;
 
 public final class JenkinsToJiraStatus {
     /**
-     * Maps a Jenkins Build status to Jira API build/deployment status
+     * Maps a Jenkins Build status to Jira API build/deployment status.
+     *
+     * <p>Note: In scripted pipelines, {@code getResult()} may return {@code null} even after the
+     * build has completed successfully (see JENKINS-46325). Use {@link #getState(Result, boolean)}
+     * when the completion context is known.
      *
      * @return State for Jira API payload
      */
     public static State getState(@Nullable final Result jenkinsBuildResult) {
+        return getState(jenkinsBuildResult, false);
+    }
+
+    /**
+     * Maps a Jenkins Build status to Jira API build/deployment status, with awareness of whether
+     * the build has completed.
+     *
+     * <p>In scripted pipelines, {@code WorkflowRun.getResult()} returns {@code null} for successful
+     * builds even after completion. When {@code isCompleted} is {@code true} and the result is
+     * {@code null}, this method correctly returns {@link State#SUCCESSFUL} instead of {@link
+     * State#IN_PROGRESS}.
+     *
+     * @param jenkinsBuildResult the build result (may be null)
+     * @param isCompleted whether the build has finished execution
+     * @return State for Jira API payload
+     */
+    public static State getState(
+            @Nullable final Result jenkinsBuildResult, final boolean isCompleted) {
         if (jenkinsBuildResult == null) {
-            return State.IN_PROGRESS;
+            // In Jenkins Pipeline, a null result means either "still running" or
+            // "completed successfully" (scripted pipelines don't explicitly set SUCCESS).
+            // Use the isCompleted flag to disambiguate.
+            return isCompleted ? State.SUCCESSFUL : State.IN_PROGRESS;
         }
 
         if (jenkinsBuildResult == Result.SUCCESS) {

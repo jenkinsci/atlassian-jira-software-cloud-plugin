@@ -33,6 +33,9 @@ public class MultibranchBuildInfoRequest extends JiraBuildInfoRequest {
         this.jiraState =
                 this.statusFlowNode
                         .map(JenkinsToJiraStatus::getState)
-                        .orElseGet(() -> JenkinsToJiraStatus.getState(build.getResult()));
+                        .orElseGet(
+                                () ->
+                                        JenkinsToJiraStatus.getState(
+                                                build.getResult(), !build.isBuilding()));
     }
 }
