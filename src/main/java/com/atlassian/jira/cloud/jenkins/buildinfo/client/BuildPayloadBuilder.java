@@ -57,7 +57,7 @@ public final class BuildPayloadBuilder {
                                     String.valueOf(buildWrapper.getFullProjectName().hashCode()))
                             .withBuildNumber(buildWrapper.getNumber())
                             .withDisplayName(buildWrapper.getFullProjectName())
-                            .withUpdateSequenceNumber(Instant.now().getEpochSecond())
+                            .withUpdateSequenceNumber(Instant.now().toEpochMilli())
                             .withLabel(buildWrapper.getDisplayName())
                             .withUrl(buildWrapper.getAbsoluteUrl())
                             .withState(jiraState.value)

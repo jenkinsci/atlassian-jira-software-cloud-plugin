@@ -60,11 +60,9 @@ public class AutoBuildsAndDeploymentsTest {
     private static final String SITE = "example.atlassian.net";
     private static final String CREDENTIAL_ID = UUID.randomUUID().toString();
 
-    @ClassRule
-    public static BuildWatcher buildWatcher = new BuildWatcher();
+    @ClassRule public static BuildWatcher buildWatcher = new BuildWatcher();
 
-    @Rule
-    public JenkinsRule jenkins = new JenkinsRule();
+    @Rule public JenkinsRule jenkins = new JenkinsRule();
 
     private final JiraSenderFactory mockSenderFactory = mock(JiraSenderFactory.class);
 
@@ -90,14 +88,17 @@ public class AutoBuildsAndDeploymentsTest {
 
     private void assertListenersRegistered() {
 
-        Optional<RunListener> existingListener = jenkins.getInstance()
-                .getExtensionList(RunListener.class)
-                .stream()
-                .filter(listener -> listener instanceof JenkinsPipelineRunListener)
-                .findFirst();
+        Optional<RunListener> existingListener =
+                jenkins.getInstance()
+                        .getExtensionList(RunListener.class)
+                        .stream()
+                        .filter(listener -> listener instanceof JenkinsPipelineRunListener)
+                        .findFirst();
 
         if (existingListener.isPresent()) {
-            logger.info("found existing {} ... removing it", JenkinsPipelineRunListener.class.getName());
+            logger.info(
+                    "found existing {} ... removing it",
+                    JenkinsPipelineRunListener.class.getName());
             jenkins.getInstance()
                     .getExtensionList(RunListener.class)
                     .remove(existingListener.get());
@@ -107,25 +108,29 @@ public class AutoBuildsAndDeploymentsTest {
                 .getExtensionList(RunListener.class)
                 .add(0, new JenkinsPipelineRunListener(issueKeyExtractor));
 
-
         // Checking that the JenkinsPipelineRunListener is registered exactly once.
         assertThat(
-                (int) jenkins.getInstance()
-                        .getExtensionList(RunListener.class)
-                        .stream()
-                        .filter(listener -> listener instanceof JenkinsPipelineRunListener)
-                        .count())
+                        (int)
+                                jenkins.getInstance()
+                                        .getExtensionList(RunListener.class)
+                                        .stream()
+                                        .filter(
+                                                listener ->
+                                                        listener
+                                                                instanceof
+                                                                JenkinsPipelineRunListener)
+                                        .count())
                 .isEqualTo(1);
 
         // Checking that the JenkinsPipelineGraphListener is registered exactly once.
         assertThat(
-                jenkins.getInstance()
-                        .getExtensionList(GraphListener.class)
-                        .stream()
-                        .filter(
-                                listener ->
-                                        listener instanceof JenkinsPipelineGraphListener)
-                        .count())
+                        jenkins.getInstance()
+                                .getExtensionList(GraphListener.class)
+                                .stream()
+                                .filter(
+                                        listener ->
+                                                listener instanceof JenkinsPipelineGraphListener)
+                                .count())
                 .isEqualTo(1);
     }
 
@@ -216,8 +221,8 @@ public class AutoBuildsAndDeploymentsTest {
 
     @Test
     public void
-    whenAutoBuildsRegexMatching_thenSendsInProgressAndSuccessBuildEventsForFirstMatchingStep()
-            throws Exception {
+            whenAutoBuildsRegexMatching_thenSendsInProgressAndSuccessBuildEventsForFirstMatchingStep()
+                    throws Exception {
         WorkflowJob workflow = givenWorkflowFromFile("auto-build-with-multiple-build-steps.groovy");
         givenAutoBuildsEnabled();
         givenAutoBuildsRegex("^build.*$");
@@ -251,6 +256,22 @@ public class AutoBuildsAndDeploymentsTest {
 
         verifyBuildEvent(0, State.IN_PROGRESS);
         verifyBuildEvent(1, State.FAILED);
+    }
+
+    /**
+     * Scripted pipelines leave WorkflowRun.getResult() as null for successful builds. The plugin
+     * must still report the final state as SUCCESSFUL (not IN_PROGRESS) when onCompleted fires.
+     */
+    @Test
+    public void whenScriptedPipelineSucceeds_thenFinalBuildEventIsSuccessful() throws Exception {
+        WorkflowJob workflow = givenWorkflowFromFile("auto-build-scripted.groovy");
+        givenAutoBuildsEnabled();
+        givenIssueKeys();
+
+        jenkins.assertBuildStatusSuccess(workflow.scheduleBuild2(0));
+
+        verifyBuildEvent(0, State.IN_PROGRESS);
+        verifyBuildEvent(1, State.SUCCESSFUL);
     }
 
     @Test

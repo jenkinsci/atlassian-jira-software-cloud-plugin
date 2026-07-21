@@ -36,7 +36,7 @@ public final class DeploymentPayloadBuilder {
             return new Deployments(
                     JiraDeploymentInfo.builder()
                             .withDeploymentSequenceNumber(runWrapper.getNumber())
-                            .withUpdateSequenceNumber(Instant.now().getEpochSecond())
+                            .withUpdateSequenceNumber(Instant.now().toEpochMilli())
                             .withAssociations(associations)
                             .withDisplayName(runWrapper.getDisplayName())
                             .withUrl(runWrapper.getAbsoluteUrl())

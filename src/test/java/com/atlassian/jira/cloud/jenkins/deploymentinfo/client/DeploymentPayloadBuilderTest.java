@@ -61,6 +61,40 @@ public class DeploymentPayloadBuilderTest extends BaseUnitTest {
         assertDeploymentResult(runWrapper, jiraDeploymentInfo, "successful");
     }
 
+    /**
+     * The updateSequenceNumber must use millisecond precision to prevent collisions when multiple
+     * status updates (e.g. in_progress and successful) are sent within the same second.
+     * Epoch-second precision causes identical values, and Jira only replaces existing deployment
+     * data when the incoming updateSequenceNumber is strictly greater than the stored value.
+     *
+     * <p>Real-world evidence: deployment events fired ~800ms apart both received
+     * updateSequenceNumber=1783713953 (epoch seconds), causing Jira to ignore the "successful"
+     * update and remain stuck at "in_progress".
+     */
+    @Test
+    public void testUpdateSequenceNumber_usesMillisecondPrecision() throws Exception {
+        final RunWrapper runWrapper = mockRunWrapper();
+
+        final long beforeMillis = System.currentTimeMillis();
+        final Deployments deployments =
+                DeploymentPayloadBuilder.getDeploymentInfo(
+                        runWrapper,
+                        mockEnvironment(),
+                        ASSOCIATIONS,
+                        "successful",
+                        Collections.emptyList());
+        final long afterMillis = System.currentTimeMillis();
+
+        final Long updateSequenceNumber =
+                deployments.getDeployments().get(0).getUpdateSequenceNumber();
+
+        // Must be in milliseconds (13+ digits), not seconds (10 digits).
+        // A value in seconds would be ~1.7 billion; in millis it's ~1.7 trillion.
+        assertThat(updateSequenceNumber)
+                .isGreaterThanOrEqualTo(beforeMillis)
+                .isLessThanOrEqualTo(afterMillis);
+    }
+
     @Test
     public void testFailedBuild() throws Exception {
         // when
