@@ -34,7 +34,8 @@ public class BuildPayloadBuilderTest extends BaseUnitTest {
         final JiraBuildInfo buildInfo = buildPayload.getBuild();
         // then
         assertThat(buildPayload.getProviderMetadata().getProduct()).isEqualTo("jenkins");
-        assertThat(buildInfo.getPipelineId()).isEqualTo(String.valueOf(runWrapper.getFullProjectName().hashCode()));
+        assertThat(buildInfo.getPipelineId())
+                .isEqualTo(String.valueOf(runWrapper.getFullProjectName().hashCode()));
         assertThat(buildInfo.getBuildNumber()).isEqualTo(runWrapper.getNumber());
         assertThat(buildInfo.getDisplayName()).isEqualTo(runWrapper.getFullProjectName());
         assertThat(buildInfo.getUrl()).isEqualTo(runWrapper.getAbsoluteUrl());
@@ -46,6 +47,33 @@ public class BuildPayloadBuilderTest extends BaseUnitTest {
         assertThat(buildInfo.getTestInfo().getNumberPassed()).isEqualTo(5);
         assertThat(buildInfo.getTestInfo().getNumberFailed()).isEqualTo(3);
         assertThat(buildInfo.getTestInfo().getNumberSkipped()).isEqualTo(2);
+    }
+
+    /**
+     * The updateSequenceNumber must use millisecond precision to prevent collisions when multiple
+     * status updates (e.g. in_progress and successful) are sent within the same second.
+     * Epoch-second precision causes identical values, and Jira only replaces existing data when the
+     * incoming updateSequenceNumber is strictly greater.
+     */
+    @Test
+    public void testUpdateSequenceNumber_usesMillisecondPrecision() throws Exception {
+        final RunWrapper runWrapper = mockRunWrapper("SUCCESS");
+        final JiraBuildInfoRequest request = mock(JiraBuildInfoRequest.class);
+        when(request.getJiraState()).thenReturn(State.SUCCESSFUL);
+
+        final long beforeMillis = System.currentTimeMillis();
+        final Builds buildPayload =
+                BuildPayloadBuilder.getBuildPayload(
+                        request.getJiraState(), runWrapper, ImmutableSet.of(ISSUE_KEY));
+        final long afterMillis = System.currentTimeMillis();
+
+        final Long updateSequenceNumber = buildPayload.getBuild().getUpdateSequenceNumber();
+
+        // Must be in milliseconds (13+ digits), not seconds (10 digits).
+        // A value in seconds would be ~1.7 billion; in millis it's ~1.7 trillion.
+        assertThat(updateSequenceNumber)
+                .isGreaterThanOrEqualTo(beforeMillis)
+                .isLessThanOrEqualTo(afterMillis);
     }
 
     @Test
@@ -62,7 +90,8 @@ public class BuildPayloadBuilderTest extends BaseUnitTest {
 
         // then
         assertThat(buildPayload.getProviderMetadata().getProduct()).isEqualTo("jenkins");
-        assertThat(buildInfo.getPipelineId()).isEqualTo(String.valueOf(runWrapper.getFullProjectName().hashCode()));
+        assertThat(buildInfo.getPipelineId())
+                .isEqualTo(String.valueOf(runWrapper.getFullProjectName().hashCode()));
         assertThat(buildInfo.getBuildNumber()).isEqualTo(runWrapper.getNumber());
         assertThat(buildInfo.getDisplayName()).isEqualTo(runWrapper.getFullProjectName());
         assertThat(buildInfo.getUrl()).isEqualTo(runWrapper.getAbsoluteUrl());
