@@ -11,7 +11,7 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
-import org.apache.commons.lang.text.StrSubstitutor;
+import org.apache.commons.text.StringSubstitutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -194,7 +194,7 @@ public class JiraApi {
         final List<String> segments = url.pathSegments();
         final HttpUrl.Builder builder = url.newBuilder();
         for (int i = 0; i < segments.size(); i++) {
-            builder.setPathSegment(i, StrSubstitutor.replace(segments.get(i), pathParams));
+            builder.setPathSegment(i, StringSubstitutor.replace(segments.get(i), pathParams));
         }
 
         return new Request.Builder()

@@ -2,7 +2,7 @@ package com.atlassian.jira.cloud.jenkins.util;
 
 import com.google.common.collect.ImmutableSet;
 import com.atlassian.jira.cloud.jenkins.common.model.IssueKey;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collections;
 import java.util.HashSet;

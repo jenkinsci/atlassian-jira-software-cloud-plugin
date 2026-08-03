@@ -1,6 +1,6 @@
 package com.atlassian.jira.cloud.jenkins.util;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.regex.Pattern;
 
