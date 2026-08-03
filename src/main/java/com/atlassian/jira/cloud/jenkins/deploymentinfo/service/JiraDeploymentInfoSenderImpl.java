@@ -23,7 +23,7 @@ import com.atlassian.jira.cloud.jenkins.util.StateValidator;
 import com.google.common.collect.ImmutableList;
 import hudson.model.Result;
 import hudson.model.Run;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.jenkinsci.plugins.workflow.support.steps.build.RunWrapper;
 
