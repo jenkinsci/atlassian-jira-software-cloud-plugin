@@ -7,13 +7,12 @@ import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Environment;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.JiraDeploymentInfo;
 import com.atlassian.jira.cloud.jenkins.deploymentinfo.client.model.Pipeline;
 import hudson.AbortException;
-import hudson.model.Run;
 import org.jenkinsci.plugins.workflow.support.steps.build.RunWrapper;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
+import com.atlassian.jira.cloud.jenkins.util.RunUrlProvider;
 
 public final class DeploymentPayloadBuilder {
 
@@ -39,7 +38,7 @@ public final class DeploymentPayloadBuilder {
                             .withUpdateSequenceNumber(Instant.now().getEpochSecond())
                             .withAssociations(associations)
                             .withDisplayName(runWrapper.getDisplayName())
-                            .withUrl(runWrapper.getAbsoluteUrl())
+                            .withUrl(RunUrlProvider.getRunUrl(runWrapper))
                             .withDescription(runWrapper.getDisplayName())
                             .withLastUpdated(Instant.now().toString())
                             .withLabel(runWrapper.getDisplayName())
@@ -54,14 +53,10 @@ public final class DeploymentPayloadBuilder {
     }
 
     private static Pipeline getPipeline(final RunWrapper runWrapper) throws AbortException {
-        final Optional<? extends Run<?, ?>> build = Optional.ofNullable(runWrapper.getRawBuild());
-
         return Pipeline.builder()
                 .withId(String.valueOf(runWrapper.getFullProjectName().hashCode()))
                 .withDisplayName(runWrapper.getFullProjectName())
-                .withUrl(
-                        build.map(b -> b.getParent().getAbsoluteUrl())
-                                .orElse(runWrapper.getAbsoluteUrl()))
+                .withUrl(RunUrlProvider.getPipelineUrl(runWrapper))
                 .build();
     }
 }

@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.Set;
+import com.atlassian.jira.cloud.jenkins.util.RunUrlProvider;
 
 public final class BuildPayloadBuilder {
 
@@ -59,7 +60,7 @@ public final class BuildPayloadBuilder {
                             .withDisplayName(buildWrapper.getFullProjectName())
                             .withUpdateSequenceNumber(Instant.now().getEpochSecond())
                             .withLabel(buildWrapper.getDisplayName())
-                            .withUrl(buildWrapper.getAbsoluteUrl())
+                            .withUrl(RunUrlProvider.getRunUrl(buildWrapper))
                             .withState(jiraState.value)
                             .withLastUpdated(Instant.now().toString())
                             .withIssueKeys(issueKeys)
