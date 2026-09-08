@@ -6,6 +6,10 @@ import org.jenkinsci.plugins.workflow.support.steps.build.RunWrapper;
 
 public final class RunUrlProvider {
 
+    private RunUrlProvider() {
+        // utility class
+    }
+
     /**
      * Resolves the absolute URL for a build run, ensuring path segments (such as branch names
      * containing '/' in multibranch pipelines) are properly URL-encoded.
@@ -20,7 +24,7 @@ public final class RunUrlProvider {
             if (jenkins != null && jenkins.getRootUrl() != null && rawBuild != null) {
                 return jenkins.getRootUrl() + rawBuild.getUrl();
             }
-        } catch (final Throwable ignored) {
+        } catch (final Exception ignored) {
             // Fall back if Jenkins instance is unavailable (e.g. unit tests or detached execution)
         }
 
@@ -48,7 +52,7 @@ public final class RunUrlProvider {
                     && rawBuild.getParent() != null) {
                 return jenkins.getRootUrl() + rawBuild.getParent().getUrl();
             }
-        } catch (final Throwable ignored) {
+        } catch (final Exception ignored) {
             // Fall back
         }
 
