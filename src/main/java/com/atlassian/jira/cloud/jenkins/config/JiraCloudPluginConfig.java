@@ -2,6 +2,7 @@ package com.atlassian.jira.cloud.jenkins.config;
 
 import com.atlassian.jira.cloud.jenkins.Messages;
 import hudson.Extension;
+import hudson.ExtensionList;
 import jenkins.model.GlobalConfiguration;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
@@ -57,7 +58,7 @@ public class JiraCloudPluginConfig extends GlobalConfiguration {
 
     @Nullable
     public static JiraCloudPluginConfig get() {
-        return GlobalConfiguration.all().get(JiraCloudPluginConfig.class);
+        return ExtensionList.lookup(JiraCloudPluginConfig.class).get(JiraCloudPluginConfig.class);
     }
 
     public static boolean isDebugLoggingEnabled() {

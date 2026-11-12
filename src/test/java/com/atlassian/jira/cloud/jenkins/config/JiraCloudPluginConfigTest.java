@@ -1,6 +1,7 @@
 package com.atlassian.jira.cloud.jenkins.config;
 
 import com.google.common.collect.ImmutableList;
+import hudson.ExtensionList;
 import hudson.model.Descriptor;
 import net.sf.json.JSONObject;
 import net.sf.json.JSONSerializer;
@@ -266,5 +267,16 @@ public class JiraCloudPluginConfigTest {
             final String expectedCredentialsId) {
         assertThat(config.getSite()).isEqualTo(expectedSite);
         assertThat(config.getCredentialsId()).isEqualTo(expectedCredentialsId);
+    }
+
+    @Test
+    public void testGet_resolvesFromDedicatedExtensionList() {
+        JiraCloudPluginConfig config = JiraCloudPluginConfig.get();
+
+        assertThat(config).isNotNull();
+        assertThat(config)
+                .isSameAs(
+                        ExtensionList.lookup(JiraCloudPluginConfig.class)
+                                .get(JiraCloudPluginConfig.class));
     }
 }
