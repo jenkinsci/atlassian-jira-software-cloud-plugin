@@ -7,7 +7,8 @@ import com.atlassian.jira.cloud.jenkins.pluginConfigApi.PluginConfigApi;
 import com.atlassian.jira.cloud.jenkins.util.SecretRetriever;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import hudson.Plugin;
-import jenkins.model.Jenkins;
+import hudson.init.InitMilestone;
+import hudson.init.Initializer;
 import okhttp3.OkHttpClient;
 
 import java.util.Optional;
@@ -25,11 +26,15 @@ public class InitializePluginListener extends Plugin {
         this.pluginConfigApi = new PluginConfigApi(new OkHttpClient(), new ObjectMapper());
     }
 
-    @Override
-    public void postInitialize() throws Exception {
-        super.postInitialize();
-        JiraCloudPluginConfig config = JiraCloudPluginConfig.get();
-        sendConfigDataToJira(config);
+    @Initializer(after = InitMilestone.JOB_LOADED)
+    public void onLoaded() {
+        syncConfiguration(JiraCloudPluginConfig.get());
+    }
+
+    void syncConfiguration(final JiraCloudPluginConfig config) {
+        if (config != null) {
+            sendConfigDataToJira(config);
+        }
     }
 
     void sendConfigDataToJira(final JiraCloudPluginConfig config) {
@@ -38,8 +43,17 @@ public class InitializePluginListener extends Plugin {
             String credentialsId = siteConfig.getCredentialsId();
 
             final Optional<String> maybeSecret = this.secretRetriever.getSecretFor(credentialsId);
-            String secret = maybeSecret.orElse("");
-            
+            if (!maybeSecret.isPresent() || maybeSecret.get().isEmpty()) {
+                LOGGER.warning(
+                        "Skipping Jira configuration sync for site "
+                                + siteConfig.getSite()
+                                + " because secret for credentials '"
+                                + credentialsId
+                                + "' is not available yet.");
+                continue;
+            }
+            String secret = maybeSecret.get();
+
             try {
                 this.pluginConfigApi.sendConnectionData(
                         webhookUrl,
