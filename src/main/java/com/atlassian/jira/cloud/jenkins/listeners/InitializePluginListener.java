@@ -28,7 +28,10 @@ public class InitializePluginListener extends Plugin {
 
     @Initializer(after = InitMilestone.JOB_LOADED)
     public void onLoaded() {
-        JiraCloudPluginConfig config = JiraCloudPluginConfig.get();
+        syncConfiguration(JiraCloudPluginConfig.get());
+    }
+
+    void syncConfiguration(final JiraCloudPluginConfig config) {
         if (config != null) {
             sendConfigDataToJira(config);
         }

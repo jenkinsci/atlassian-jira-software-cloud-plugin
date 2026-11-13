@@ -107,4 +107,25 @@ public class InitializePluginListenerTest {
                 .extracting(Method::getName)
                 .doesNotContain("postInitialize");
     }
+
+    @Test
+    public void testSendConfigDataToJira_skipsWhenSecretIsBlankString() {
+        JiraCloudPluginConfig config = mock(JiraCloudPluginConfig.class);
+        JiraCloudSiteConfig siteConfig = mock(JiraCloudSiteConfig.class);
+        when(siteConfig.getWebhookUrl()).thenReturn("https://example.com/webhook");
+        when(siteConfig.getCredentialsId()).thenReturn("creds");
+        when(config.getSites()).thenReturn(Collections.singletonList(siteConfig));
+        when(secretRetriever.getSecretFor("creds")).thenReturn(Optional.of(""));
+
+        initializePluginListener.sendConfigDataToJira(config);
+
+        verifyNoMoreInteractions(pluginConfigApi);
+    }
+
+    @Test
+    public void testSyncConfiguration_skipsWhenConfigIsNull() {
+        initializePluginListener.syncConfiguration(null);
+
+        verifyNoMoreInteractions(pluginConfigApi, secretRetriever);
+    }
 }
